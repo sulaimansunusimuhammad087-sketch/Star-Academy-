@@ -32,8 +32,8 @@ input, select {
   width: 100%;
   padding: 10px;
   margin: 5px 0;
-  border: none;
   border-radius: 5px;
+  border: none;
 }
 
 button {
@@ -95,7 +95,8 @@ import {
   onSnapshot,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -110,20 +111,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* 🔥 AUTO ID SYSTEM (0001, 0002, 0003...) */
+/* ✅ SAFE SEQUENTIAL ID SYSTEM */
 async function generateStudentID() {
   const counterRef = doc(db, "meta", "counter");
-  const counterSnap = await getDoc(counterRef);
 
-  let count = 1;
+  const newNumber = await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(counterRef);
 
-  if (counterSnap.exists()) {
-    count = counterSnap.data().count + 1;
-  }
+    let count = 0;
 
-  await setDoc(counterRef, { count });
+    if (!snap.exists()) {
+      count = 1;
+    } else {
+      count = snap.data().count + 1;
+    }
 
-  return "STA/2026/" + String(count).padStart(4, "0");
+    transaction.set(counterRef, { count });
+
+    return count;
+  });
+
+  return "STA/2026/" + String(newNumber).padStart(4, "0");
 }
 
 /* ➕ ADD STUDENT */
