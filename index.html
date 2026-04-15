@@ -12,9 +12,9 @@ body {
 }
 
 .center {
-  max-width: 450px;
+  max-width: 500px;
   margin: auto;
-  margin-top: 70px;
+  margin-top: 60px;
   padding: 20px;
   background: #16161f;
   border-radius: 10px;
@@ -34,13 +34,6 @@ button {
 
 .hidden { display: none; }
 
-header {
-  text-align: center;
-  padding: 15px;
-  background: #111;
-  color: #00e5c0;
-}
-
 .card {
   background: #111;
   padding: 10px;
@@ -52,69 +45,62 @@ header {
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage" class="center">
   <h2>Admin Login</h2>
-
   <input id="email" placeholder="Email">
 
-  <!-- PASSWORD WITH EYE FIX -->
   <div style="position:relative">
     <input id="password" type="password" placeholder="Password">
-    <span onclick="togglePassword()"
-      style="position:absolute;right:10px;top:10px;cursor:pointer;font-size:18px">
-      👁
-    </span>
+    <span onclick="togglePassword()" style="position:absolute;right:10px;top:10px;cursor:pointer">👁</span>
   </div>
 
   <button onclick="login()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
-
-<header>STAR ACADEMY SYSTEM</header>
 
 <div class="center">
 
 <h3>Add Student</h3>
 
-<input id="name" placeholder="Student Name">
+<input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
 <input id="state" placeholder="State">
-<input id="lga" placeholder="Local Government">
+<input id="lga" placeholder="LGA">
 
 <select id="level">
-  <option>Primary</option>
-  <option>Junior Secondary</option>
-  <option>Fresh Class</option>
-  <option>Level 1</option>
-  <option>Level 2</option>
-  <option>Level 3</option>
-</select>
-
-<select id="schoolType">
-  <option>Private</option>
-  <option>Public</option>
+<option>Level 1</option>
+<option>Level 2</option>
+<option>Level 3</option>
 </select>
 
 <button onclick="addStudent()">Save Student</button>
 
-<h3>Search</h3>
-<input id="search" placeholder="Search by name or ID">
-<button onclick="searchStudent()">Search</button>
+<h3>Add Result</h3>
 
-<h3>Students List</h3>
+<input id="studentIDInput" placeholder="Enter Student ID">
+<select id="department">
+<option>Science</option>
+<option>Arts</option>
+</select>
+
+<input id="sub1" placeholder="Subject 1">
+<input id="sub2" placeholder="Subject 2">
+<input id="sub3" placeholder="Subject 3">
+<input id="sub4" placeholder="Subject 4">
+<input id="sub5" placeholder="Subject 5">
+
+<button onclick="addResult()">Save Result</button>
+
+<h3>Students</h3>
 <div id="students"></div>
 
 </div>
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
 import {
 getFirestore,
 collection,
@@ -130,7 +116,7 @@ signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+apiKey: "AIzaSyA...",
 authDomain: "star-academy-system.firebaseapp.com",
 projectId: "star-academy-system",
 storageBucket: "star-academy-system.appspot.com",
@@ -144,110 +130,119 @@ const auth = getAuth(app);
 
 /* LOGIN */
 window.login = async function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+await signInWithEmailAndPassword(
+auth,
+document.getElementById("email").value,
+document.getElementById("password").value
+);
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("dashboard").classList.remove("hidden");
-
-  } catch (err) {
-    alert(err.message);
-  }
+document.getElementById("loginPage").style.display="none";
+document.getElementById("dashboard").classList.remove("hidden");
 };
 
-/* 👁 PASSWORD TOGGLE FIX */
+/* PASSWORD */
 window.togglePassword = function () {
-  const p = document.getElementById("password");
-  p.type = (p.type === "password") ? "text" : "password";
+let p = document.getElementById("password");
+p.type = p.type === "password" ? "text" : "password";
 };
 
 /* ID SYSTEM */
-async function generateStudentID() {
-  const ref = doc(db, "meta", "counter");
+async function generateID() {
+const ref = doc(db,"meta","counter");
 
-  const newNumber = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-
-    let count = snap.exists() ? snap.data().count + 1 : 1;
-
-    tx.set(ref, { count });
-
-    return count;
-  });
-
-  return "STA/2026/" + String(newNumber).padStart(4, "0");
-}
-
-/* ADD STUDENT */
-window.addStudent = async function () {
-
-  const studentID = await generateStudentID();
-
-  const now = new Date();
-
-  await addDoc(collection(db, "students"), {
-    studentID,
-    name: document.getElementById("name").value || "N/A",
-    age: document.getElementById("age").value || "0",
-    state: document.getElementById("state").value || "N/A",
-    lga: document.getElementById("lga").value || "N/A",
-    level: document.getElementById("level").value,
-    schoolType: document.getElementById("schoolType").value,
-
-    // FIXED DATE FORMAT (CLEAN)
-    createdAt: now.toLocaleString()
-  });
-
-  alert("Saved: " + studentID);
-};
-
-/* LIVE DATA */
-let allStudents = [];
-
-const div = document.getElementById("students");
-
-onSnapshot(collection(db, "students"), (snap) => {
-
-  allStudents = [];
-
-  snap.forEach(doc => {
-    allStudents.push(doc.data());
-  });
-
-  render(allStudents);
+const num = await runTransaction(db, async(tx)=>{
+const snap = await tx.get(ref);
+let count = snap.exists()? snap.data().count+1:1;
+tx.set(ref,{count});
+return count;
 });
 
-function render(data) {
-  div.innerHTML = "";
-
-  data.forEach(s => {
-    div.innerHTML += `
-      <div class="card">
-        <b>${s.studentID}</b><br>
-        Full Name: ${s.name}<br>
-        Age: ${s.age}<br>
-        Level: ${s.level}<br>
-        Location: ${s.state}, ${s.lga}<br>
-        Time: ${s.createdAt}
-      </div>
-    `;
-  });
+return "STA/2026/"+String(num).padStart(4,"0");
 }
 
-/* SEARCH */
-window.searchStudent = function () {
-  let val = document.getElementById("search").value.toLowerCase();
+/* ADD STUDENT (BLOCK EMPTY) */
+window.addStudent = async function(){
 
-  let filtered = allStudents.filter(s =>
-    (s.name && s.name.toLowerCase().includes(val)) ||
-    (s.studentID && s.studentID.toLowerCase().includes(val))
-  );
+let name = document.getElementById("name").value;
+let age = document.getElementById("age").value;
 
-  render(filtered);
+if(!name || !age){
+alert("Fill all required fields");
+return;
+}
+
+let id = await generateID();
+
+await addDoc(collection(db,"students"),{
+studentID:id,
+name,
+age,
+state:document.getElementById("state").value,
+lga:document.getElementById("lga").value,
+level:document.getElementById("level").value,
+createdAt:new Date().getTime()
+});
+
+alert("Saved: "+id);
 };
+
+/* ADD RESULT */
+window.addResult = async function(){
+
+let id = document.getElementById("studentIDInput").value;
+
+let scores = [
++sub1.value, +sub2.value, +sub3.value, +sub4.value, +sub5.value
+];
+
+if(scores.some(s=>isNaN(s))){
+alert("Enter valid marks");
+return;
+}
+
+let total = scores.reduce((a,b)=>a+b,0);
+let avg = total/5;
+let status = total>=250?"PASS":"FAIL";
+
+await addDoc(collection(db,"results"),{
+studentID:id,
+scores,
+total,
+average:avg,
+status,
+createdAt:new Date().getTime()
+});
+
+alert("Result saved");
+};
+
+/* SHOW STUDENTS SORTED */
+const div = document.getElementById("students");
+
+onSnapshot(collection(db,"students"),snap=>{
+
+let arr=[];
+
+snap.forEach(doc=>{
+arr.push(doc.data());
+});
+
+/* SORT BY DATE */
+arr.sort((a,b)=>b.createdAt-a.createdAt);
+
+div.innerHTML="";
+
+arr.forEach(s=>{
+div.innerHTML+=`
+<div class="card">
+<b>${s.studentID}</b><br>
+${s.name} (${s.age})<br>
+${s.level}<br>
+</div>
+`;
+});
+
+});
 
 </script>
 
