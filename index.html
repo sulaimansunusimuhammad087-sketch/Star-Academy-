@@ -1,67 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Star Academy System</title>
 
 <style>
 body {
+  font-family: Arial;
   margin: 0;
-  font-family: Arial, sans-serif;
   background: #0a0a0f;
   color: white;
 }
 
-header {
-  background: #111;
-  padding: 20px;
-  text-align: center;
-  color: #00e5c0;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.container {
-  max-width: 900px;
+.center {
+  max-width: 400px;
   margin: auto;
+  margin-top: 100px;
   padding: 20px;
+  background: #16161f;
+  border-radius: 10px;
 }
 
-input, select {
+input, select, button {
   width: 100%;
   padding: 10px;
-  margin: 5px 0;
-  border-radius: 5px;
-  border: none;
+  margin-top: 10px;
 }
 
 button {
-  width: 100%;
-  padding: 12px;
   background: #00e5c0;
   border: none;
-  margin-top: 10px;
   cursor: pointer;
-  font-weight: bold;
 }
 
-.card {
-  background: #16161f;
+.hidden { display: none; }
+
+header {
+  text-align: center;
   padding: 15px;
-  margin-top: 10px;
-  border-radius: 8px;
+  background: #111;
+  color: #00e5c0;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-STAR ACADEMY STUDENT SYSTEM
-</header>
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="center">
+  <h2>Admin Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
 
-<div class="container">
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+
+<header>STAR ACADEMY SYSTEM</header>
+
+<div class="center">
 
 <h3>Add Student</h3>
 
@@ -69,7 +66,15 @@ STAR ACADEMY STUDENT SYSTEM
 <input id="age" type="number" placeholder="Age">
 <input id="state" placeholder="State">
 <input id="lga" placeholder="Local Government">
-<input id="quarter" placeholder="Quarter">
+
+<select id="level">
+  <option>Primary</option>
+  <option>Junior Secondary</option>
+  <option>Fresh Class</option>
+  <option>Level 1</option>
+  <option>Level 2</option>
+  <option>Level 3</option>
+</select>
 
 <select id="schoolType">
   <option>Private</option>
@@ -78,9 +83,10 @@ STAR ACADEMY STUDENT SYSTEM
 
 <button onclick="addStudent()">Save Student</button>
 
-<h3>Students List</h3>
+<h3>Students</h3>
 <div id="students"></div>
 
+</div>
 </div>
 
 <!-- FIREBASE -->
@@ -89,88 +95,102 @@ STAR ACADEMY STUDENT SYSTEM
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  getDoc,
-  setDoc,
-  runTransaction
+getFirestore,
+collection,
+addDoc,
+onSnapshot,
+doc,
+getDoc,
+setDoc,
+runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+import {
+getAuth,
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-  authDomain: "star-academy-system.firebaseapp.com",
-  projectId: "star-academy-system",
-  storageBucket: "star-academy-system.appspot.com",
-  messagingSenderId: "615097211278",
-  appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system",
+storageBucket: "star-academy-system.appspot.com",
+messagingSenderId: "615097211278",
+appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-/* ✅ SAFE SEQUENTIAL ID SYSTEM */
-async function generateStudentID() {
-  const counterRef = doc(db, "meta", "counter");
+/* LOGIN */
+window.login = async function () {
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
 
-  const newNumber = await runTransaction(db, async (transaction) => {
-    const snap = await transaction.get(counterRef);
+try {
+await signInWithEmailAndPassword(auth, email, password);
 
-    let count = 0;
+document.getElementById("loginPage").style.display = "none";
+document.getElementById("dashboard").classList.remove("hidden");
 
-    if (!snap.exists()) {
-      count = 1;
-    } else {
-      count = snap.data().count + 1;
-    }
-
-    transaction.set(counterRef, { count });
-
-    return count;
-  });
-
-  return "STA/2026/" + String(newNumber).padStart(4, "0");
+} catch (err) {
+alert(err.message);
 }
-
-/* ➕ ADD STUDENT */
-window.addStudent = async function () {
-
-  const studentID = await generateStudentID();
-
-  await addDoc(collection(db, "students"), {
-    studentID,
-    name: document.getElementById("name").value || "Not provided",
-    age: document.getElementById("age").value || "0",
-    state: document.getElementById("state").value || "Not provided",
-    lga: document.getElementById("lga").value || "Not provided",
-    quarter: document.getElementById("quarter").value || "Not provided",
-    schoolType: document.getElementById("schoolType").value || "Not provided",
-    createdAt: new Date()
-  });
-
-  alert("Student Saved: " + studentID);
 };
 
-/* 📊 LIVE DISPLAY */
-const studentsDiv = document.getElementById("students");
+/* ID SYSTEM */
+async function generateStudentID() {
+const ref = doc(db, "meta", "counter");
 
-onSnapshot(collection(db, "students"), (snapshot) => {
-  studentsDiv.innerHTML = "";
+const newNumber = await runTransaction(db, async (tx) => {
+const snap = await tx.get(ref);
+let count = snap.exists() ? snap.data().count + 1 : 1;
+tx.set(ref, { count });
+return count;
+});
 
-  snapshot.forEach((doc) => {
-    const s = doc.data();
+return "STA/2026/" + String(newNumber).padStart(4, "0");
+}
 
-    studentsDiv.innerHTML += `
-      <div class="card">
-        <b>${s.studentID}</b><br>
-        ${s.name} | ${s.age} years<br>
-        ${s.state}, ${s.lga}, ${s.quarter}<br>
-        ${s.schoolType}
-      </div>
-    `;
-  });
+/* ADD STUDENT */
+window.addStudent = async function () {
+
+const studentID = await generateStudentID();
+
+await addDoc(collection(db, "students"), {
+studentID,
+name: document.getElementById("name").value || "N/A",
+age: document.getElementById("age").value || "0",
+state: document.getElementById("state").value || "N/A",
+lga: document.getElementById("lga").value || "N/A",
+level: document.getElementById("level").value,
+schoolType: document.getElementById("schoolType").value,
+createdAt: new Date().toISOString()
+});
+
+alert("Saved: " + studentID);
+};
+
+/* SHOW DATA */
+const div = document.getElementById("students");
+
+onSnapshot(collection(db, "students"), (snap) => {
+div.innerHTML = "";
+
+snap.forEach(doc => {
+let s = doc.data();
+
+div.innerHTML += `
+<div style="background:#111;padding:10px;margin-top:10px">
+<b>${s.studentID}</b><br>
+${s.name} | ${s.age}<br>
+${s.level}<br>
+${s.state}, ${s.lga}<br>
+${s.createdAt}
+</div>
+`;
+});
 });
 
 </script>
