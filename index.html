@@ -2,86 +2,138 @@
 <html>
 <head>
   <title>Star Academy System</title>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
   <style>
-    body{
+    body {
       font-family: Arial;
-      background:#0a0a0f;
-      color:white;
-      padding:30px;
+      margin: 0;
+      background: #0a0a0f;
+      color: white;
     }
 
-    input, select{
-      width:100%;
-      padding:10px;
-      margin:5px 0;
+    header {
+      background: #111;
+      padding: 20px;
+      text-align: center;
+      color: #00e5c0;
+      font-size: 22px;
     }
 
-    button{
-      padding:10px;
-      background:#00e5c0;
-      border:none;
-      cursor:pointer;
-      width:100%;
-      margin-top:10px;
+    .container {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
     }
 
-    .box{
-      max-width:500px;
-      margin:auto;
-      background:#16161f;
-      padding:20px;
-      border-radius:10px;
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      padding: 10px;
+      background: #00e5c0;
+      border: none;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .card {
+      background: #16161f;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
     }
   </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>Star Academy - Add Student</h2>
+<header>
+  STAR ACADEMY STUDENT SYSTEM
+</header>
 
-  <input id="name" placeholder="Full Name">
-  <input id="age" placeholder="Age">
+<div class="container">
 
+  <h3>Add Student</h3>
+
+  <input id="name" placeholder="Student Name">
+  <input id="age" type="number" placeholder="Age">
   <input id="state" placeholder="State">
   <input id="lga" placeholder="Local Government">
-  <input id="quarter" placeholder="Quarters">
+  <input id="quarter" placeholder="Quarter">
 
   <select id="schoolType">
-    <option>Public</option>
     <option>Private</option>
+    <option>Public</option>
   </select>
 
-  <button onclick="saveStudent()">Save Student</button>
+  <button onclick="addStudent()">Save Student</button>
+
+  <h3>Students List</h3>
+  <div id="students"></div>
+
 </div>
 
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
 <script>
-  // Firebase config (we will replace later with yours)
   const firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    authDomain: "YOUR_DOMAIN",
-    projectId: "YOUR_PROJECT_ID"
+    apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+    authDomain: "star-academy-system.firebaseapp.com",
+    projectId: "star-academy-system",
+    storageBucket: "star-academy-system.firebasestorage.app",
+    messagingSenderId: "615097211278",
+    appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
   };
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  function saveStudent(){
+  // AUTO ID COUNTER
+  let count = 0;
+
+  function addStudent() {
+    count++;
+
+    let studentID = "STA/2026/" + String(count).padStart(3, '0');
+
     db.collection("students").add({
-      fullName: document.getElementById("name").value,
+      studentID: studentID,
+      name: document.getElementById("name").value,
       age: document.getElementById("age").value,
       state: document.getElementById("state").value,
-      localGovernment: document.getElementById("lga").value,
-      quarters: document.getElementById("quarter").value,
-      schoolType: document.getElementById("schoolType").value,
-      createdAt: new Date()
+      lga: document.getElementById("lga").value,
+      quarter: document.getElementById("quarter").value,
+      schoolType: document.getElementById("schoolType").value
     });
 
-    alert("Student saved!");
+    alert("Student Saved: " + studentID);
   }
+
+  // SHOW STUDENTS
+  db.collection("students").onSnapshot(snapshot => {
+    document.getElementById("students").innerHTML = "";
+
+    snapshot.forEach(doc => {
+      let s = doc.data();
+
+      document.getElementById("students").innerHTML += `
+        <div class="card">
+          <b>${s.studentID}</b><br>
+          ${s.name} | ${s.age} years<br>
+          ${s.state}, ${s.lga}, ${s.quarter}<br>
+          ${s.schoolType}
+        </div>
+      `;
+    });
+  });
 </script>
 
 </body>
