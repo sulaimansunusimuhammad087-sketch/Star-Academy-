@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Star Academy System</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    body{
+      font-family: Arial;
+      background:#0a0a0f;
+      color:white;
+      padding:30px;
+    }
+
+    input, select{
+      width:100%;
+      padding:10px;
+      margin:5px 0;
+    }
+
+    button{
+      padding:10px;
+      background:#00e5c0;
+      border:none;
+      cursor:pointer;
+      width:100%;
+      margin-top:10px;
+    }
+
+    .box{
+      max-width:500px;
+      margin:auto;
+      background:#16161f;
+      padding:20px;
+      border-radius:10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Star Academy - Add Student</h2>
+
+  <input id="name" placeholder="Full Name">
+  <input id="age" placeholder="Age">
+
+  <input id="state" placeholder="State">
+  <input id="lga" placeholder="Local Government">
+  <input id="quarter" placeholder="Quarters">
+
+  <select id="schoolType">
+    <option>Public</option>
+    <option>Private</option>
+  </select>
+
+  <button onclick="saveStudent()">Save Student</button>
+</div>
+
+<script>
+  // Firebase config (we will replace later with yours)
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_PROJECT_ID"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  function saveStudent(){
+    db.collection("students").add({
+      fullName: document.getElementById("name").value,
+      age: document.getElementById("age").value,
+      state: document.getElementById("state").value,
+      localGovernment: document.getElementById("lga").value,
+      quarters: document.getElementById("quarter").value,
+      schoolType: document.getElementById("schoolType").value,
+      createdAt: new Date()
+    });
+
+    alert("Student saved!");
+  }
+</script>
+
+</body>
+</html>
