@@ -1,139 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Star Academy System</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Academy System</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      margin: 0;
-      background: #0a0a0f;
-      color: white;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0a0a0f, #1a1a2e);
+  color: white;
+}
 
-    header {
-      background: #111;
-      padding: 20px;
-      text-align: center;
-      color: #00e5c0;
-      font-size: 22px;
-    }
+header {
+  background: #111;
+  padding: 20px;
+  text-align: center;
+  font-size: 22px;
+  color: #00e5c0;
+}
 
-    .container {
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-    }
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
 
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 5px;
-      border: none;
-    }
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 5px;
+}
 
-    button {
-      padding: 10px;
-      background: #00e5c0;
-      border: none;
-      width: 100%;
-      margin-top: 10px;
-      cursor: pointer;
-    }
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: #00e5c0;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    .card {
-      background: #16161f;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-    }
-  </style>
+.card {
+  background: #16161f;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  STAR ACADEMY STUDENT SYSTEM
+STAR ACADEMY STUDENT SYSTEM
 </header>
 
 <div class="container">
 
-  <h3>Add Student</h3>
+<h3>Add Student</h3>
 
-  <input id="name" placeholder="Student Name">
-  <input id="age" type="number" placeholder="Age">
-  <input id="state" placeholder="State">
-  <input id="lga" placeholder="Local Government">
-  <input id="quarter" placeholder="Quarter">
+<input id="name" placeholder="Student Name">
+<input id="age" type="number" placeholder="Age">
+<input id="state" placeholder="State">
+<input id="lga" placeholder="Local Government">
+<input id="quarter" placeholder="Quarter">
 
-  <select id="schoolType">
-    <option>Private</option>
-    <option>Public</option>
-  </select>
+<select id="schoolType">
+  <option>Private</option>
+  <option>Public</option>
+</select>
 
-  <button onclick="addStudent()">Save Student</button>
+<button onclick="addStudent()">Save Student</button>
 
-  <h3>Students List</h3>
-  <div id="students"></div>
+<h3>Students List</h3>
+<div id="students"></div>
 
 </div>
 
 <!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-    authDomain: "star-academy-system.firebaseapp.com",
-    projectId: "star-academy-system",
-    storageBucket: "star-academy-system.firebasestorage.app",
-    messagingSenderId: "615097211278",
-    appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+  authDomain: "star-academy-system.firebaseapp.com",
+  projectId: "star-academy-system",
+  storageBucket: "star-academy-system.appspot.com",
+  messagingSenderId: "615097211278",
+  appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  // AUTO ID COUNTER
-  let count = 0;
+// student counter
+let count = 0;
 
-  function addStudent() {
-    count++;
+window.addStudent = async function () {
+  count++;
 
-    let studentID = "STA/2026/" + String(count).padStart(3, '0');
+  const studentID = "STA/2026/" + String(count).padStart(3, "0");
 
-    db.collection("students").add({
-      studentID: studentID,
-      name: document.getElementById("name").value,
-      age: document.getElementById("age").value,
-      state: document.getElementById("state").value,
-      lga: document.getElementById("lga").value,
-      quarter: document.getElementById("quarter").value,
-      schoolType: document.getElementById("schoolType").value
-    });
-
-    alert("Student Saved: " + studentID);
-  }
-
-  // SHOW STUDENTS
-  db.collection("students").onSnapshot(snapshot => {
-    document.getElementById("students").innerHTML = "";
-
-    snapshot.forEach(doc => {
-      let s = doc.data();
-
-      document.getElementById("students").innerHTML += `
-        <div class="card">
-          <b>${s.studentID}</b><br>
-          ${s.name} | ${s.age} years<br>
-          ${s.state}, ${s.lga}, ${s.quarter}<br>
-          ${s.schoolType}
-        </div>
-      `;
-    });
+  await addDoc(collection(db, "students"), {
+    studentID,
+    name: document.getElementById("name").value,
+    age: document.getElementById("age").value,
+    state: document.getElementById("state").value,
+    lga: document.getElementById("lga").value,
+    quarter: document.getElementById("quarter").value,
+    schoolType: document.getElementById("schoolType").value,
+    createdAt: new Date()
   });
+
+  alert("Student Saved: " + studentID);
+};
+
+// live display
+const studentsDiv = document.getElementById("students");
+
+onSnapshot(collection(db, "students"), (snapshot) => {
+  studentsDiv.innerHTML = "";
+
+  snapshot.forEach((doc) => {
+    const s = doc.data();
+
+    studentsDiv.innerHTML += `
+      <div class="card">
+        <b>${s.studentID}</b><br>
+        ${s.name} | ${s.age} years<br>
+        ${s.state}, ${s.lga}, ${s.quarter}<br>
+        ${s.schoolType}
+      </div>
+    `;
+  });
+});
 </script>
 
 </body>
