@@ -14,7 +14,7 @@ body {
 .center {
   max-width: 450px;
   margin: auto;
-  margin-top: 80px;
+  margin-top: 70px;
   padding: 20px;
   background: #16161f;
   border-radius: 10px;
@@ -46,7 +46,6 @@ header {
   padding: 10px;
   margin-top: 10px;
   border-radius: 6px;
-  cursor: pointer;
 }
 </style>
 </head>
@@ -59,10 +58,13 @@ header {
 
   <input id="email" placeholder="Email">
 
+  <!-- PASSWORD WITH EYE FIX -->
   <div style="position:relative">
     <input id="password" type="password" placeholder="Password">
     <span onclick="togglePassword()"
-      style="position:absolute;right:10px;top:10px;cursor:pointer">👁</span>
+      style="position:absolute;right:10px;top:10px;cursor:pointer;font-size:18px">
+      👁
+    </span>
   </div>
 
   <button onclick="login()">Login</button>
@@ -98,7 +100,7 @@ header {
 
 <button onclick="addStudent()">Save Student</button>
 
-<h3>Search Student</h3>
+<h3>Search</h3>
 <input id="search" placeholder="Search by name or ID">
 <button onclick="searchStudent()">Search</button>
 
@@ -112,28 +114,28 @@ header {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  getDoc,
-  runTransaction
+getFirestore,
+collection,
+addDoc,
+onSnapshot,
+doc,
+runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
-  getAuth,
-  signInWithEmailAndPassword
+getAuth,
+signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-  authDomain: "star-academy-system.firebaseapp.com",
-  projectId: "star-academy-system",
-  storageBucket: "star-academy-system.appspot.com",
-  messagingSenderId: "615097211278",
-  appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system",
+storageBucket: "star-academy-system.appspot.com",
+messagingSenderId: "615097211278",
+appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -156,7 +158,7 @@ window.login = async function () {
   }
 };
 
-/* PASSWORD EYE */
+/* 👁 PASSWORD TOGGLE FIX */
 window.togglePassword = function () {
   const p = document.getElementById("password");
   p.type = (p.type === "password") ? "text" : "password";
@@ -184,6 +186,8 @@ window.addStudent = async function () {
 
   const studentID = await generateStudentID();
 
+  const now = new Date();
+
   await addDoc(collection(db, "students"), {
     studentID,
     name: document.getElementById("name").value || "N/A",
@@ -192,7 +196,9 @@ window.addStudent = async function () {
     lga: document.getElementById("lga").value || "N/A",
     level: document.getElementById("level").value,
     schoolType: document.getElementById("schoolType").value,
-    createdAt: new Date().toISOString()
+
+    // FIXED DATE FORMAT (CLEAN)
+    createdAt: now.toLocaleString()
   });
 
   alert("Saved: " + studentID);
@@ -204,26 +210,28 @@ let allStudents = [];
 const div = document.getElementById("students");
 
 onSnapshot(collection(db, "students"), (snap) => {
+
   allStudents = [];
 
   snap.forEach(doc => {
     allStudents.push(doc.data());
   });
 
-  renderStudents(allStudents);
+  render(allStudents);
 });
 
-function renderStudents(data) {
+function render(data) {
   div.innerHTML = "";
 
   data.forEach(s => {
     div.innerHTML += `
       <div class="card">
         <b>${s.studentID}</b><br>
-        ${s.name} | ${s.age}<br>
-        ${s.level}<br>
-        ${s.state}, ${s.lga}<br>
-        ${s.createdAt}
+        Full Name: ${s.name}<br>
+        Age: ${s.age}<br>
+        Level: ${s.level}<br>
+        Location: ${s.state}, ${s.lga}<br>
+        Time: ${s.createdAt}
       </div>
     `;
   });
@@ -231,14 +239,14 @@ function renderStudents(data) {
 
 /* SEARCH */
 window.searchStudent = function () {
-  let value = document.getElementById("search").value.toLowerCase();
+  let val = document.getElementById("search").value.toLowerCase();
 
   let filtered = allStudents.filter(s =>
-    (s.name && s.name.toLowerCase().includes(value)) ||
-    (s.studentID && s.studentID.toLowerCase().includes(value))
+    (s.name && s.name.toLowerCase().includes(val)) ||
+    (s.studentID && s.studentID.toLowerCase().includes(val))
   );
 
-  renderStudents(filtered);
+  render(filtered);
 };
 
 </script>
