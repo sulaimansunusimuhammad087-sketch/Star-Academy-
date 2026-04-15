@@ -45,6 +45,7 @@ button {
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginPage" class="center">
   <h2>Admin Login</h2>
   <input id="email" placeholder="Email">
@@ -57,8 +58,8 @@ button {
   <button onclick="login()">Login</button>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
-
 <div class="center">
 
 <h3>Add Student</h3>
@@ -76,22 +77,6 @@ button {
 
 <button onclick="addStudent()">Save Student</button>
 
-<h3>Add Result</h3>
-
-<input id="studentIDInput" placeholder="Enter Student ID">
-<select id="department">
-<option>Science</option>
-<option>Arts</option>
-</select>
-
-<input id="sub1" placeholder="Subject 1">
-<input id="sub2" placeholder="Subject 2">
-<input id="sub3" placeholder="Subject 3">
-<input id="sub4" placeholder="Subject 4">
-<input id="sub5" placeholder="Subject 5">
-
-<button onclick="addResult()">Save Result</button>
-
 <h3>Students</h3>
 <div id="students"></div>
 
@@ -101,27 +86,29 @@ button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
 import {
-getFirestore,
-collection,
-addDoc,
-onSnapshot,
-doc,
-runTransaction
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  doc,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
-getAuth,
-signInWithEmailAndPassword
+  getAuth,
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+/* ✅ YOUR REAL CONFIG */
 const firebaseConfig = {
-apiKey: "AIzaSyA...",
-authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system",
-storageBucket: "star-academy-system.appspot.com",
-messagingSenderId: "615097211278",
-appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+  apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+  authDomain: "star-academy-system.firebaseapp.com",
+  projectId: "star-academy-system",
+  storageBucket: "star-academy-system.appspot.com",
+  messagingSenderId: "615097211278",
+  appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -130,117 +117,91 @@ const auth = getAuth(app);
 
 /* LOGIN */
 window.login = async function () {
-await signInWithEmailAndPassword(
-auth,
-document.getElementById("email").value,
-document.getElementById("password").value
-);
+  try {
+    await signInWithEmailAndPassword(
+      auth,
+      document.getElementById("email").value,
+      document.getElementById("password").value
+    );
 
-document.getElementById("loginPage").style.display="none";
-document.getElementById("dashboard").classList.remove("hidden");
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("dashboard").classList.remove("hidden");
+
+  } catch (error) {
+    alert("Login Error: " + error.message);
+  }
 };
 
-/* PASSWORD */
+/* PASSWORD SHOW */
 window.togglePassword = function () {
-let p = document.getElementById("password");
-p.type = p.type === "password" ? "text" : "password";
+  let p = document.getElementById("password");
+  p.type = p.type === "password" ? "text" : "password";
 };
 
 /* ID SYSTEM */
 async function generateID() {
-const ref = doc(db,"meta","counter");
+  const ref = doc(db, "meta", "counter");
 
-const num = await runTransaction(db, async(tx)=>{
-const snap = await tx.get(ref);
-let count = snap.exists()? snap.data().count+1:1;
-tx.set(ref,{count});
-return count;
-});
+  const num = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    let count = snap.exists() ? snap.data().count + 1 : 1;
+    tx.set(ref, { count });
+    return count;
+  });
 
-return "STA/2026/"+String(num).padStart(4,"0");
+  return "STA/2026/" + String(num).padStart(4, "0");
 }
 
-/* ADD STUDENT (BLOCK EMPTY) */
-window.addStudent = async function(){
+/* ADD STUDENT */
+window.addStudent = async function () {
 
-let name = document.getElementById("name").value;
-let age = document.getElementById("age").value;
+  let name = document.getElementById("name").value;
+  let age = document.getElementById("age").value;
 
-if(!name || !age){
-alert("Fill all required fields");
-return;
-}
+  if (!name || !age) {
+    alert("Fill all required fields");
+    return;
+  }
 
-let id = await generateID();
+  let id = await generateID();
 
-await addDoc(collection(db,"students"),{
-studentID:id,
-name,
-age,
-state:document.getElementById("state").value,
-lga:document.getElementById("lga").value,
-level:document.getElementById("level").value,
-createdAt:new Date().getTime()
-});
+  await addDoc(collection(db, "students"), {
+    studentID: id,
+    name,
+    age,
+    state: document.getElementById("state").value || "N/A",
+    lga: document.getElementById("lga").value || "N/A",
+    level: document.getElementById("level").value,
+    createdAt: new Date().getTime()
+  });
 
-alert("Saved: "+id);
+  alert("Saved: " + id);
 };
 
-/* ADD RESULT */
-window.addResult = async function(){
-
-let id = document.getElementById("studentIDInput").value;
-
-let scores = [
-+sub1.value, +sub2.value, +sub3.value, +sub4.value, +sub5.value
-];
-
-if(scores.some(s=>isNaN(s))){
-alert("Enter valid marks");
-return;
-}
-
-let total = scores.reduce((a,b)=>a+b,0);
-let avg = total/5;
-let status = total>=250?"PASS":"FAIL";
-
-await addDoc(collection(db,"results"),{
-studentID:id,
-scores,
-total,
-average:avg,
-status,
-createdAt:new Date().getTime()
-});
-
-alert("Result saved");
-};
-
-/* SHOW STUDENTS SORTED */
+/* SHOW STUDENTS */
 const div = document.getElementById("students");
 
-onSnapshot(collection(db,"students"),snap=>{
+onSnapshot(collection(db, "students"), (snap) => {
 
-let arr=[];
+  let arr = [];
 
-snap.forEach(doc=>{
-arr.push(doc.data());
-});
+  snap.forEach(doc => arr.push(doc.data()));
 
-/* SORT BY DATE */
-arr.sort((a,b)=>b.createdAt-a.createdAt);
+  arr.sort((a, b) => b.createdAt - a.createdAt);
 
-div.innerHTML="";
+  div.innerHTML = "";
 
-arr.forEach(s=>{
-div.innerHTML+=`
-<div class="card">
-<b>${s.studentID}</b><br>
-${s.name} (${s.age})<br>
-${s.level}<br>
-</div>
-`;
-});
+  arr.forEach(s => {
+    div.innerHTML += `
+      <div class="card">
+        <b>${s.studentID}</b><br>
+        Full Name: ${s.name}<br>
+        Age: ${s.age}<br>
+        ${s.state}, ${s.lga}<br>
+        ${s.level}
+      </div>
+    `;
+  });
 
 });
 
