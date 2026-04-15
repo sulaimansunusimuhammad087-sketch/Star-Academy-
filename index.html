@@ -12,9 +12,9 @@ body {
 }
 
 .center {
-  max-width: 400px;
+  max-width: 450px;
   margin: auto;
-  margin-top: 100px;
+  margin-top: 80px;
   padding: 20px;
   background: #16161f;
   border-radius: 10px;
@@ -40,16 +40,31 @@ header {
   background: #111;
   color: #00e5c0;
 }
+
+.card {
+  background: #111;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 <div id="loginPage" class="center">
   <h2>Admin Login</h2>
+
   <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
+
+  <div style="position:relative">
+    <input id="password" type="password" placeholder="Password">
+    <span onclick="togglePassword()"
+      style="position:absolute;right:10px;top:10px;cursor:pointer">👁</span>
+  </div>
+
   <button onclick="login()">Login</button>
 </div>
 
@@ -83,7 +98,11 @@ header {
 
 <button onclick="addStudent()">Save Student</button>
 
-<h3>Students</h3>
+<h3>Search Student</h3>
+<input id="search" placeholder="Search by name or ID">
+<button onclick="searchStudent()">Search</button>
+
+<h3>Students List</h3>
 <div id="students"></div>
 
 </div>
@@ -93,30 +112,28 @@ header {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
 import {
-getFirestore,
-collection,
-addDoc,
-onSnapshot,
-doc,
-getDoc,
-setDoc,
-runTransaction
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  doc,
+  getDoc,
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
-getAuth,
-signInWithEmailAndPassword
+  getAuth,
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system",
-storageBucket: "star-academy-system.appspot.com",
-messagingSenderId: "615097211278",
-appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+  apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+  authDomain: "star-academy-system.firebaseapp.com",
+  projectId: "star-academy-system",
+  storageBucket: "star-academy-system.appspot.com",
+  messagingSenderId: "615097211278",
+  appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -125,73 +142,104 @@ const auth = getAuth(app);
 
 /* LOGIN */
 window.login = async function () {
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-try {
-await signInWithEmailAndPassword(auth, email, password);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
 
-document.getElementById("loginPage").style.display = "none";
-document.getElementById("dashboard").classList.remove("hidden");
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("dashboard").classList.remove("hidden");
 
-} catch (err) {
-alert(err.message);
-}
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+/* PASSWORD EYE */
+window.togglePassword = function () {
+  const p = document.getElementById("password");
+  p.type = (p.type === "password") ? "text" : "password";
 };
 
 /* ID SYSTEM */
 async function generateStudentID() {
-const ref = doc(db, "meta", "counter");
+  const ref = doc(db, "meta", "counter");
 
-const newNumber = await runTransaction(db, async (tx) => {
-const snap = await tx.get(ref);
-let count = snap.exists() ? snap.data().count + 1 : 1;
-tx.set(ref, { count });
-return count;
-});
+  const newNumber = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
 
-return "STA/2026/" + String(newNumber).padStart(4, "0");
+    let count = snap.exists() ? snap.data().count + 1 : 1;
+
+    tx.set(ref, { count });
+
+    return count;
+  });
+
+  return "STA/2026/" + String(newNumber).padStart(4, "0");
 }
 
 /* ADD STUDENT */
 window.addStudent = async function () {
 
-const studentID = await generateStudentID();
+  const studentID = await generateStudentID();
 
-await addDoc(collection(db, "students"), {
-studentID,
-name: document.getElementById("name").value || "N/A",
-age: document.getElementById("age").value || "0",
-state: document.getElementById("state").value || "N/A",
-lga: document.getElementById("lga").value || "N/A",
-level: document.getElementById("level").value,
-schoolType: document.getElementById("schoolType").value,
-createdAt: new Date().toISOString()
-});
+  await addDoc(collection(db, "students"), {
+    studentID,
+    name: document.getElementById("name").value || "N/A",
+    age: document.getElementById("age").value || "0",
+    state: document.getElementById("state").value || "N/A",
+    lga: document.getElementById("lga").value || "N/A",
+    level: document.getElementById("level").value,
+    schoolType: document.getElementById("schoolType").value,
+    createdAt: new Date().toISOString()
+  });
 
-alert("Saved: " + studentID);
+  alert("Saved: " + studentID);
 };
 
-/* SHOW DATA */
+/* LIVE DATA */
+let allStudents = [];
+
 const div = document.getElementById("students");
 
 onSnapshot(collection(db, "students"), (snap) => {
-div.innerHTML = "";
+  allStudents = [];
 
-snap.forEach(doc => {
-let s = doc.data();
+  snap.forEach(doc => {
+    allStudents.push(doc.data());
+  });
 
-div.innerHTML += `
-<div style="background:#111;padding:10px;margin-top:10px">
-<b>${s.studentID}</b><br>
-${s.name} | ${s.age}<br>
-${s.level}<br>
-${s.state}, ${s.lga}<br>
-${s.createdAt}
-</div>
-`;
+  renderStudents(allStudents);
 });
-});
+
+function renderStudents(data) {
+  div.innerHTML = "";
+
+  data.forEach(s => {
+    div.innerHTML += `
+      <div class="card">
+        <b>${s.studentID}</b><br>
+        ${s.name} | ${s.age}<br>
+        ${s.level}<br>
+        ${s.state}, ${s.lga}<br>
+        ${s.createdAt}
+      </div>
+    `;
+  });
+}
+
+/* SEARCH */
+window.searchStudent = function () {
+  let value = document.getElementById("search").value.toLowerCase();
+
+  let filtered = allStudents.filter(s =>
+    (s.name && s.name.toLowerCase().includes(value)) ||
+    (s.studentID && s.studentID.toLowerCase().includes(value))
+  );
+
+  renderStudents(filtered);
+};
 
 </script>
 
