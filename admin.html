@@ -4,13 +4,42 @@
 <title>Star Academy Admin</title>
 
 <style>
-body{font-family:Arial;background:#0a0a0f;color:white;}
-.card{max-width:700px;margin:auto;background:#16161f;padding:20px;border-radius:10px;margin-top:20px;}
-input,select,button{width:100%;padding:10px;margin-top:10px;}
-button{background:#00e5c0;border:none;cursor:pointer;}
+body{
+font-family:Arial;
+background:#0a0a0f;
+color:white;
+}
+
+.card{
+max-width:750px;
+margin:auto;
+background:#16161f;
+padding:20px;
+border-radius:10px;
+margin-top:20px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+}
+
+button{
+background:#00e5c0;
+border:none;
+cursor:pointer;
+font-weight:bold;
+}
+
 .hidden{display:none;}
-.menu button{margin-top:5px;}
+
+.menu button{margin-top:8px;}
+
 h2,h3{color:#00e5c0;}
+
+a{color:#00e5c0; cursor:pointer;}
 </style>
 </head>
 
@@ -32,15 +61,24 @@ h2,h3{color:#00e5c0;}
 <h2>DASHBOARD</h2>
 <button onclick="showSection('studentSection')">Add Student</button>
 <button onclick="showSection('resultSection')">Add Result</button>
+<button onclick="goHome()">Home</button>
 </div>
 
 <!-- ADD STUDENT -->
 <div id="studentSection" class="card hidden">
 
 <h3>Add Student</h3>
+<a onclick="goHome()">← Back</a>
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
+
+<select id="gender">
+<option value="">Select Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
 <input id="state" placeholder="State">
 <input id="lga" placeholder="Local Government">
 <input id="address" placeholder="Address">
@@ -48,13 +86,13 @@ h2,h3{color:#00e5c0;}
 <input id="emailStudent" placeholder="Student Email">
 
 <select id="department">
-<option value="">Select Department</option>
+<option value="">Department</option>
 <option value="Science">Science</option>
 <option value="Arts">Arts</option>
 </select>
 
 <select id="level">
-<option value="">Select Level</option>
+<option value="">Level</option>
 <option>Primary</option>
 <option>Junior Secondary</option>
 <option>Fresh Class</option>
@@ -73,7 +111,7 @@ h2,h3{color:#00e5c0;}
 <input id="schoolName" placeholder="School Name">
 
 <select id="graduated">
-<option value="">Graduated?</option>
+<option value="">Graduated</option>
 <option>Yes</option>
 <option>No</option>
 </select>
@@ -86,14 +124,16 @@ h2,h3{color:#00e5c0;}
 <div id="resultSection" class="card hidden">
 
 <h3>Add Result</h3>
+<a onclick="goHome()">← Back</a>
 
 <input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
+
 <p id="studentName"></p>
 
 <div id="subjects"></div>
 
 <select id="term">
-<option value="">Select Term</option>
+<option value="">Term</option>
 <option>First Term</option>
 <option>Second Term</option>
 <option>Third Term</option>
@@ -102,6 +142,8 @@ h2,h3{color:#00e5c0;}
 <input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="saveResult()">Save Result</button>
+
+<div id="resultPreview" class="card hidden"></div>
 
 </div>
 
@@ -137,11 +179,11 @@ await signInWithEmailAndPassword(auth,email.value.trim(),password.value.trim());
 loginBox.style.display="none";
 dashboard.classList.remove("hidden");
 }catch(e){
-msg.innerHTML = "Login failed: " + e.message;
+msg.innerHTML = e.message;
 }
 };
 
-/* MENU */
+/* NAVIGATION */
 window.showSection = function(id){
 document.querySelectorAll("#dashboard .card").forEach(c=>{
 if(!c.classList.contains("menu")) c.classList.add("hidden");
@@ -149,14 +191,20 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-/* GENERATE ID */
+window.goHome = function(){
+document.querySelectorAll("#dashboard .card").forEach(c=>{
+if(!c.classList.contains("menu")) c.classList.add("hidden");
+});
+};
+
+/* ID GENERATOR */
 async function generateID(dept){
 
 const ref = doc(db,"meta","counter");
 
 const num = await runTransaction(db, async (tx)=>{
 const snap = await tx.get(ref);
-let count = snap.exists()? snap.data().count + 1 : 1;
+let count = snap.exists()?snap.data().count+1:1;
 tx.set(ref,{count});
 return count;
 });
@@ -165,47 +213,46 @@ let code = dept==="Science"?"SCI":"ART";
 return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
 }
 
-/* ADD STUDENT (FIXED ✅) */
+/* ADD STUDENT */
 window.addStudent = async function(){
 
-let name = document.getElementById("name").value.trim();
-let age = document.getElementById("age").value.trim();
-let state = document.getElementById("state").value.trim();
-let lga = document.getElementById("lga").value.trim();
-let address = document.getElementById("address").value.trim();
-let phone = document.getElementById("phone").value.trim();
-let email = document.getElementById("emailStudent").value.trim();
-let department = document.getElementById("department").value;
-let level = document.getElementById("level").value;
-let schoolType = document.getElementById("schoolType").value;
-let schoolName = document.getElementById("schoolName").value.trim();
-let graduated = document.getElementById("graduated").value;
+let data = {
+name:name.value.trim(),
+age:age.value.trim(),
+gender:gender.value,
+state:state.value.trim(),
+lga:lga.value.trim(),
+address:address.value.trim(),
+phone:phone.value.trim(),
+email:emailStudent.value.trim(),
+department:department.value,
+level:level.value,
+schoolType:schoolType.value,
+schoolName:schoolName.value.trim(),
+graduated:graduated.value
+};
 
-/* SIMPLE VALIDATION (FIXED) */
-if(!name || !age || !state || !lga || !address || !phone || !department || !level || !schoolType || !schoolName || !graduated){
-alert("Please fill all fields ❗");
+if(Object.values(data).some(v=>!v)){
+alert("Fill all fields ❗");
 return;
 }
 
-/* GENERATE ID */
-let id = await generateID(department);
+let id = await generateID(data.department);
 
-/* SAVE */
 await addDoc(collection(db,"students"),{
 studentID:id,
-name,age,state,lga,address,phone,email,
-department,level,schoolType,schoolName,graduated,
-createdAt: Date.now()
+...data,
+createdAt:Date.now()
 });
+
+alert("Student Added ✔ " + id);
 
 /* CLEAR */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
-
-alert("Student Added ✔ ID: " + id);
 };
 
-/* LOAD STUDENT (FIXED 🔥) */
+/* LOAD STUDENT */
 window.loadStudent = async function(){
 
 let id = studentID.value.trim();
@@ -220,22 +267,17 @@ const q = query(collection(db,"students"), where("studentID","==",id));
 const snap = await getDocs(q);
 
 if(snap.empty){
-studentName.innerHTML = "Student not found ❌";
+studentName.innerHTML="Student not found ❌";
 subjects.innerHTML="";
 return;
 }
 
 let s = snap.docs[0].data();
 
-studentName.innerHTML = "Name: " + s.name;
+studentName.innerHTML =
+`Name: ${s.name} | Class: ${s.level} | Dept: ${s.department}`;
 
-/* LOAD SUBJECT */
-if(s.department === "Science"){
-loadSubjects("Science");
-}else{
-loadSubjects("Arts");
-}
-
+loadSubjects(s.department);
 };
 
 /* SUBJECTS */
@@ -252,7 +294,7 @@ subjects.innerHTML += `<input class="score" type="number" placeholder="${sub}">`
 });
 }
 
-/* SAVE RESULT */
+/* SAVE RESULT + PREVIEW */
 window.saveResult = async function(){
 
 let id = studentID.value.trim();
@@ -267,20 +309,33 @@ return;
 let scores = document.querySelectorAll(".score");
 
 let total = 0;
-scores.forEach(s=> total += Number(s.value || 0));
+scores.forEach(s=> total += Number(s.value||0));
 
 let avg = total / scores.length;
+
+let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
+let status = total>=250?"PASS":"FAIL";
 
 await addDoc(collection(db,"results"),{
 studentID:id,
 total,
 average:avg,
-grade: avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
-status: total>=250?"PASS":"FAIL",
-term: termVal,
-session: sessionVal,
-createdAt: Date.now()
+grade,
+status,
+term:termVal,
+session:sessionVal,
+createdAt:Date.now()
 });
+
+/* RESULT PREVIEW */
+resultPreview.classList.remove("hidden");
+resultPreview.innerHTML = `
+<h3>Result Summary</h3>
+<b>Total:</b> ${total}<br>
+<b>Average:</b> ${avg.toFixed(2)}<br>
+<b>Grade:</b> ${grade}<br>
+<b>Status:</b> ${status}<br>
+`;
 
 alert("Result Saved ✔");
 };
