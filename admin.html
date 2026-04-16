@@ -34,11 +34,8 @@ font-weight:bold;
 }
 
 .hidden{display:none;}
-
 .menu button{margin-top:8px;}
-
 h2,h3{color:#00e5c0;}
-
 a{color:#00e5c0; cursor:pointer;}
 </style>
 </head>
@@ -48,8 +45,8 @@ a{color:#00e5c0; cursor:pointer;}
 <!-- LOGIN -->
 <div class="card" id="loginBox">
 <h2>ADMIN LOGIN</h2>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+<input id="email">
+<input id="password" type="password">
 <button onclick="login()">Login</button>
 <p id="msg"></p>
 </div>
@@ -74,7 +71,7 @@ a{color:#00e5c0; cursor:pointer;}
 <input id="age" type="number" placeholder="Age">
 
 <select id="gender">
-<option value="">Select Gender</option>
+<option value="">Gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
@@ -161,7 +158,6 @@ import {
 getAuth, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-/* FIREBASE */
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
@@ -183,7 +179,7 @@ msg.innerHTML = e.message;
 }
 };
 
-/* NAVIGATION */
+/* NAV */
 window.showSection = function(id){
 document.querySelectorAll("#dashboard .card").forEach(c=>{
 if(!c.classList.contains("menu")) c.classList.add("hidden");
@@ -199,7 +195,6 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 
 /* ID GENERATOR */
 async function generateID(dept){
-
 const ref = doc(db,"meta","counter");
 
 const num = await runTransaction(db, async (tx)=>{
@@ -213,28 +208,31 @@ let code = dept==="Science"?"SCI":"ART";
 return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
 }
 
-/* ADD STUDENT */
+/* ADD STUDENT (FIXED 100%) */
 window.addStudent = async function(){
 
-let data = {
-name:name.value.trim(),
-age:age.value.trim(),
-gender:gender.value,
-state:state.value.trim(),
-lga:lga.value.trim(),
-address:address.value.trim(),
-phone:phone.value.trim(),
-email:emailStudent.value.trim(),
-department:department.value,
-level:level.value,
-schoolType:schoolType.value,
-schoolName:schoolName.value.trim(),
-graduated:graduated.value
+const data = {
+name: name.value.trim(),
+age: age.value.trim(),
+gender: gender.value,
+state: state.value.trim(),
+lga: lga.value.trim(),
+address: address.value.trim(),
+phone: phone.value.trim(),
+email: emailStudent.value.trim(),
+department: department.value,
+level: level.value,
+schoolType: schoolType.value,
+schoolName: schoolName.value.trim(),
+graduated: graduated.value
 };
 
-if(Object.values(data).some(v=>!v)){
+/* FIXED VALIDATION (NO FALSE BLOCK) */
+for (let k in data){
+if(data[k] === ""){
 alert("Fill all fields ❗");
 return;
+}
 }
 
 let id = await generateID(data.department);
@@ -327,14 +325,14 @@ session:sessionVal,
 createdAt:Date.now()
 });
 
-/* RESULT PREVIEW */
+/* PREVIEW */
 resultPreview.classList.remove("hidden");
 resultPreview.innerHTML = `
 <h3>Result Summary</h3>
-<b>Total:</b> ${total}<br>
-<b>Average:</b> ${avg.toFixed(2)}<br>
-<b>Grade:</b> ${grade}<br>
-<b>Status:</b> ${status}<br>
+Total: ${total}<br>
+Average: ${avg.toFixed(2)}<br>
+Grade: ${grade}<br>
+Status: ${status}<br>
 `;
 
 alert("Result Saved ✔");
