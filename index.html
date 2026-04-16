@@ -15,7 +15,7 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 
 <body>
 
-<!-- LOGIN -->
+<!-- ================= ADMIN LOGIN ================= -->
 <div id="loginPage" class="center">
 <h2>Admin Login</h2>
 <input id="email" placeholder="Enter Email">
@@ -23,7 +23,7 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 <button onclick="login()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
+<!-- ================= DASHBOARD ================= -->
 <div id="dashboard" class="hidden">
 
 <div class="center">
@@ -93,6 +93,18 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 </div>
 </div>
 
+<!-- ================= STUDENT PORTAL ================= -->
+<div id="studentPortal" class="center hidden">
+<h2>Student Portal</h2>
+
+<input id="studentLoginID" placeholder="Enter Student ID">
+<button onclick="viewResult()">View Result</button>
+
+<div id="resultBox"></div>
+
+<button onclick="downloadResult()">Download / Print Result</button>
+</div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -102,7 +114,9 @@ collection,
 addDoc,
 onSnapshot,
 doc,
-runTransaction
+runTransaction,
+query,
+where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
@@ -119,7 +133,7 @@ projectId:"star-academy-system"
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* ================= LOGIN ================= */
+/* ================= ADMIN LOGIN ================= */
 window.login = async function(){
 try{
 await signInWithEmailAndPassword(auth,email.value,password.value);
@@ -145,20 +159,19 @@ let short = dept==="Science"?"SCI":"ART";
 return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 }
 
-/* ================= ADD STUDENT (FIXED SAFE) ================= */
+/* ================= ADD STUDENT ================= */
 window.addStudent = async function(){
 
-const nameVal = document.getElementById("name").value.trim();
-const ageVal = document.getElementById("age").value.trim();
-const stateVal = document.getElementById("state").value.trim();
-const lgaVal = document.getElementById("lga").value.trim();
-const deptVal = document.getElementById("department").value;
-const levelVal = document.getElementById("level").value;
-const schoolVal = document.getElementById("schoolName").value.trim();
-const gradVal = document.getElementById("graduated").value;
-const schoolTypeVal = document.getElementById("schoolType").value;
+const nameVal = name.value.trim();
+const ageVal = age.value.trim();
+const stateVal = state.value.trim();
+const lgaVal = lga.value.trim();
+const deptVal = department.value;
+const levelVal = level.value;
+const schoolVal = schoolName.value.trim();
+const gradVal = graduated.value;
+const schoolTypeVal = schoolType.value;
 
-/* FIXED VALIDATION */
 if(!nameVal || !ageVal || !stateVal || !lgaVal || !deptVal || !levelVal || !schoolVal || !gradVal || !schoolTypeVal){
 alert("Please fill all required fields");
 return;
@@ -180,36 +193,19 @@ graduated:gradVal,
 createdAt:Date.now()
 });
 
-/* CLEAR INPUTS */
-document.querySelectorAll("input").forEach(i=>{
-if(i.id !== "email" && i.id !== "password"){
-i.value="";
-}
-});
-department.value="";
-level.value="";
-schoolType.value="";
-graduated.value="";
-
 alert("Saved: " + id);
 };
 
-/* ================= SUBJECT SYSTEM ================= */
+/* ================= SUBJECTS ================= */
 window.detectDepartment = function(){
-
 let id = studentIDInput.value;
 
-if(id.includes("SCI")){
-loadSubjects("Science");
-}else if(id.includes("ART")){
-loadSubjects("Arts");
-}else{
-subjects.innerHTML="";
-}
+if(id.includes("SCI")) loadSubjects("Science");
+else if(id.includes("ART")) loadSubjects("Arts");
+else subjects.innerHTML="";
 };
 
 function loadSubjects(dept){
-
 let list = dept==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
@@ -268,11 +264,45 @@ session,
 createdAt:Date.now()
 });
 
-studentIDInput.value="";
-session.value="";
-subjects.innerHTML="";
-
 alert("Result Saved ✔");
+};
+
+/* ================= VIEW RESULT (STUDENT PORTAL) ================= */
+window.viewResult = async function(){
+
+const id = studentLoginID.value;
+
+onSnapshot(collection(db,"results"),snap=>{
+
+let html = "";
+
+snap.forEach(d=>{
+let r = d.data();
+
+if(r.studentID === id){
+html += `
+<div class="card">
+<h3>Result Slip</h3>
+<b>ID:</b> ${r.studentID}<br>
+<b>Total:</b> ${r.total}/500<br>
+<b>Average:</b> ${r.average}<br>
+<b>Status:</b> ${r.status}<br>
+<b>Grade:</b> ${r.grade}<br>
+<b>Term:</b> ${r.term}<br>
+<b>Session:</b> ${r.session}<br>
+</div>
+`;
+}
+});
+
+resultBox.innerHTML = html || "No result found";
+
+});
+};
+
+/* ================= PRINT / PDF ================= */
+window.downloadResult = function(){
+window.print();
 };
 
 /* ================= LIVE STUDENTS ================= */
