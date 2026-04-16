@@ -12,7 +12,6 @@ button{background:#00e5c0;border:none;cursor:pointer;}
 .menu button{margin-top:5px;}
 h2,h3{color:#00e5c0;}
 </style>
-
 </head>
 
 <body>
@@ -46,16 +45,16 @@ h2,h3{color:#00e5c0;}
 <input id="lga" placeholder="Local Government">
 <input id="address" placeholder="Address">
 <input id="phone" placeholder="Phone Number">
-<input id="emailStudent" placeholder="Student Email (optional)">
+<input id="emailStudent" placeholder="Student Email">
 
 <select id="department">
-<option value="">Department</option>
+<option value="">Select Department</option>
 <option>Science</option>
 <option>Arts</option>
 </select>
 
 <select id="level">
-<option value="">Level</option>
+<option value="">Select Level</option>
 <option>Primary</option>
 <option>Junior Secondary</option>
 <option>Fresh Class</option>
@@ -150,7 +149,7 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-/* ID GENERATOR */
+/* ID GENERATOR (SEQUENTIAL) */
 async function generateID(dept){
 
 const ref = doc(db,"meta","counter");
@@ -170,27 +169,36 @@ return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
 /* ADD STUDENT */
 window.addStudent = async function(){
 
-if(!name.value || !department.value || !level.value){
-alert("Fill required fields");
+const data = {
+name: name.value.trim(),
+age: age.value.trim(),
+state: state.value.trim(),
+lga: lga.value.trim(),
+address: address.value.trim(),
+phone: phone.value.trim(),
+email: emailStudent.value.trim(),
+department: department.value,
+level: level.value,
+schoolType: schoolType.value,
+schoolName: schoolName.value.trim(),
+graduated: graduated.value
+};
+
+/* VALIDATION */
+for(let key in data){
+if(!data[key]){
+alert("Please fill all fields ❗");
 return;
 }
+}
 
-let id = await generateID(department.value);
+/* GENERATE ID */
+let id = await generateID(data.department);
 
+/* SAVE */
 await addDoc(collection(db,"students"),{
 studentID:id,
-name:name.value,
-age:age.value,
-state:state.value,
-lga:lga.value,
-address:address.value,
-phone:phone.value,
-email:emailStudent.value,
-department:department.value,
-level:level.value,
-schoolType:schoolType.value,
-schoolName:schoolName.value,
-graduated:graduated.value,
+...data,
 createdAt: Date.now()
 });
 
@@ -213,7 +221,6 @@ subjects.innerHTML="";
 return;
 }
 
-/* SEARCH CORRECTLY */
 const q = query(collection(db,"students"), where("studentID","==",id));
 const snap = await getDocs(q);
 
@@ -227,7 +234,7 @@ let s = snap.docs[0].data();
 
 studentName.innerHTML = "Name: " + s.name;
 
-/* SUBJECT AUTO LOAD */
+/* LOAD SUBJECT */
 if(s.department === "Science"){
 loadSubjects("Science");
 }else{
