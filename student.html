@@ -71,6 +71,7 @@ margin-top:10px;
 td,th{
 border:1px solid #444;
 padding:8px;
+text-align:left;
 }
 
 .back{
@@ -132,13 +133,14 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
+/* VIEW RESULT */
 window.viewResult = async function(){
 
 const box = document.getElementById("box");
 
-let id = sid.value.trim();
-let termVal = term.value;
-let sessionVal = session.value;
+let id = document.getElementById("sid").value.trim();
+let termVal = document.getElementById("term").value;
+let sessionVal = document.getElementById("session").value;
 
 if(!id || !termVal || !sessionVal){
 alert("Fill all fields ❗");
@@ -147,7 +149,7 @@ return;
 
 box.innerHTML = "Loading...";
 
-/* GET RESULTS */
+/* GET ALL RESULTS */
 let snap = await getDocs(collection(db,"results"));
 
 let found = null;
@@ -155,7 +157,11 @@ let found = null;
 snap.forEach(doc=>{
 let r = doc.data();
 
-if(r.studentID===id && r.term===termVal && r.session===sessionVal){
+if(
+r.studentID === id &&
+r.term === termVal &&
+r.session === sessionVal
+){
 found = r;
 }
 });
@@ -182,16 +188,26 @@ box.innerHTML = "Student not found ❌";
 return;
 }
 
-/* SUBJECT TABLE */
+/* SUBJECTS FIX (IMPORTANT) */
 let subjectsHTML = "";
 
-if(found.subjects){
+if(found.subjects && Object.keys(found.subjects).length > 0){
 
 Object.entries(found.subjects).forEach(([sub,val])=>{
 
-let ca = val.ca ?? "-";
-let exam = val.exam ?? "-";
-let total = val.total ?? (Number(val.ca||0)+Number(val.exam||0));
+// SAFE handling for BOTH formats
+let ca = 0;
+let exam = 0;
+
+if(typeof val === "number"){
+ca = val;
+exam = 0;
+}else{
+ca = Number(val.ca || 0);
+exam = Number(val.exam || 0);
+}
+
+let total = Number(val.total || (ca + exam));
 
 let grade =
 total>=70?"A":
@@ -207,7 +223,6 @@ subjectsHTML += `
 <td>${grade}</td>
 </tr>
 `;
-
 });
 
 }else{
@@ -244,16 +259,16 @@ ${subjectsHTML}
 <br>
 
 <b>Total Score:</b> ${found.total}<br>
-<b>Average:</b> ${found.average.toFixed(2)}<br>
+<b>Average:</b> ${found.average}<br>
 <b>Grade:</b> ${found.grade}<br>
 <b>Status:</b> ${found.status}<br>
 
 <br>
 
 <b>School Feedback:</b><br>
-${found.average>=70?"Excellent performance. Keep it up.":
-found.average>=50?"Good effort. Improve more.":
-"Needs serious improvement."}
+${found.average>=70?"Excellent performance.":
+found.average>=50?"Good performance.":
+"Needs improvement."}
 
 <br><br>
 
