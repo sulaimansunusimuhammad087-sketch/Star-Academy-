@@ -12,9 +12,9 @@ body {
 }
 
 .center {
-  max-width: 500px;
+  max-width: 550px;
   margin: auto;
-  margin-top: 60px;
+  margin-top: 50px;
   padding: 20px;
   background: #16161f;
   border-radius: 10px;
@@ -60,6 +60,7 @@ button {
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
+
 <div class="center">
 
 <h3>Add Student</h3>
@@ -70,12 +71,40 @@ button {
 <input id="lga" placeholder="LGA">
 
 <select id="level">
+<option>Primary</option>
+<option>Junior Secondary</option>
+<option>Fresh Class</option>
 <option>Level 1</option>
 <option>Level 2</option>
 <option>Level 3</option>
 </select>
 
+<select id="schoolType">
+<option>Private</option>
+<option>Public</option>
+</select>
+
+<input id="schoolName" placeholder="School Name">
+
+<select id="graduated">
+<option value="">Graduated?</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+
 <button onclick="addStudent()">Save Student</button>
+
+<h3>Add Result</h3>
+
+<input id="studentIDInput" placeholder="Student ID">
+
+<input id="sub1" type="number" placeholder="Subject 1">
+<input id="sub2" type="number" placeholder="Subject 2">
+<input id="sub3" type="number" placeholder="Subject 3">
+<input id="sub4" type="number" placeholder="Subject 4">
+<input id="sub5" type="number" placeholder="Subject 5">
+
+<button onclick="addResult()">Save Result</button>
 
 <h3>Students</h3>
 <div id="students"></div>
@@ -86,7 +115,6 @@ button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
 import {
   getFirestore,
   collection,
@@ -101,7 +129,6 @@ import {
   signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-/* ✅ YOUR REAL CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
   authDomain: "star-academy-system.firebaseapp.com",
@@ -120,22 +147,21 @@ window.login = async function () {
   try {
     await signInWithEmailAndPassword(
       auth,
-      document.getElementById("email").value,
-      document.getElementById("password").value
+      email.value,
+      password.value
     );
 
-    document.getElementById("loginPage").style.display = "none";
-    document.getElementById("dashboard").classList.remove("hidden");
+    loginPage.style.display = "none";
+    dashboard.classList.remove("hidden");
 
-  } catch (error) {
-    alert("Login Error: " + error.message);
+  } catch (err) {
+    alert(err.message);
   }
 };
 
-/* PASSWORD SHOW */
+/* PASSWORD */
 window.togglePassword = function () {
-  let p = document.getElementById("password");
-  p.type = p.type === "password" ? "text" : "password";
+  password.type = password.type === "password" ? "text" : "password";
 };
 
 /* ID SYSTEM */
@@ -155,51 +181,79 @@ async function generateID() {
 /* ADD STUDENT */
 window.addStudent = async function () {
 
-  let name = document.getElementById("name").value;
-  let age = document.getElementById("age").value;
-
-  if (!name || !age) {
+  if (!name.value || !age.value || !schoolName.value || !graduated.value) {
     alert("Fill all required fields");
     return;
   }
 
-  let id = await generateID();
+  const id = await generateID();
 
   await addDoc(collection(db, "students"), {
     studentID: id,
-    name,
-    age,
-    state: document.getElementById("state").value || "N/A",
-    lga: document.getElementById("lga").value || "N/A",
-    level: document.getElementById("level").value,
+    name: name.value,
+    age: age.value,
+    state: state.value,
+    lga: lga.value,
+    level: level.value,
+    schoolType: schoolType.value,
+    schoolName: schoolName.value,
+    graduated: graduated.value,
     createdAt: new Date().getTime()
   });
 
   alert("Saved: " + id);
 };
 
+/* ADD RESULT */
+window.addResult = async function () {
+
+  let scores = [
+    +sub1.value, +sub2.value, +sub3.value, +sub4.value, +sub5.value
+  ];
+
+  if (scores.some(s => isNaN(s))) {
+    alert("Enter all scores");
+    return;
+  }
+
+  let total = scores.reduce((a,b)=>a+b,0);
+  let avg = total / 5;
+  let status = total >= 250 ? "PASS" : "FAIL";
+
+  await addDoc(collection(db, "results"), {
+    studentID: studentIDInput.value,
+    scores,
+    total,
+    average: avg,
+    status,
+    createdAt: new Date().getTime()
+  });
+
+  alert("Result Saved");
+};
+
 /* SHOW STUDENTS */
 const div = document.getElementById("students");
 
-onSnapshot(collection(db, "students"), (snap) => {
+onSnapshot(collection(db, "students"), snap => {
 
   let arr = [];
-
   snap.forEach(doc => arr.push(doc.data()));
 
-  arr.sort((a, b) => b.createdAt - a.createdAt);
+  arr.sort((a,b)=>b.createdAt - a.createdAt);
 
   div.innerHTML = "";
 
   arr.forEach(s => {
     div.innerHTML += `
-      <div class="card">
-        <b>${s.studentID}</b><br>
-        Full Name: ${s.name}<br>
-        Age: ${s.age}<br>
-        ${s.state}, ${s.lga}<br>
-        ${s.level}
-      </div>
+    <div class="card">
+      <b>${s.studentID}</b><br>
+      Full Name: ${s.name}<br>
+      Age: ${s.age}<br>
+      Level: ${s.level}<br>
+      School: ${s.schoolName} (${s.schoolType})<br>
+      Graduated: ${s.graduated}
+    </div>
     `;
   });
 
