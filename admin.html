@@ -27,7 +27,10 @@ align-items:center;
 flex-wrap:wrap;
 }
 
-.logo{height:80px;border-radius:12px}
+.logo{
+height:80px;
+border-radius:12px;
+}
 
 nav a{
 color:#00e5c0;
@@ -58,8 +61,17 @@ padding:10px;
 margin-top:10px;
 background:#00e5c0;
 border:none;
-font-weight:bold;
 cursor:pointer;
+font-weight:bold;
+}
+
+.hidden{display:none;}
+
+.back{
+color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
 }
 
 .subject-box{
@@ -68,14 +80,13 @@ padding:10px;
 margin-top:10px;
 border-radius:8px;
 }
-
-.hidden{display:none}
 </style>
 </head>
 
 <body>
 <div class="overlay">
 
+<!-- NAV -->
 <nav>
 <img src="logo.png" class="logo">
 <div>
@@ -84,16 +95,93 @@ border-radius:8px;
 </div>
 </nav>
 
-<div class="card">
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+<h2>ADMIN LOGIN</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="msg"></p>
+</div>
 
-<h3>ADD STUDENT RESULT</h3>
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
 
-<input id="studentID" placeholder="Student ID" oninput="loadStudent()">
+<div class="card" id="menu">
+<h2>DASHBOARD</h2>
+<button onclick="showSection('studentSection')">Student Registration</button>
+<button onclick="showSection('resultSection')">Add Students Results</button>
+</div>
+
+<!-- STUDENT -->
+<div id="studentSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back</div>
+
+<h3>Student Registration</h3>
+
+<input id="name" placeholder="Full Name">
+<input id="age" type="number" placeholder="Age">
+
+<select id="gender">
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<input id="state" placeholder="State">
+<input id="lga" placeholder="Local Government">
+<input id="address" placeholder="Address">
+<input id="phone" placeholder="Phone Number">
+<input id="emailStudent" placeholder="Student Email">
+
+<select id="department">
+<option value="">Department</option>
+<option value="Science">Science</option>
+<option value="Arts">Arts</option>
+</select>
+
+<select id="level">
+<option value="">Level</option>
+<option>Primary</option>
+<option>Junior Secondary</option>
+<option>Fresh Class</option>
+<option>AI Class</option>
+<option>Level 1</option>
+<option>Level 2</option>
+<option>Level 3</option>
+</select>
+
+<select id="schoolType">
+<option value="">School Type</option>
+<option>Private</option>
+<option>Public</option>
+</select>
+
+<input id="schoolName" placeholder="School Name">
+
+<select id="graduated">
+<option value="">Graduated</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+
+<button onclick="addStudent()">Save Student</button>
+</div>
+
+<!-- RESULT -->
+<div id="resultSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back</div>
+
+<h3>Add Students Results</h3>
+
+<input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
+
 <p id="studentName"></p>
 
 <div id="subjects"></div>
 
 <select id="term">
+<option value="">Term</option>
 <option>First Term</option>
 <option>Second Term</option>
 <option>Third Term</option>
@@ -103,15 +191,22 @@ border-radius:8px;
 
 <button onclick="saveResult()">Save Result</button>
 
+<div id="resultPreview"></div>
 </div>
+
+</div>
+
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, addDoc, query, where, getDocs
+getFirestore, collection, addDoc, doc, runTransaction,
+query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp({
 apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -120,26 +215,104 @@ projectId:"star-academy-system"
 });
 
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+/* LOGIN */
+window.login = async ()=>{
+try{
+await signInWithEmailAndPassword(auth,email.value,password.value);
+loginBox.style.display="none";
+dashboard.classList.remove("hidden");
+}catch(e){ msg.innerText=e.message; }
+};
+
+/* NAV */
+window.showSection = id=>{
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("studentSection").classList.add("hidden");
+document.getElementById("resultSection").classList.add("hidden");
+document.getElementById(id).classList.remove("hidden");
+};
+
+window.goHome = ()=>{
+document.getElementById("menu").classList.remove("hidden");
+document.getElementById("studentSection").classList.add("hidden");
+document.getElementById("resultSection").classList.add("hidden");
+};
+
+/* ADD STUDENT */
+window.addStudent = async ()=>{
+
+let phoneVal = phone.value.trim();
+let emailVal = emailStudent.value.trim();
+
+/* DUPLICATE CHECK */
+let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
+let q2 = query(collection(db,"students"), where("email","==",emailVal));
+
+if(!(await getDocs(q1)).empty || !(await getDocs(q2)).empty){
+alert("Student already exists ❌");
+return;
+}
+
+/* GENERATE ID */
+let ref = doc(db,"meta","counter");
+let id = await runTransaction(db, async tx=>{
+let snap = await tx.get(ref);
+let count = snap.exists()?snap.data().count+1:1;
+tx.set(ref,{count});
+return `STA/2026/${department.value==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
+});
+
+await addDoc(collection(db,"students"),{
+studentID:id,
+name:name.value,
+age:age.value,
+gender:gender.value,
+state:state.value,
+lga:lga.value,
+address:address.value,
+phone:phoneVal,
+email:emailVal,
+department:department.value,
+level:level.value,
+schoolType:schoolType.value,
+schoolName:schoolName.value,
+graduated:graduated.value,
+createdAt:Date.now()
+});
+
+alert("Student Added ✔ " + id);
+
+/* CLEAR */
+document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
+document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
+};
 
 /* LOAD STUDENT */
 window.loadStudent = async ()=>{
 
 let id = studentID.value.trim();
 
-if(!id) return;
+if(!id){
+studentName.innerHTML="";
+subjects.innerHTML="";
+return;
+}
 
 let q = query(collection(db,"students"), where("studentID","==",id));
 let snap = await getDocs(q);
 
 if(snap.empty){
-studentName.innerHTML="Not found";
+studentName.innerHTML="Student not found ❌";
 subjects.innerHTML="";
 return;
 }
 
 let s = snap.docs[0].data();
 
-studentName.innerHTML = `${s.name} | ${s.level} | ${s.department}`;
+studentName.innerHTML =
+`<b>${s.name}</b> | ${s.level} | ${s.department}`;
 
 let list = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
@@ -157,52 +330,62 @@ subjects.innerHTML += `
 });
 };
 
-/* SAVE RESULT (REAL VALUES ONLY) */
+/* SAVE RESULT */
 window.saveResult = async ()=>{
 
 let id = studentID.value;
 let t = term.value;
 let s = session.value;
 
+/* DUPLICATE RESULT */
+let q = query(collection(db,"results"),
+where("studentID","==",id),
+where("term","==",t),
+where("session","==",s)
+);
+
+if(!(await getDocs(q)).empty){
+alert("Result already exists ❌");
+return;
+}
+
 let ca = document.querySelectorAll(".ca");
 let exam = document.querySelectorAll(".exam");
 
-let subjectsData = {};
-
-let total = 0;
+let total=0;
 
 for(let i=0;i<ca.length;i++){
-
-let caVal = Number(ca[i].value || 0);
-let examVal = Number(exam[i].value || 0);
-let subjectTotal = caVal + examVal;
-
-total += subjectTotal;
-
-subjectsData[`sub${i}`] = {
-ca: caVal,
-exam: examVal,
-total: subjectTotal
-};
+let subTotal = Number(ca[i].value||0)+Number(exam[i].value||0);
+total+=subTotal;
 }
 
-let avg = total / ca.length;
+let avg = total/ca.length;
 let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
 let status = avg>=50?"PASS":"FAIL";
 
 await addDoc(collection(db,"results"),{
-studentID:id,
-subjects:subjectsData,
-total,
-average:avg,
-grade,
-status,
-term:t,
-session:s
+studentID:id,total,average:avg,grade,status,term:t,session:s
 });
+
+/* PREVIEW */
+resultPreview.innerHTML = `
+<h3>Result Summary</h3>
+Student ID: ${id}<br>
+Total: ${total}<br>
+Average: ${avg.toFixed(2)}<br>
+Grade: ${grade}<br>
+Status: ${status}
+`;
+
+/* CLEAR */
+document.querySelectorAll("#resultSection input").forEach(i=>i.value="");
+document.querySelectorAll("#resultSection select").forEach(s=>s.value="");
+subjects.innerHTML="";
+studentName.innerHTML="";
 
 alert("Result Saved ✔");
 };
+
 </script>
 
 </body>
