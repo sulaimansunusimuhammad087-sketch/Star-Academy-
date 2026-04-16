@@ -28,7 +28,7 @@ flex-wrap:wrap;
 }
 
 .logo{
-height:70px;
+height:80px;
 border-radius:12px;
 }
 
@@ -37,11 +37,6 @@ color:#00e5c0;
 margin:10px;
 text-decoration:none;
 font-weight:bold;
-}
-
-@media(max-width:600px){
-.logo{height:90px;}
-nav{flex-direction:column;}
 }
 
 .card{
@@ -78,6 +73,13 @@ cursor:pointer;
 margin-bottom:10px;
 display:inline-block;
 }
+
+.subject-box{
+background:#111;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
 </style>
 </head>
 
@@ -105,15 +107,17 @@ display:inline-block;
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
-<div class="card">
+<div class="card" id="menu">
 <h2>DASHBOARD</h2>
-<button onclick="showSection('studentSection')">Add Student</button>
-<button onclick="showSection('resultSection')">Add Result</button>
+<button onclick="showSection('studentSection')">Student Registration</button>
+<button onclick="showSection('resultSection')">Add Students Results</button>
 </div>
 
-<!-- ADD STUDENT -->
+<!-- STUDENT -->
 <div id="studentSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
+
+<h3>Student Registration</h3>
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
@@ -138,6 +142,10 @@ display:inline-block;
 
 <select id="level">
 <option value="">Level</option>
+<option>Primary</option>
+<option>Junior Secondary</option>
+<option>Fresh Class</option>
+<option>AI Class</option>
 <option>Level 1</option>
 <option>Level 2</option>
 <option>Level 3</option>
@@ -160,11 +168,14 @@ display:inline-block;
 <button onclick="addStudent()">Save Student</button>
 </div>
 
-<!-- ADD RESULT -->
+<!-- RESULT -->
 <div id="resultSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
 
+<h3>Add Students Results</h3>
+
 <input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
+
 <p id="studentName"></p>
 
 <div id="subjects"></div>
@@ -217,15 +228,16 @@ dashboard.classList.remove("hidden");
 
 /* NAV */
 window.showSection = id=>{
-document.querySelectorAll("#dashboard .card").forEach(c=>c.classList.add("hidden"));
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("studentSection").classList.add("hidden");
+document.getElementById("resultSection").classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
 window.goHome = ()=>{
-document.querySelectorAll("#dashboard .card").forEach(c=>{
-if(c.id!=="studentSection" && c.id!=="resultSection") c.classList.remove("hidden");
-else c.classList.add("hidden");
-});
+document.getElementById("menu").classList.remove("hidden");
+document.getElementById("studentSection").classList.add("hidden");
+document.getElementById("resultSection").classList.add("hidden");
 };
 
 /* ADD STUDENT */
@@ -234,7 +246,7 @@ window.addStudent = async ()=>{
 let phoneVal = phone.value.trim();
 let emailVal = emailStudent.value.trim();
 
-/* CHECK DUPLICATE */
+/* DUPLICATE CHECK */
 let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
 let q2 = query(collection(db,"students"), where("email","==",emailVal));
 
@@ -270,32 +282,51 @@ graduated:graduated.value,
 createdAt:Date.now()
 });
 
-alert("Student Added ✔ "+id);
+alert("Student Added ✔ " + id);
+
+/* CLEAR */
+document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
+document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
 };
 
 /* LOAD STUDENT */
 window.loadStudent = async ()=>{
+
 let id = studentID.value.trim();
+
+if(!id){
+studentName.innerHTML="";
+subjects.innerHTML="";
+return;
+}
+
 let q = query(collection(db,"students"), where("studentID","==",id));
 let snap = await getDocs(q);
 
-if(snap.empty){ studentName.innerHTML="Not found"; return;}
+if(snap.empty){
+studentName.innerHTML="Student not found ❌";
+subjects.innerHTML="";
+return;
+}
 
 let s = snap.docs[0].data();
 
-studentName.innerHTML = `Name: ${s.name} | Class: ${s.level} | Dept: ${s.department}`;
+studentName.innerHTML =
+`<b>${s.name}</b> | ${s.level} | ${s.department}`;
 
-let subjects = s.department==="Science"
+let list = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
-subjectsDiv.innerHTML="";
-subjects.forEach(sub=>{
-subjectsDiv.innerHTML+=`
-<label>${sub}</label>
-<input class="ca" placeholder="CA">
-<input class="exam" placeholder="Exam">
-`;
+subjects.innerHTML="";
+
+list.forEach(sub=>{
+subjects.innerHTML += `
+<div class="subject-box">
+<b>${sub}</b>
+<input class="ca" placeholder="CA (0-40)" type="number">
+<input class="exam" placeholder="Exam (0-60)" type="number">
+</div>`;
 });
 };
 
@@ -306,7 +337,7 @@ let id = studentID.value;
 let t = term.value;
 let s = session.value;
 
-/* PREVENT DUPLICATE RESULT */
+/* DUPLICATE RESULT */
 let q = query(collection(db,"results"),
 where("studentID","==",id),
 where("term","==",t),
@@ -336,13 +367,23 @@ await addDoc(collection(db,"results"),{
 studentID:id,total,average:avg,grade,status,term:t,session:s
 });
 
+/* PREVIEW */
 resultPreview.innerHTML = `
 <h3>Result Summary</h3>
+Student ID: ${id}<br>
 Total: ${total}<br>
 Average: ${avg.toFixed(2)}<br>
 Grade: ${grade}<br>
 Status: ${status}
 `;
+
+/* CLEAR */
+document.querySelectorAll("#resultSection input").forEach(i=>i.value="");
+document.querySelectorAll("#resultSection select").forEach(s=>s.value="");
+subjects.innerHTML="";
+studentName.innerHTML="";
+
+alert("Result Saved ✔");
 };
 
 </script>
