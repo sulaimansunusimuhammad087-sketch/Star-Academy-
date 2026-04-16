@@ -4,25 +4,25 @@
 <title>Student Portal</title>
 
 <style>
-body { font-family: Arial; background:#0a0a0f; color:white; }
-.center { max-width:500px; margin:auto; margin-top:50px; background:#16161f; padding:20px; border-radius:10px; }
+body { font-family:Arial; background:#0a0a0f; color:white; text-align:center; }
+.card { background:#16161f; padding:20px; max-width:600px; margin:auto; border-radius:10px; }
 input,button { width:100%; padding:10px; margin-top:10px; }
 button { background:#00e5c0; border:none; font-weight:bold; }
-.card { background:#111; padding:10px; margin-top:10px; border-radius:8px; }
-h2{color:#00e5c0;}
+a{color:#00e5c0;}
 </style>
 </head>
 
 <body>
 
-<div class="center">
+<div class="card">
+<h2>STUDENT PORTAL</h2>
 
-<h2>STUDENT LOGIN</h2>
+<a href="index.html">← Back Home</a>
 
 <input id="studentID" placeholder="Enter Student ID">
-<button onclick="login()">View Result</button>
+<button onclick="getResult()">View Result</button>
 
-<div id="result" class="card"></div>
+<div id="output"></div>
 
 </div>
 
@@ -34,16 +34,14 @@ import { getFirestore, collection, query, where, getDocs } from "https://www.gst
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system",
-storageBucket: "star-academy-system.firebasestorage.app",
-messagingSenderId: "615097211278",
-appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+projectId: "star-academy-system"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.login = async function(){
+/* RESULT SEARCH */
+window.getResult = async function(){
 
 let id = studentID.value;
 
@@ -51,19 +49,17 @@ const q = query(collection(db,"students"), where("studentID","==",id));
 const snap = await getDocs(q);
 
 if(snap.empty){
-result.innerHTML = "Student not found";
+output.innerHTML = "<h3 style='color:red'>No result found</h3>";
 return;
 }
 
 snap.forEach(doc=>{
+let d = doc.data();
 
-let data = doc.data();
-
-result.innerHTML = `
-<h3>${data.name}</h3>
-<p>ID: ${data.studentID}</p>
-<p>Department: ${data.department}</p>
-<p>Level: ${data.level}</p>
+output.innerHTML = `
+<h3>${d.name}</h3>
+<p>Department: ${d.dept}</p>
+<p>Status: ACTIVE</p>
 `;
 });
 
