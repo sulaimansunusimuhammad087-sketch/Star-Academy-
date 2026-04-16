@@ -91,7 +91,6 @@ color:#00e5c0;
 
 <div class="overlay">
 
-<!-- NAV -->
 <nav>
 <img src="logo.png" class="logo">
 <div>
@@ -144,56 +143,78 @@ const db = getFirestore(app);
 /* VIEW RESULT */
 window.viewResult = async function(){
 
-let id = document.getElementById("sid").value.trim();
-let term = document.getElementById("term").value;
-let session = document.getElementById("session").value;
+const box = document.getElementById("box");
 
-if(!id || !term || !session){
+let id = document.getElementById("sid").value.trim();
+let termVal = document.getElementById("term").value;
+let sessionVal = document.getElementById("session").value;
+
+if(!id || !termVal || !sessionVal){
 alert("Fill all fields ❗");
 return;
 }
 
 box.innerHTML = "Loading...";
 
-/* GET RESULT */
-const q = query(collection(db,"results"),
+/* SAFE QUERY */
+let resultSnap;
+try{
+const q = query(
+collection(db,"results"),
 where("studentID","==",id),
-where("term","==",term),
-where("session","==",session)
+where("term","==",termVal),
+where("session","==",sessionVal)
 );
 
-const snap = await getDocs(q);
+resultSnap = await getDocs(q);
 
-if(snap.empty){
+}catch(err){
+box.innerHTML = "Error loading result ❌";
+return;
+}
+
+if(resultSnap.empty){
 box.innerHTML = "No result found ❌";
 return;
 }
 
-let r = snap.docs[0].data();
+let r = resultSnap.docs[0].data();
 
-/* GET STUDENT INFO */
-const sQ = query(collection(db,"students"), where("studentID","==",id));
-const sSnap = await getDocs(sQ);
+/* GET STUDENT */
+let studentSnap = await getDocs(
+query(collection(db,"students"), where("studentID","==",id))
+);
 
-let student = sSnap.docs[0].data();
+if(studentSnap.empty){
+box.innerHTML = "Student info not found ❌";
+return;
+}
 
-/* SUBJECT TABLE */
+let student = studentSnap.docs[0].data();
+
+/* SUBJECT TABLE SAFE */
 let subjectsHTML = "";
 
-if(r.subjects){
+if(r.subjects && typeof r.subjects === "object"){
+
 Object.entries(r.subjects).forEach(([sub,val])=>{
+
 subjectsHTML += `
 <tr>
 <td>${sub}</td>
-<td>${val.ca || "-"}</td>
-<td>${val.exam || "-"}</td>
-<td>${val.total || "-"}</td>
+<td>${val.ca ?? "-"}</td>
+<td>${val.exam ?? "-"}</td>
+<td>${val.total ?? (Number(val.ca||0)+Number(val.exam||0))}</td>
 </tr>
 `;
+
 });
+
+}else{
+subjectsHTML = `<tr><td colspan="4">No subject data</td></tr>`;
 }
 
-/* RESULT VIEW */
+/* DISPLAY RESULT */
 box.innerHTML = `
 <div id="resultArea">
 
@@ -203,8 +224,8 @@ box.innerHTML = `
 <b>Student ID:</b> ${id}<br>
 <b>Class:</b> ${student.level}<br>
 <b>Department:</b> ${student.department}<br>
-<b>Term:</b> ${term}<br>
-<b>Session:</b> ${session}<br>
+<b>Term:</b> ${termVal}<br>
+<b>Session:</b> ${sessionVal}<br>
 
 <table>
 <tr>
@@ -218,10 +239,10 @@ ${subjectsHTML}
 
 <br>
 
-<b>Total Score:</b> ${r.total}<br>
-<b>Average:</b> ${r.average.toFixed(2)}<br>
-<b>Grade:</b> ${r.grade}<br>
-<b>Status:</b> ${r.status}<br>
+<b>Total Score:</b> ${r.total ?? "-"}<br>
+<b>Average:</b> ${r.average ? r.average.toFixed(2) : "-"}<br>
+<b>Grade:</b> ${r.grade ?? "-"}<br>
+<b>Status:</b> ${r.status ?? "-"}<br>
 
 <br>
 
@@ -244,9 +265,10 @@ Examination Officer
 
 <button onclick="downloadPDF()">Download PDF</button>
 `;
+
 };
 
-/* PDF DOWNLOAD */
+/* PDF */
 window.downloadPDF = function(){
 
 let content = document.getElementById("resultArea").innerHTML;
@@ -255,7 +277,7 @@ let win = window.open("", "", "width=800,height=600");
 win.document.write(`
 <html>
 <head>
-<title>Result PDF</title>
+<title>Result</title>
 <style>
 body{font-family:Arial;padding:20px;}
 table{width:100%;border-collapse:collapse;}
