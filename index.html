@@ -116,10 +116,10 @@ authDomain:"star-academy-system.firebaseapp.com",
 projectId:"star-academy-system"
 });
 
-const db=getFirestore(app);
-const auth=getAuth(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 window.login = async function(){
 try{
 await signInWithEmailAndPassword(auth,email.value,password.value);
@@ -130,22 +130,22 @@ alert(err.message);
 }
 };
 
-/* ID GENERATOR */
+/* ================= ID GENERATOR ================= */
 async function generateID(dept){
-const ref=doc(db,"meta","counter");
+const ref = doc(db,"meta","counter");
 
-const num=await runTransaction(db,async(tx)=>{
-const snap=await tx.get(ref);
-let count=snap.exists()?snap.data().count+1:1;
+const num = await runTransaction(db,async(tx)=>{
+const snap = await tx.get(ref);
+let count = snap.exists()?snap.data().count+1:1;
 tx.set(ref,{count});
 return count;
 });
 
-let short=dept==="Science"?"SCI":"ART";
+let short = dept==="Science"?"SCI":"ART";
 return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 }
 
-/* ADD STUDENT - FIXED */
+/* ================= ADD STUDENT (FIXED SAFE) ================= */
 window.addStudent = async function(){
 
 const nameVal = document.getElementById("name").value.trim();
@@ -158,7 +158,8 @@ const schoolVal = document.getElementById("schoolName").value.trim();
 const gradVal = document.getElementById("graduated").value;
 const schoolTypeVal = document.getElementById("schoolType").value;
 
-if(!nameVal || !ageVal || !deptVal || !levelVal || !schoolVal || !gradVal){
+/* FIXED VALIDATION */
+if(!nameVal || !ageVal || !stateVal || !lgaVal || !deptVal || !levelVal || !schoolVal || !gradVal || !schoolTypeVal){
 alert("Please fill all required fields");
 return;
 }
@@ -179,57 +180,54 @@ graduated:gradVal,
 createdAt:Date.now()
 });
 
-/* CLEAR FORM */
-document.getElementById("name").value="";
-document.getElementById("age").value="";
-document.getElementById("state").value="";
-document.getElementById("lga").value="";
-document.getElementById("department").value="";
-document.getElementById("level").value="";
-document.getElementById("schoolName").value="";
-document.getElementById("graduated").value="";
-document.getElementById("schoolType").value="";
+/* CLEAR INPUTS */
+document.querySelectorAll("input").forEach(i=>{
+if(i.id !== "email" && i.id !== "password"){
+i.value="";
+}
+});
+department.value="";
+level.value="";
+schoolType.value="";
+graduated.value="";
 
 alert("Saved: " + id);
 };
 
-/* AUTO DETECT */
+/* ================= SUBJECT SYSTEM ================= */
 window.detectDepartment = function(){
 
-let id = document.getElementById("studentIDInput").value;
+let id = studentIDInput.value;
 
 if(id.includes("SCI")){
 loadSubjects("Science");
 }else if(id.includes("ART")){
 loadSubjects("Arts");
 }else{
-document.getElementById("subjects").innerHTML="";
+subjects.innerHTML="";
 }
-
 };
 
-/* LOAD SUBJECTS */
 function loadSubjects(dept){
 
-let list = dept==="Science" ?
-["English","Biology","Chemistry","Physics","Mathematics"] :
-["English","Literature","Government","Economics","Islamic Studies"];
+let list = dept==="Science"
+? ["English","Biology","Chemistry","Physics","Mathematics"]
+: ["English","Literature","Government","Economics","Islamic Studies"];
 
-let box = document.getElementById("subjects");
-box.innerHTML="";
+subjects.innerHTML="";
 
 list.forEach(sub=>{
-box.innerHTML+=`
+subjects.innerHTML += `
 <label>${sub}</label>
 <input class="score" type="number" placeholder="${sub} score">
 `;
 });
 }
 
-/* ADD RESULT */
+/* ================= ADD RESULT ================= */
 window.addResult = async function(){
 
-const studentID = document.getElementById("studentIDInput").value;
+const studentID = studentIDInput.value;
 const session = document.getElementById("session").value;
 const term = document.getElementById("term").value;
 
@@ -239,7 +237,6 @@ return;
 }
 
 let inputs = document.querySelectorAll(".score");
-
 let total = 0;
 
 for(let i of inputs){
@@ -271,14 +268,14 @@ session,
 createdAt:Date.now()
 });
 
-document.getElementById("studentIDInput").value="";
-document.getElementById("session").value="";
-document.getElementById("subjects").innerHTML="";
+studentIDInput.value="";
+session.value="";
+subjects.innerHTML="";
 
 alert("Result Saved ✔");
 };
 
-/* SHOW STUDENTS */
+/* ================= LIVE STUDENTS ================= */
 onSnapshot(collection(db,"students"),snap=>{
 
 let arr=[];
@@ -286,10 +283,10 @@ snap.forEach(d=>arr.push(d.data()));
 
 arr.sort((a,b)=>b.createdAt-a.createdAt);
 
-document.getElementById("students").innerHTML="";
+students.innerHTML="";
 
 arr.forEach(s=>{
-document.getElementById("students").innerHTML+=`
+students.innerHTML+=`
 <div class="card">
 <b>${s.studentID}</b><br>
 Full Name: ${s.name}<br>
