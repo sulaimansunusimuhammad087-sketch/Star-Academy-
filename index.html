@@ -8,6 +8,7 @@ body { font-family: Arial; background:#0a0a0f; color:white; text-align:center; }
 nav { background:#16161f; padding:15px; }
 a { color:#00e5c0; margin:10px; text-decoration:none; font-weight:bold; }
 .card { background:#16161f; margin:20px auto; padding:20px; max-width:600px; border-radius:10px; }
+button{padding:10px;background:#00e5c0;border:none;margin-top:10px;cursor:pointer;}
 </style>
 </head>
 
@@ -15,15 +16,15 @@ a { color:#00e5c0; margin:10px; text-decoration:none; font-weight:bold; }
 
 <nav>
 <a href="index.html">Home</a>
-<a href="admin.html">Admin Login</a>
-<a href="student.html">Student Portal</a>
+<a href="admin.html">Admin</a>
+<a href="student.html">Student</a>
 </nav>
 
 <h1>STAR ACADEMY SYSTEM</h1>
 
 <div class="card">
 <h2>About School</h2>
-<p>Star Academy trains students from Primary to Senior Secondary level and prepares them for university success in Science and Arts fields.</p>
+<p>Star Academy trains students for university success in Science and Arts fields.</p>
 </div>
 
 <div class="card">
@@ -45,18 +46,16 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let students = 0;
-let grad = 0;
+let totalStudents = 0;
 
 onSnapshot(collection(db,"students"),snap=>{
-students = snap.size;
+totalStudents = snap.size;
 update();
 });
 
 function update(){
 stats.innerHTML = `
-Total Students: ${students}<br>
-Graduated: ${grad}
+<b>Total Students:</b> ${totalStudents}
 `;
 }
 
