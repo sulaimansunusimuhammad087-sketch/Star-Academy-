@@ -4,38 +4,182 @@
 <title>Star Academy Home</title>
 
 <style>
-body { font-family: Arial; background:#0a0a0f; color:white; text-align:center; }
-nav { background:#16161f; padding:15px; }
-a { color:#00e5c0; margin:10px; text-decoration:none; font-weight:bold; }
-.card { background:#16161f; margin:20px auto; padding:20px; max-width:600px; border-radius:10px; }
-button{padding:10px;background:#00e5c0;border:none;margin-top:10px;cursor:pointer;}
+body{
+margin:0;
+font-family:Arial;
+color:white;
+background:url("bg.jpg") no-repeat center center fixed;
+background-size:cover;
+}
+
+.overlay{
+background:rgba(0,0,0,0.75);
+min-height:100vh;
+padding-bottom:50px;
+}
+
+nav{
+background:#16161f;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+nav a{
+color:#00e5c0;
+margin:10px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.logo{
+height:50px;
+border-radius:10px;
+}
+
+.container{
+text-align:center;
+padding:20px;
+}
+
+h1{
+margin-top:10px;
+color:#00e5c0;
+}
+
+.card{
+background:#16161f;
+margin:20px auto;
+padding:20px;
+max-width:800px;
+border-radius:10px;
+text-align:left;
+cursor:pointer;
+transition:0.3s;
+}
+
+.card:hover{
+transform:scale(1.02);
+}
+
+.section-content{
+display:none;
+margin-top:10px;
+line-height:1.6;
+}
+
+button{
+padding:10px;
+background:#00e5c0;
+border:none;
+margin-top:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.stats{
+text-align:center;
+font-size:18px;
+}
 </style>
 </head>
 
 <body>
 
+<div class="overlay">
+
+<!-- NAV -->
 <nav>
+<div>
+<img src="logo.png" class="logo">
+</div>
+
+<div>
 <a href="index.html">Home</a>
 <a href="admin.html">Admin</a>
 <a href="student.html">Student</a>
+</div>
 </nav>
 
+<!-- TITLE -->
+<div class="container">
 <h1>STAR ACADEMY SYSTEM</h1>
-
-<div class="card">
-<h2>About School</h2>
-<p>Star Academy trains students for university success in Science and Arts fields.</p>
+<p>Building future doctors, engineers, lawyers and scientists</p>
 </div>
 
+<!-- ABOUT -->
+<div class="card" onclick="toggle(this)">
+<h2>📘 About Star Academy</h2>
+<div class="section-content">
+Star Academy is a community-based extra lesson program designed to prepare students for university admission.
+It runs every Saturday and Sunday from 8:30am to 6:00pm.
+
+Students are trained from Primary, Junior Secondary, and Senior Secondary levels.
+The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
+</div>
+</div>
+
+<!-- MISSION -->
+<div class="card" onclick="toggle(this)">
+<h2>🎯 Mission</h2>
+<div class="section-content">
+To provide quality academic support that helps students pass examinations and gain admission into universities,
+while building strong academic discipline and excellence.
+</div>
+</div>
+
+<!-- VISION -->
+<div class="card" onclick="toggle(this)">
+<h2>🌍 Vision</h2>
+<div class="section-content">
+To become one of the leading community academic support centers producing successful professionals
+in science, technology, arts, and social sciences.
+</div>
+</div>
+
+<!-- MOTTO -->
+<div class="card" onclick="toggle(this)">
+<h2>📌 Motto</h2>
+<div class="section-content">
+Knowledge • Discipline • Success
+</div>
+</div>
+
+<!-- DEVELOPER STORY -->
+<div class="card" onclick="toggle(this)">
+<h2>💡 Developer Story</h2>
+<div class="section-content">
+This system was built by a former student and current tutor of Star Academy.
+
+The goal is to solve a major problem:
+the academy was not properly recording student data, performance, or graduation records.
+
+This system helps:
+- Automatically generate student IDs
+- Store student records permanently
+- Track performance per term
+- Show pass/fail analytics
+- Support future academic decision making
+
+It is designed using knowledge from Data Science and Statistics to improve education management.
+</div>
+</div>
+
+<!-- LIVE STATS -->
 <div class="card">
-<h2>Live Statistics</h2>
-<div id="stats">Loading...</div>
+<h2>📊 Live Statistics</h2>
+<div class="stats" id="stats">Loading...</div>
+</div>
+
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+getFirestore, collection, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -46,18 +190,19 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let totalStudents = 0;
+/* TOGGLE SECTION */
+window.toggle = function(el){
+let content = el.querySelector(".section-content");
+content.style.display =
+content.style.display === "block" ? "none" : "block";
+};
 
+/* LIVE STATS */
 onSnapshot(collection(db,"students"),snap=>{
-totalStudents = snap.size;
-update();
-});
-
-function update(){
-stats.innerHTML = `
-<b>Total Students:</b> ${totalStudents}
+document.getElementById("stats").innerHTML = `
+<b>Total Students:</b> ${snap.size}
 `;
-}
+});
 
 </script>
 
