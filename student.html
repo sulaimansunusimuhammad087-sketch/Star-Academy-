@@ -128,19 +128,18 @@ color:#00e5c0;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, query, where, getDocs
+getFirestore, collection, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system"
-};
+const app = initializeApp({
+apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain:"star-academy-system.firebaseapp.com",
+projectId:"star-academy-system"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* VIEW RESULT */
+/* VIEW RESULT (NO INDEX VERSION) */
 window.viewResult = async function(){
 
 const box = document.getElementById("box");
@@ -156,65 +155,66 @@ return;
 
 box.innerHTML = "Loading...";
 
-/* SAFE QUERY */
-let resultSnap;
-try{
-const q = query(
-collection(db,"results"),
-where("studentID","==",id),
-where("term","==",termVal),
-where("session","==",sessionVal)
-);
+/* GET ALL RESULTS (SAFE METHOD) */
+let snap = await getDocs(collection(db,"results"));
 
-resultSnap = await getDocs(q);
+let found = null;
 
-}catch(err){
-box.innerHTML = "Error loading result ❌";
-return;
+snap.forEach(doc=>{
+let r = doc.data();
+
+if(
+r.studentID === id &&
+r.term === termVal &&
+r.session === sessionVal
+){
+found = r;
 }
+});
 
-if(resultSnap.empty){
+if(!found){
 box.innerHTML = "No result found ❌";
 return;
 }
 
-let r = resultSnap.docs[0].data();
-
 /* GET STUDENT */
-let studentSnap = await getDocs(
-query(collection(db,"students"), where("studentID","==",id))
-);
+let studentSnap = await getDocs(collection(db,"students"));
 
-if(studentSnap.empty){
-box.innerHTML = "Student info not found ❌";
+let student = null;
+
+studentSnap.forEach(doc=>{
+let s = doc.data();
+if(s.studentID === id){
+student = s;
+}
+});
+
+if(!student){
+box.innerHTML = "Student not found ❌";
 return;
 }
 
-let student = studentSnap.docs[0].data();
-
-/* SUBJECT TABLE SAFE */
+/* SUBJECT TABLE */
 let subjectsHTML = "";
 
-if(r.subjects && typeof r.subjects === "object"){
+if(found.subjects){
 
-Object.entries(r.subjects).forEach(([sub,val])=>{
+Object.entries(found.subjects).forEach(([sub,val])=>{
 
 subjectsHTML += `
 <tr>
 <td>${sub}</td>
-<td>${val.ca ?? "-"}</td>
-<td>${val.exam ?? "-"}</td>
-<td>${val.total ?? (Number(val.ca||0)+Number(val.exam||0))}</td>
+<td>${val.ca || "-"}</td>
+<td>${val.exam || "-"}</td>
+<td>${val.total || (Number(val.ca||0)+Number(val.exam||0))}</td>
 </tr>
 `;
 
 });
 
-}else{
-subjectsHTML = `<tr><td colspan="4">No subject data</td></tr>`;
 }
 
-/* DISPLAY RESULT */
+/* DISPLAY */
 box.innerHTML = `
 <div id="resultArea">
 
@@ -239,16 +239,16 @@ ${subjectsHTML}
 
 <br>
 
-<b>Total Score:</b> ${r.total ?? "-"}<br>
-<b>Average:</b> ${r.average ? r.average.toFixed(2) : "-"}<br>
-<b>Grade:</b> ${r.grade ?? "-"}<br>
-<b>Status:</b> ${r.status ?? "-"}<br>
+<b>Total Score:</b> ${found.total}<br>
+<b>Average:</b> ${found.average.toFixed(2)}<br>
+<b>Grade:</b> ${found.grade}<br>
+<b>Status:</b> ${found.status}<br>
 
 <br>
 
 <b>School Feedback:</b><br>
-${r.average >= 70 ? "Excellent performance. Keep it up." :
-r.average >= 50 ? "Good effort. Improve more." :
+${found.average >= 70 ? "Excellent performance. Keep it up." :
+found.average >= 50 ? "Good effort. Improve more." :
 "Needs serious improvement."}
 
 <br><br>
