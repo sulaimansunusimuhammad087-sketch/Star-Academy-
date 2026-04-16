@@ -5,7 +5,7 @@
 
 <style>
 body { font-family: Arial; background:#0a0a0f; color:white; }
-.center { max-width:550px; margin:auto; margin-top:50px; background:#16161f; padding:20px; }
+.center { max-width:600px; margin:auto; margin-top:40px; background:#16161f; padding:20px; }
 input,select,button { width:100%; padding:10px; margin-top:10px; }
 button { background:#00e5c0; border:none; cursor:pointer; }
 .card { background:#111; padding:10px; margin-top:10px; }
@@ -71,12 +71,7 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 
 <h3>Add Result</h3>
 
-<input id="studentIDInput" placeholder="Enter Student ID">
-
-<select id="resDepartment" onchange="loadSubjects()">
-<option>Science</option>
-<option>Arts</option>
-</select>
+<input id="studentIDInput" placeholder="Enter Student ID" oninput="detectDepartment()">
 
 <div id="subjects"></div>
 
@@ -142,41 +137,65 @@ return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 /* ADD STUDENT */
 window.addStudent = async function(){
 
-if(
-!name.value ||
-!age.value ||
-!department.value ||
-!level.value ||
-!schoolType.value ||
-!schoolName.value ||
-!graduated.value
-){
+let nameVal = name.value.trim();
+let ageVal = age.value.trim();
+let deptVal = department.value;
+let levelVal = level.value;
+let schoolVal = schoolName.value.trim();
+let gradVal = graduated.value;
+
+if(!nameVal || !ageVal || !deptVal || !levelVal || !schoolVal || !gradVal){
 alert("Please fill all required fields");
 return;
 }
 
-const id = await generateID(department.value);
+const id = await generateID(deptVal);
 
 await addDoc(collection(db,"students"),{
 studentID:id,
-name:name.value,
-age:age.value,
+name:nameVal,
+age:ageVal,
 state:state.value,
 lga:lga.value,
-department:department.value,
-level:level.value,
+department:deptVal,
+level:levelVal,
 schoolType:schoolType.value,
-schoolName:schoolName.value,
-graduated:graduated.value,
+schoolName:schoolVal,
+graduated:gradVal,
 createdAt:Date.now()
 });
+
+/* CLEAR INPUTS */
+name.value="";
+age.value="";
+state.value="";
+lga.value="";
+department.value="";
+level.value="";
+schoolType.value="";
+schoolName.value="";
+graduated.value="";
 
 alert("Saved: "+id);
 };
 
-/* SUBJECTS */
-function loadSubjects(){
-let dept=resDepartment.value;
+/* AUTO DETECT DEPARTMENT FROM ID */
+window.detectDepartment = function(){
+
+let id = studentIDInput.value;
+
+if(id.includes("SCI")){
+loadSubjects("Science");
+}else if(id.includes("ART")){
+loadSubjects("Arts");
+}else{
+subjects.innerHTML="";
+}
+
+};
+
+/* LOAD SUBJECTS */
+function loadSubjects(dept){
 
 let list = dept==="Science" ?
 ["English","Biology","Chemistry","Physics","Mathematics"] :
@@ -185,33 +204,31 @@ let list = dept==="Science" ?
 subjects.innerHTML="";
 
 list.forEach(sub=>{
-subjects.innerHTML += `
+subjects.innerHTML+=`
 <label>${sub}</label>
-<input class="score" data-sub="${sub}" type="number" placeholder="Enter ${sub} score">
+<input class="score" type="number" placeholder="${sub} score">
 `;
 });
 }
-loadSubjects();
 
 /* ADD RESULT */
 window.addResult = async function(){
 
 if(!studentIDInput.value || !session.value){
-alert("Fill Student ID and Session");
+alert("Enter Student ID and Session");
 return;
 }
 
 let inputs=document.querySelectorAll(".score");
-let scores={};
+
 let total=0;
 
 for(let i of inputs){
 let val=Number(i.value);
 if(isNaN(val)){
-alert("Enter all marks");
+alert("Enter all scores");
 return;
 }
-scores[i.dataset.sub]=val;
 total+=val;
 }
 
@@ -226,8 +243,6 @@ else if(avg>=45)grade="D";
 
 await addDoc(collection(db,"results"),{
 studentID:studentIDInput.value,
-department:resDepartment.value,
-scores,
 total,
 average:avg,
 status,
@@ -237,13 +252,24 @@ session:session.value,
 createdAt:Date.now()
 });
 
-alert("Result Saved");
+/* CLEAR RESULT INPUT */
+studentIDInput.value="";
+session.value="";
+subjects.innerHTML="";
+
+alert(`Result Saved
+Total: ${total}/500
+Average: ${avg}
+Grade: ${grade}
+Status: ${status}`);
 };
 
 /* SHOW STUDENTS */
 onSnapshot(collection(db,"students"),snap=>{
+
 let arr=[];
 snap.forEach(d=>arr.push(d.data()));
+
 arr.sort((a,b)=>b.createdAt-a.createdAt);
 
 students.innerHTML="";
@@ -260,6 +286,7 @@ School: ${s.schoolName} (${s.schoolType})<br>
 Graduated: ${s.graduated}
 </div>`;
 });
+
 });
 
 </script>
