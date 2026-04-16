@@ -32,7 +32,6 @@ h2,h3{color:#00e5c0;}
 
 <h2>ADMIN DASHBOARD</h2>
 
-<!-- ADD STUDENT -->
 <h3>Add Student</h3>
 
 <input id="name" placeholder="Full Name">
@@ -70,7 +69,6 @@ h2,h3{color:#00e5c0;}
 
 <hr>
 
-<!-- ADD RESULT -->
 <h3>Add Result</h3>
 
 <input id="studentIDInput" placeholder="Student ID" oninput="detectDepartment()">
@@ -89,19 +87,16 @@ h2,h3{color:#00e5c0;}
 
 <hr>
 
-<!-- ANALYTICS -->
 <h3>Analytics</h3>
 <div id="analytics" class="card"></div>
 
 <hr>
 
-<!-- STUDENTS LIST -->
 <h3>Students</h3>
 <div id="students"></div>
 
 <hr>
 
-<!-- RESULTS -->
 <h3>Results</h3>
 <div id="results"></div>
 
@@ -110,6 +105,7 @@ h2,h3{color:#00e5c0;}
 
 <script type="module">
 
+/* ================= FIREBASE ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore,
@@ -125,17 +121,22 @@ getAuth,
 signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-/* FIREBASE */
-const app = initializeApp({
-apiKey:"YOUR_API_KEY",
-authDomain:"YOUR_DOMAIN",
-projectId:"YOUR_PROJECT"
-});
+/* YOUR FIREBASE CONFIG (FIXED) */
+const firebaseConfig = {
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system",
+storageBucket: "star-academy-system.firebasestorage.app",
+messagingSenderId: "615097211278",
+appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+};
 
+/* INIT */
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 window.login = async function(){
 try{
 await signInWithEmailAndPassword(auth,email.value,password.value);
@@ -147,7 +148,7 @@ alert(e.message);
 }
 };
 
-/* ID GENERATOR */
+/* ================= ID GENERATOR ================= */
 async function generateID(dept){
 const ref = doc(db,"meta","counter");
 
@@ -162,7 +163,7 @@ let code = dept==="Science"?"SCI":"ART";
 return `STA/2026/${code}/${String(num).padStart(4,"0")}`;
 }
 
-/* ADD STUDENT */
+/* ================= ADD STUDENT ================= */
 window.addStudent = async function(){
 
 let s = {
@@ -193,7 +194,7 @@ createdAt:Date.now()
 alert("Student Added: " + id);
 };
 
-/* SUBJECT LOADING */
+/* ================= SUBJECTS ================= */
 window.detectDepartment = function(){
 
 let id = studentIDInput.value;
@@ -212,7 +213,7 @@ subjects.innerHTML += `
 });
 };
 
-/* ADD RESULT */
+/* ================= ADD RESULT ================= */
 window.addResult = async function(){
 
 let id = studentIDInput.value;
@@ -251,11 +252,11 @@ session:sessionVal,
 createdAt:Date.now()
 });
 
-alert("Result Saved");
+alert("Result Saved ✔");
 loadAnalytics();
 };
 
-/* ANALYTICS */
+/* ================= ANALYTICS ================= */
 function loadAnalytics(){
 
 onSnapshot(collection(db,"results"),snap=>{
@@ -278,14 +279,14 @@ Pass Rate: ${total?((pass/total)*100).toFixed(2):0}%
 });
 }
 
-/* STUDENTS */
+/* ================= LIVE STUDENTS ================= */
 onSnapshot(collection(db,"students"),snap=>{
 
 students.innerHTML="";
 
 snap.forEach(d=>{
 let s=d.data();
-students.innerHTML += `
+students.innerHTML+=`
 <div class="card">
 <b>${s.studentID}</b><br>
 ${s.name}<br>
@@ -294,14 +295,14 @@ ${s.department} - ${s.level}
 });
 });
 
-/* RESULTS */
+/* ================= LIVE RESULTS ================= */
 onSnapshot(collection(db,"results"),snap=>{
 
 results.innerHTML="";
 
 snap.forEach(d=>{
 let r=d.data();
-results.innerHTML += `
+results.innerHTML+=`
 <div class="card">
 <b>${r.studentID}</b><br>
 Total: ${r.total}<br>
