@@ -45,8 +45,8 @@ a{color:#00e5c0; cursor:pointer;}
 <!-- LOGIN -->
 <div class="card" id="loginBox">
 <h2>ADMIN LOGIN</h2>
-<input id="email">
-<input id="password" type="password">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 <p id="msg"></p>
 </div>
@@ -168,14 +168,19 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* LOGIN */
+/* SAFE LOGIN */
 window.login = async function(){
 try{
-await signInWithEmailAndPassword(auth,email.value.trim(),password.value.trim());
-loginBox.style.display="none";
-dashboard.classList.remove("hidden");
+const email = document.getElementById("email").value.trim();
+const pass = document.getElementById("password").value.trim();
+
+await signInWithEmailAndPassword(auth,email,pass);
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("dashboard").classList.remove("hidden");
+
 }catch(e){
-msg.innerHTML = e.message;
+document.getElementById("msg").innerText = "Login failed: " + e.message;
 }
 };
 
@@ -208,27 +213,29 @@ let code = dept==="Science"?"SCI":"ART";
 return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
 }
 
-/* ADD STUDENT (FIXED 100%) */
+/* FIXED ADD STUDENT (NO CRASH) */
 window.addStudent = async function(){
 
+try{
+
 const data = {
-name: name.value.trim(),
-age: age.value.trim(),
-gender: gender.value,
-state: state.value.trim(),
-lga: lga.value.trim(),
-address: address.value.trim(),
-phone: phone.value.trim(),
-email: emailStudent.value.trim(),
-department: department.value,
-level: level.value,
-schoolType: schoolType.value,
-schoolName: schoolName.value.trim(),
-graduated: graduated.value
+name: document.getElementById("name").value.trim(),
+age: document.getElementById("age").value.trim(),
+gender: document.getElementById("gender").value,
+state: document.getElementById("state").value.trim(),
+lga: document.getElementById("lga").value.trim(),
+address: document.getElementById("address").value.trim(),
+phone: document.getElementById("phone").value.trim(),
+email: document.getElementById("emailStudent").value.trim(),
+department: document.getElementById("department").value,
+level: document.getElementById("level").value,
+schoolType: document.getElementById("schoolType").value,
+schoolName: document.getElementById("schoolName").value.trim(),
+graduated: document.getElementById("graduated").value
 };
 
-/* FIXED VALIDATION (NO FALSE BLOCK) */
-for (let k in data){
+/* VALIDATION */
+for(let k in data){
 if(data[k] === ""){
 alert("Fill all fields ❗");
 return;
@@ -248,16 +255,21 @@ alert("Student Added ✔ " + id);
 /* CLEAR */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
+
+}catch(err){
+alert("ERROR: " + err.message);
+}
+
 };
 
 /* LOAD STUDENT */
 window.loadStudent = async function(){
 
-let id = studentID.value.trim();
+let id = document.getElementById("studentID").value.trim();
 
 if(!id){
-studentName.innerHTML="";
-subjects.innerHTML="";
+document.getElementById("studentName").innerText="";
+document.getElementById("subjects").innerHTML="";
 return;
 }
 
@@ -265,41 +277,36 @@ const q = query(collection(db,"students"), where("studentID","==",id));
 const snap = await getDocs(q);
 
 if(snap.empty){
-studentName.innerHTML="Student not found ❌";
-subjects.innerHTML="";
+document.getElementById("studentName").innerText="Student not found ❌";
+document.getElementById("subjects").innerHTML="";
 return;
 }
 
 let s = snap.docs[0].data();
 
-studentName.innerHTML =
+document.getElementById("studentName").innerText =
 `Name: ${s.name} | Class: ${s.level} | Dept: ${s.department}`;
 
-loadSubjects(s.department);
-};
-
-/* SUBJECTS */
-function loadSubjects(type){
-
-let list = type==="Science"
+let subjects = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
-subjects.innerHTML="";
+let box = document.getElementById("subjects");
+box.innerHTML="";
 
-list.forEach(sub=>{
-subjects.innerHTML += `<input class="score" type="number" placeholder="${sub}">`;
+subjects.forEach(sub=>{
+box.innerHTML += `<input class="score" type="number" placeholder="${sub}">`;
 });
-}
+};
 
-/* SAVE RESULT + PREVIEW */
+/* SAVE RESULT */
 window.saveResult = async function(){
 
-let id = studentID.value.trim();
-let termVal = term.value;
-let sessionVal = session.value;
+let id = document.getElementById("studentID").value.trim();
+let term = document.getElementById("term").value;
+let session = document.getElementById("session").value;
 
-if(!id || !termVal || !sessionVal){
+if(!id || !term || !session){
 alert("Fill all fields");
 return;
 }
@@ -320,14 +327,14 @@ total,
 average:avg,
 grade,
 status,
-term:termVal,
-session:sessionVal,
+term,
+session,
 createdAt:Date.now()
 });
 
 /* PREVIEW */
-resultPreview.classList.remove("hidden");
-resultPreview.innerHTML = `
+document.getElementById("resultPreview").classList.remove("hidden");
+document.getElementById("resultPreview").innerHTML = `
 <h3>Result Summary</h3>
 Total: ${total}<br>
 Average: ${avg.toFixed(2)}<br>
