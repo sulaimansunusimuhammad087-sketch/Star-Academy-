@@ -5,46 +5,49 @@
 
 <style>
 body { font-family: Arial; background:#0a0a0f; color:white; }
-.center { max-width:600px; margin:auto; margin-top:40px; background:#16161f; padding:20px; }
-input,select,button { width:100%; padding:10px; margin-top:10px; }
-button { background:#00e5c0; border:none; cursor:pointer; }
-.card { background:#111; padding:10px; margin-top:10px; }
+.center { max-width:650px; margin:auto; margin-top:40px; background:#16161f; padding:20px; border-radius:10px; }
+input,select,button { width:100%; padding:10px; margin-top:10px; border-radius:5px; }
+button { background:#00e5c0; border:none; cursor:pointer; font-weight:bold; }
+.card { background:#111; padding:10px; margin-top:10px; border-radius:8px; }
 .hidden{display:none;}
+hr{margin:20px 0;}
+h2,h3{color:#00e5c0;}
 </style>
 </head>
 
 <body>
 
-<!-- ================= ADMIN LOGIN ================= -->
+<!-- LOGIN -->
 <div id="loginPage" class="center">
-<h2>Admin Login</h2>
-<input id="email" placeholder="Enter Email">
-<input id="password" type="password" placeholder="Enter Password">
+<h2>STAR ACADEMY LOGIN</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
 
-<!-- ================= DASHBOARD ================= -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
 <div class="center">
 
+<h2>ADMIN DASHBOARD</h2>
+
+<!-- ADD STUDENT -->
 <h3>Add Student</h3>
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
 <input id="state" placeholder="State">
-<input id="lga" placeholder="Local Government">
+<input id="lga" placeholder="LGA">
 
 <select id="department">
-<option value="">Select Department</option>
+<option value="">Department</option>
 <option>Science</option>
 <option>Arts</option>
 </select>
 
 <select id="level">
-<option value="">Select Level</option>
-<option>Primary</option>
-<option>Junior Secondary</option>
+<option value="">Level</option>
 <option>Fresh Class</option>
 <option>Level 1</option>
 <option>Level 2</option>
@@ -52,7 +55,6 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 </select>
 
 <select id="schoolType">
-<option value="">School Type</option>
 <option>Private</option>
 <option>Public</option>
 </select>
@@ -60,18 +62,18 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 <input id="schoolName" placeholder="School Name">
 
 <select id="graduated">
-<option value="">Graduated?</option>
-<option>Yes</option>
 <option>No</option>
+<option>Yes</option>
 </select>
 
 <button onclick="addStudent()">Save Student</button>
 
 <hr>
 
+<!-- ADD RESULT -->
 <h3>Add Result</h3>
 
-<input id="studentIDInput" placeholder="Enter Student ID" oninput="detectDepartment()">
+<input id="studentIDInput" placeholder="Student ID" oninput="detectDepartment()">
 
 <div id="subjects"></div>
 
@@ -87,22 +89,23 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 
 <hr>
 
+<!-- ANALYTICS -->
+<h3>Analytics</h3>
+<div id="analytics" class="card"></div>
+
+<hr>
+
+<!-- STUDENTS LIST -->
 <h3>Students</h3>
 <div id="students"></div>
 
+<hr>
+
+<!-- RESULTS -->
+<h3>Results</h3>
+<div id="results"></div>
+
 </div>
-</div>
-
-<!-- ================= STUDENT PORTAL ================= -->
-<div id="studentPortal" class="center hidden">
-<h2>Student Portal</h2>
-
-<input id="studentLoginID" placeholder="Enter Student ID">
-<button onclick="viewResult()">View Result</button>
-
-<div id="resultBox"></div>
-
-<button onclick="downloadResult()">Download / Print Result</button>
 </div>
 
 <script type="module">
@@ -114,9 +117,7 @@ collection,
 addDoc,
 onSnapshot,
 doc,
-runTransaction,
-query,
-where
+runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
@@ -124,27 +125,29 @@ getAuth,
 signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+/* FIREBASE */
 const app = initializeApp({
-apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain:"star-academy-system.firebaseapp.com",
-projectId:"star-academy-system"
+apiKey:"YOUR_API_KEY",
+authDomain:"YOUR_DOMAIN",
+projectId:"YOUR_PROJECT"
 });
 
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* ================= ADMIN LOGIN ================= */
+/* LOGIN */
 window.login = async function(){
 try{
 await signInWithEmailAndPassword(auth,email.value,password.value);
 loginPage.style.display="none";
 dashboard.classList.remove("hidden");
-}catch(err){
-alert(err.message);
+loadAnalytics();
+}catch(e){
+alert(e.message);
 }
 };
 
-/* ================= ID GENERATOR ================= */
+/* ID GENERATOR */
 async function generateID(dept){
 const ref = doc(db,"meta","counter");
 
@@ -155,179 +158,157 @@ tx.set(ref,{count});
 return count;
 });
 
-let short = dept==="Science"?"SCI":"ART";
-return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
+let code = dept==="Science"?"SCI":"ART";
+return `STA/2026/${code}/${String(num).padStart(4,"0")}`;
 }
 
-/* ================= ADD STUDENT ================= */
+/* ADD STUDENT */
 window.addStudent = async function(){
 
-const nameVal = name.value.trim();
-const ageVal = age.value.trim();
-const stateVal = state.value.trim();
-const lgaVal = lga.value.trim();
-const deptVal = department.value;
-const levelVal = level.value;
-const schoolVal = schoolName.value.trim();
-const gradVal = graduated.value;
-const schoolTypeVal = schoolType.value;
+let s = {
+name:name.value,
+age:age.value,
+state:state.value,
+lga:lga.value,
+department:department.value,
+level:level.value,
+schoolType:schoolType.value,
+schoolName:schoolName.value,
+graduated:graduated.value
+};
 
-if(!nameVal || !ageVal || !stateVal || !lgaVal || !deptVal || !levelVal || !schoolVal || !gradVal || !schoolTypeVal){
-alert("Please fill all required fields");
+if(Object.values(s).some(v=>!v)){
+alert("Fill all fields");
 return;
 }
 
-const id = await generateID(deptVal);
+let id = await generateID(s.department);
 
 await addDoc(collection(db,"students"),{
 studentID:id,
-name:nameVal,
-age:ageVal,
-state:stateVal,
-lga:lgaVal,
-department:deptVal,
-level:levelVal,
-schoolType:schoolTypeVal,
-schoolName:schoolVal,
-graduated:gradVal,
+...s,
 createdAt:Date.now()
 });
 
-alert("Saved: " + id);
+alert("Student Added: " + id);
 };
 
-/* ================= SUBJECTS ================= */
+/* SUBJECT LOADING */
 window.detectDepartment = function(){
+
 let id = studentIDInput.value;
 
-if(id.includes("SCI")) loadSubjects("Science");
-else if(id.includes("ART")) loadSubjects("Arts");
-else subjects.innerHTML="";
-};
-
-function loadSubjects(dept){
-let list = dept==="Science"
+let subjectsList = id.includes("SCI")
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
 subjects.innerHTML="";
 
-list.forEach(sub=>{
+subjectsList.forEach(sub=>{
 subjects.innerHTML += `
 <label>${sub}</label>
-<input class="score" type="number" placeholder="${sub} score">
+<input class="score" type="number" placeholder="Score">
 `;
 });
-}
+};
 
-/* ================= ADD RESULT ================= */
+/* ADD RESULT */
 window.addResult = async function(){
 
-const studentID = studentIDInput.value;
-const session = document.getElementById("session").value;
-const term = document.getElementById("term").value;
+let id = studentIDInput.value;
+let sessionVal = session.value;
+let termVal = term.value;
 
-if(!studentID || !session){
-alert("Enter Student ID and Session");
+if(!id || !sessionVal){
+alert("Fill required fields");
 return;
 }
 
-let inputs = document.querySelectorAll(".score");
+let scores = document.querySelectorAll(".score");
 let total = 0;
 
-for(let i of inputs){
-let val = Number(i.value);
-if(isNaN(val)){
-alert("Enter all scores");
-return;
-}
-total += val;
-}
+scores.forEach(s=>{
+total += Number(s.value);
+});
 
-let avg = total/5;
+let avg = total / scores.length;
 let status = total >= 250 ? "PASS" : "FAIL";
 
-let grade="F";
+let grade = "F";
 if(avg>=70)grade="A";
 else if(avg>=60)grade="B";
 else if(avg>=50)grade="C";
 else if(avg>=45)grade="D";
 
 await addDoc(collection(db,"results"),{
-studentID,
+studentID:id,
 total,
 average:avg,
 status,
 grade,
-term,
-session,
+term:termVal,
+session:sessionVal,
 createdAt:Date.now()
 });
 
-alert("Result Saved ✔");
+alert("Result Saved");
+loadAnalytics();
 };
 
-/* ================= VIEW RESULT (STUDENT PORTAL) ================= */
-window.viewResult = async function(){
-
-const id = studentLoginID.value;
+/* ANALYTICS */
+function loadAnalytics(){
 
 onSnapshot(collection(db,"results"),snap=>{
 
-let html = "";
+let total=0,pass=0,fail=0;
 
 snap.forEach(d=>{
-let r = d.data();
+let r=d.data();
+total++;
+if(r.status==="PASS") pass++;
+else fail++;
+});
 
-if(r.studentID === id){
-html += `
-<div class="card">
-<h3>Result Slip</h3>
-<b>ID:</b> ${r.studentID}<br>
-<b>Total:</b> ${r.total}/500<br>
-<b>Average:</b> ${r.average}<br>
-<b>Status:</b> ${r.status}<br>
-<b>Grade:</b> ${r.grade}<br>
-<b>Term:</b> ${r.term}<br>
-<b>Session:</b> ${r.session}<br>
-</div>
+analytics.innerHTML=`
+Total Results: ${total}<br>
+Pass: ${pass}<br>
+Fail: ${fail}<br>
+Pass Rate: ${total?((pass/total)*100).toFixed(2):0}%
 `;
+});
 }
-});
 
-resultBox.innerHTML = html || "No result found";
-
-});
-};
-
-/* ================= PRINT / PDF ================= */
-window.downloadResult = function(){
-window.print();
-};
-
-/* ================= LIVE STUDENTS ================= */
+/* STUDENTS */
 onSnapshot(collection(db,"students"),snap=>{
-
-let arr=[];
-snap.forEach(d=>arr.push(d.data()));
-
-arr.sort((a,b)=>b.createdAt-a.createdAt);
 
 students.innerHTML="";
 
-arr.forEach(s=>{
-students.innerHTML+=`
+snap.forEach(d=>{
+let s=d.data();
+students.innerHTML += `
 <div class="card">
 <b>${s.studentID}</b><br>
-Full Name: ${s.name}<br>
-Age: ${s.age}<br>
-Department: ${s.department}<br>
-Level: ${s.level}<br>
-School: ${s.schoolName} (${s.schoolType})<br>
-Graduated: ${s.graduated}
+${s.name}<br>
+${s.department} - ${s.level}
 </div>`;
 });
+});
 
+/* RESULTS */
+onSnapshot(collection(db,"results"),snap=>{
+
+results.innerHTML="";
+
+snap.forEach(d=>{
+let r=d.data();
+results.innerHTML += `
+<div class="card">
+<b>${r.studentID}</b><br>
+Total: ${r.total}<br>
+Grade: ${r.grade}<br>
+Status: ${r.status}
+</div>`;
+});
 });
 
 </script>
