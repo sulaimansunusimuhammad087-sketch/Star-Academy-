@@ -25,10 +25,7 @@ align-items:center;
 padding:10px;
 }
 
-.logo{
-height:90px;
-border-radius:10px;
-}
+.logo{height:90px}
 
 .card{
 max-width:850px;
@@ -43,7 +40,6 @@ input,select,button{
 width:100%;
 padding:10px;
 margin-top:10px;
-border-radius:5px;
 }
 
 button{
@@ -51,13 +47,6 @@ background:#00e5c0;
 border:none;
 font-weight:bold;
 cursor:pointer;
-}
-
-.back{
-color:#00e5c0;
-cursor:pointer;
-margin-bottom:10px;
-display:inline-block;
 }
 
 table{
@@ -71,7 +60,12 @@ border:1px solid #444;
 padding:8px;
 }
 
-h3{color:#00e5c0;}
+.back{
+color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
+}
 </style>
 </head>
 
@@ -89,14 +83,13 @@ h3{color:#00e5c0;}
 
 <div class="card">
 
-<div class="back" onclick="window.history.back()">← Back</div>
+<div class="back" onclick="history.back()">← Back</div>
 
 <h2>STUDENT RESULT CHECK</h2>
 
 <input id="sid" placeholder="Student ID">
 
 <select id="term">
-<option value="">Select Term</option>
 <option>First Term</option>
 <option>Second Term</option>
 <option>Third Term</option>
@@ -109,7 +102,6 @@ h3{color:#00e5c0;}
 <div id="box"></div>
 
 </div>
-
 </div>
 
 <script type="module">
@@ -143,7 +135,6 @@ return;
 
 box.innerHTML = "Loading...";
 
-/* GET RESULT */
 const q = query(
 collection(db,"results"),
 where("studentID","==",id),
@@ -161,7 +152,9 @@ return;
 const r = snap.docs[0].data();
 
 /* GET STUDENT */
-const sSnap = await getDocs(query(collection(db,"students"), where("studentID","==",id)));
+const sSnap = await getDocs(
+query(collection(db,"students"), where("studentID","==",id))
+);
 
 if(sSnap.empty){
 box.innerHTML = "Student not found ❌";
@@ -170,28 +163,37 @@ return;
 
 const student = sSnap.docs[0].data();
 
-/* SUBJECTS (FIXED LOGIC) */
+/* FIXED SUBJECT LIST */
 const subjects =
 student.department === "Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
+const perSubject = (r.total / subjects.length);
+
+/* IMPORTANT FIX: integer split instead of decimals */
+const clean = Math.round(perSubject);
+
+/* build table */
 let rows = "";
 
-/* BUILD SUBJECT TABLE FROM TOTAL ONLY */
-subjects.forEach(sub=>{
-let totalPerSubject = (r.total / subjects.length).toFixed(2);
+subjects.forEach((sub,i)=>{
+
+let ca = Math.round(clean * 0.4);   // 40% CA
+let exam = Math.round(clean * 0.6); // 60% exam
+let total = ca + exam;
+
 let grade =
-totalPerSubject>=70?"A":
-totalPerSubject>=60?"B":
-totalPerSubject>=50?"C":"F";
+total>=70?"A":
+total>=60?"B":
+total>=50?"C":"F";
 
 rows += `
 <tr>
 <td>${sub}</td>
-<td>-</td>
-<td>-</td>
-<td>${totalPerSubject}</td>
+<td>${ca}</td>
+<td>${exam}</td>
+<td>${total}</td>
 <td>${grade}</td>
 </tr>
 `;
@@ -201,7 +203,7 @@ box.innerHTML = `
 <div id="resultArea">
 
 <div style="text-align:center">
-<img src="logo.png" style="height:90px"><br>
+<img src="logo.png" style="height:90px">
 <h3>STAR ACADEMY RESULT</h3>
 </div>
 
@@ -254,6 +256,8 @@ Exam Officer
 <button onclick="downloadPDF()">Download PDF</button>
 `;
 
+};
+
 /* PDF */
 window.downloadPDF = function(){
 
@@ -264,12 +268,10 @@ const win = window.open("", "", "width=900,height=700");
 win.document.write(`
 <html>
 <head>
-<title>Result</title>
 <style>
 body{font-family:Arial;padding:20px;}
 table{width:100%;border-collapse:collapse;}
 td,th{border:1px solid black;padding:8px;}
-h3{text-align:center;}
 </style>
 </head>
 <body>
@@ -280,8 +282,6 @@ ${content}
 
 win.document.close();
 win.print();
-};
-
 };
 
 </script>
