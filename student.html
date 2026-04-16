@@ -21,6 +21,7 @@ padding:20px;
 nav{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:10px;
 }
 
@@ -59,7 +60,12 @@ border:1px solid #444;
 padding:8px;
 }
 
-.back{color:#00e5c0}
+.back{
+color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
+}
 </style>
 </head>
 
@@ -77,6 +83,8 @@ padding:8px;
 
 <div class="card">
 
+<div class="back" onclick="history.back()">← Back</div>
+
 <h2>STUDENT RESULT CHECK</h2>
 
 <input id="sid" placeholder="Student ID">
@@ -87,7 +95,7 @@ padding:8px;
 <option>Third Term</option>
 </select>
 
-<input id="session" placeholder="Session">
+<input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="viewResult()">View Result</button>
 
@@ -111,6 +119,7 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
+/* VIEW RESULT */
 window.viewResult = async function(){
 
 const box = document.getElementById("box");
@@ -119,9 +128,15 @@ let id = sid.value.trim();
 let termVal = term.value;
 let sessionVal = session.value;
 
-box.innerHTML="Loading...";
+if(!id || !termVal || !sessionVal){
+alert("Fill all fields");
+return;
+}
 
-const q = query(collection(db,"results"),
+box.innerHTML = "Loading...";
+
+const q = query(
+collection(db,"results"),
 where("studentID","==",id),
 where("term","==",termVal),
 where("session","==",sessionVal)
@@ -130,37 +145,52 @@ where("session","==",sessionVal)
 const snap = await getDocs(q);
 
 if(snap.empty){
-box.innerHTML="No result found";
+box.innerHTML = "No result found ❌";
 return;
 }
 
 const r = snap.docs[0].data();
 
 /* GET STUDENT */
-const sSnap = await getDocs(query(collection(db,"students"),where("studentID","==",id)));
+const sSnap = await getDocs(
+query(collection(db,"students"), where("studentID","==",id))
+);
+
+if(sSnap.empty){
+box.innerHTML = "Student not found ❌";
+return;
+}
 
 const student = sSnap.docs[0].data();
 
-/* SUBJECT DISPLAY (REAL DATA) */
-let rows="";
+/* SUBJECTS FROM ADMIN (REAL DATA) */
+let subjectsData = r.subjects || {};
 
-let subjects = r.subjects || {};
+let rows = "";
 
-Object.values(subjects).forEach(sub=>{
+/* FIX: real subject names missing, so we label properly */
+Object.keys(subjectsData).forEach((key, index)=>{
+
+let sub = subjectsData[key];
+
+let ca = sub.ca ?? 0;
+let exam = sub.exam ?? 0;
+let total = sub.total ?? (ca + exam);
 
 let grade =
-sub.total>=70?"A":
-sub.total>=60?"B":
-sub.total>=50?"C":"F";
+total>=70?"A":
+total>=60?"B":
+total>=50?"C":"F";
 
 rows += `
 <tr>
-<td>-</td>
-<td>${sub.ca}</td>
-<td>${sub.exam}</td>
-<td>${sub.total}</td>
+<td>Subject ${index+1}</td>
+<td>${ca}</td>
+<td>${exam}</td>
+<td>${total}</td>
 <td>${grade}</td>
-</tr>`;
+</tr>
+`;
 });
 
 box.innerHTML = `
@@ -204,9 +234,27 @@ ${rows}
 };
 
 window.downloadPDF = function(){
-let content=document.getElementById("resultArea").innerHTML;
-let win=window.open("","", "width=900,height=700");
-win.document.write(`<html><body>${content}</body></html>`);
+
+let content = document.getElementById("resultArea").innerHTML;
+
+let win = window.open("", "", "width=900,height=700");
+
+win.document.write(`
+<html>
+<head>
+<style>
+body{font-family:Arial;padding:20px;}
+table{width:100%;border-collapse:collapse;}
+td,th{border:1px solid black;padding:8px;}
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>
+`);
+
+win.document.close();
 win.print();
 };
 
