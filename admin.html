@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Login</title>
+<title>Admin Portal</title>
 
 <style>
 body { font-family:Arial; background:#0a0a0f; color:white; text-align:center; }
 .card { background:#16161f; padding:20px; max-width:600px; margin:auto; border-radius:10px; }
 input,button { width:100%; padding:10px; margin-top:10px; }
-button { background:#00e5c0; border:none; font-weight:bold; }
+button { background:#00e5c0; border:none; font-weight:bold; cursor:pointer; }
 .hidden{display:none;}
 a{color:#00e5c0;}
 </style>
@@ -20,6 +20,9 @@ a{color:#00e5c0;}
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
+<br><br>
+<a href="index.html">← Back Home</a>
+<p id="msg"></p>
 </div>
 
 <div id="dash" class="hidden">
@@ -61,14 +64,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* LOGIN */
+/* LOGIN FIXED */
 window.login = async function(){
 try{
+msg.innerHTML = "Logging in...";
+
 await signInWithEmailAndPassword(auth,email.value,password.value);
+
 login.style.display="none";
 dash.classList.remove("hidden");
+
 }catch(e){
-alert("Login failed");
+msg.innerHTML = "❌ Login failed: check email/password or Firebase Auth not enabled";
 }
 };
 
@@ -80,6 +87,7 @@ age:age.value,
 dept:dept.value,
 createdAt:Date.now()
 });
+
 alert("Saved");
 };
 
