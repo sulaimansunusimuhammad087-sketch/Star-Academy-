@@ -4,23 +4,119 @@
 <title>Student Portal</title>
 
 <style>
-body{font-family:Arial;background:#0a0a0f;color:white;}
-.card{max-width:650px;margin:auto;background:#16161f;padding:20px;border-radius:10px;margin-top:40px;}
-input,button{width:100%;padding:10px;margin-top:10px;}
-button{background:#00e5c0;border:none;}
-.hidden{display:none;}
+body{
+margin:0;
+font-family:Arial;
+color:white;
+background:url("bg.jpg") no-repeat center center fixed;
+background-size:cover;
+}
+
+.overlay{
+background:rgba(0,0,0,0.75);
+min-height:100vh;
+padding-bottom:50px;
+}
+
+nav{
+background:#16161f;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.logo{
+height:80px;
+border-radius:12px;
+}
+
+nav a{
+color:#00e5c0;
+margin:10px;
+text-decoration:none;
+font-weight:bold;
+}
+
+.card{
+max-width:800px;
+margin:auto;
+background:#16161f;
+padding:20px;
+border-radius:10px;
+margin-top:20px;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+}
+
+button{
+background:#00e5c0;
+border:none;
+cursor:pointer;
+font-weight:bold;
+}
+
+.back{
+color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
+}
+
+table{
+width:100%;
+margin-top:10px;
+border-collapse:collapse;
+}
+
+td,th{
+border:1px solid #444;
+padding:8px;
+text-align:left;
+}
+
+h3{
+color:#00e5c0;
+}
 </style>
 </head>
 
 <body>
 
+<div class="overlay">
+
+<!-- NAV -->
+<nav>
+<img src="logo.png" class="logo">
+<div>
+<a href="index.html">Home</a>
+<a href="admin.html">Admin</a>
+</div>
+</nav>
+
 <div class="card">
 
-<h2 onclick="openPortal()" style="cursor:pointer;">STUDENT RESULT CHECK</h2>
+<div class="back" onclick="window.history.back()">← Back</div>
 
-<div id="portal" class="hidden">
+<h2>STUDENT RESULT CHECK</h2>
 
-<input id="sid" placeholder="Enter Student ID">
+<input id="sid" placeholder="Student ID">
+
+<select id="term">
+<option value="">Select Term</option>
+<option>First Term</option>
+<option>Second Term</option>
+<option>Third Term</option>
+</select>
+
+<input id="session" placeholder="Session e.g 2025/2026">
+
 <button onclick="viewResult()">View Result</button>
 
 <div id="box"></div>
@@ -32,7 +128,9 @@ button{background:#00e5c0;border:none;}
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+getFirestore, collection, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -43,50 +141,135 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* OPEN */
-window.openPortal = function(){
-portal.classList.toggle("hidden");
-};
-
 /* VIEW RESULT */
 window.viewResult = async function(){
 
-let id = sid.value.trim();
+let id = document.getElementById("sid").value.trim();
+let term = document.getElementById("term").value;
+let session = document.getElementById("session").value;
 
-if(!id){
-box.innerHTML="Enter ID";
+if(!id || !term || !session){
+alert("Fill all fields ❗");
 return;
 }
 
-box.innerHTML="Loading...";
+box.innerHTML = "Loading...";
 
-const snap = await getDocs(collection(db,"results"));
+/* GET RESULT */
+const q = query(collection(db,"results"),
+where("studentID","==",id),
+where("term","==",term),
+where("session","==",session)
+);
 
-let found=false;
-let html="";
+const snap = await getDocs(q);
 
-snap.forEach(doc=>{
-let r = doc.data();
-
-if(r.studentID === id){
-found=true;
-
-html += `
-<div class="card">
-<h3>Result</h3>
-ID: ${r.studentID}<br>
-Total: ${r.total}<br>
-Average: ${r.average}<br>
-Grade: ${r.grade}<br>
-Status: ${r.status}<br>
-Term: ${r.term}<br>
-Session: ${r.session}
-</div>
-`;
+if(snap.empty){
+box.innerHTML = "No result found ❌";
+return;
 }
-});
 
-box.innerHTML = found ? html : "No result found";
+let r = snap.docs[0].data();
+
+/* GET STUDENT INFO */
+const sQ = query(collection(db,"students"), where("studentID","==",id));
+const sSnap = await getDocs(sQ);
+
+let student = sSnap.docs[0].data();
+
+/* SUBJECT TABLE */
+let subjectsHTML = "";
+
+if(r.subjects){
+Object.entries(r.subjects).forEach(([sub,val])=>{
+subjectsHTML += `
+<tr>
+<td>${sub}</td>
+<td>${val.ca || "-"}</td>
+<td>${val.exam || "-"}</td>
+<td>${val.total || "-"}</td>
+</tr>
+`;
+});
+}
+
+/* RESULT VIEW */
+box.innerHTML = `
+<div id="resultArea">
+
+<h3>STAR ACADEMY RESULT</h3>
+
+<b>Name:</b> ${student.name}<br>
+<b>Student ID:</b> ${id}<br>
+<b>Class:</b> ${student.level}<br>
+<b>Department:</b> ${student.department}<br>
+<b>Term:</b> ${term}<br>
+<b>Session:</b> ${session}<br>
+
+<table>
+<tr>
+<th>Subject</th>
+<th>CA</th>
+<th>Exam</th>
+<th>Total</th>
+</tr>
+${subjectsHTML}
+</table>
+
+<br>
+
+<b>Total Score:</b> ${r.total}<br>
+<b>Average:</b> ${r.average.toFixed(2)}<br>
+<b>Grade:</b> ${r.grade}<br>
+<b>Status:</b> ${r.status}<br>
+
+<br>
+
+<b>School Feedback:</b><br>
+${r.average >= 70 ? "Excellent performance. Keep it up." :
+r.average >= 50 ? "Good effort. Improve more." :
+"Needs serious improvement."}
+
+<br><br>
+
+_________________________<br>
+Director Signature
+
+<br><br>
+
+_________________________<br>
+Examination Officer
+
+</div>
+
+<button onclick="downloadPDF()">Download PDF</button>
+`;
+};
+
+/* PDF DOWNLOAD */
+window.downloadPDF = function(){
+
+let content = document.getElementById("resultArea").innerHTML;
+
+let win = window.open("", "", "width=800,height=600");
+win.document.write(`
+<html>
+<head>
+<title>Result PDF</title>
+<style>
+body{font-family:Arial;padding:20px;}
+table{width:100%;border-collapse:collapse;}
+td,th{border:1px solid black;padding:8px;}
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>
+`);
+
+win.document.close();
+win.print();
 };
 
 </script>
