@@ -15,20 +15,29 @@ background-size:cover;
 .overlay{
 background:rgba(0,0,0,0.75);
 min-height:100vh;
-padding:20px;
+padding-bottom:50px;
 }
 
 nav{
+background:#16161f;
+padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:10px;
+flex-wrap:wrap;
 }
 
-.logo{height:80px}
+.logo{height:80px;border-radius:12px}
+
+nav a{
+color:#00e5c0;
+margin:10px;
+text-decoration:none;
+font-weight:bold;
+}
 
 .card{
-max-width:850px;
+max-width:800px;
 margin:auto;
 background:#16161f;
 padding:20px;
@@ -36,17 +45,21 @@ border-radius:10px;
 margin-top:20px;
 }
 
-input,select,button{
+input,select{
 width:100%;
 padding:10px;
 margin-top:10px;
+border-radius:5px;
 }
 
 button{
+width:100%;
+padding:10px;
+margin-top:10px;
 background:#00e5c0;
 border:none;
-cursor:pointer;
 font-weight:bold;
+cursor:pointer;
 }
 
 .subject-box{
@@ -56,60 +69,26 @@ margin-top:10px;
 border-radius:8px;
 }
 
-.back{
-color:#00e5c0;
-cursor:pointer;
-}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
-
 <div class="overlay">
 
 <nav>
 <img src="logo.png" class="logo">
+<div>
+<a href="index.html">Home</a>
+<a href="student.html">Student</a>
+</div>
 </nav>
 
-<!-- STUDENT REGISTRATION -->
 <div class="card">
-<h2>Student Registration</h2>
 
-<input id="name" placeholder="Full Name">
-<input id="age" type="number" placeholder="Age">
-
-<select id="gender">
-<option>Male</option>
-<option>Female</option>
-</select>
-
-<select id="department">
-<option>Science</option>
-<option>Arts</option>
-</select>
-
-<select id="level">
-<option>Primary</option>
-<option>Junior Secondary</option>
-<option>Fresh Class</option>
-<option>AI Class</option>
-<option>Level 1</option>
-<option>Level 2</option>
-<option>Level 3</option>
-</select>
-
-<input id="phone" placeholder="Phone">
-<input id="emailStudent" placeholder="Email">
-
-<button onclick="addStudent()">Save Student</button>
-</div>
-
-<!-- RESULT SECTION -->
-<div class="card">
-<h2>Add Result</h2>
+<h3>ADD STUDENT RESULT</h3>
 
 <input id="studentID" placeholder="Student ID" oninput="loadStudent()">
-
 <p id="studentName"></p>
 
 <div id="subjects"></div>
@@ -120,20 +99,18 @@ cursor:pointer;
 <option>Third Term</option>
 </select>
 
-<input id="session" placeholder="Session e.g 2026/2027">
+<input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="saveResult()">Save Result</button>
 
-<p id="msg"></p>
 </div>
-
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, addDoc, query, where, getDocs, doc, runTransaction
+getFirestore, collection, addDoc, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
@@ -144,37 +121,12 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
-/* ADD STUDENT */
-window.addStudent = async ()=>{
-
-let idRef = doc(db,"meta","counter");
-
-let newID = await runTransaction(db, async tx=>{
-let snap = await tx.get(idRef);
-let count = snap.exists()?snap.data().count+1:1;
-tx.set(idRef,{count});
-
-return `STA/2026/${department.value==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
-});
-
-await addDoc(collection(db,"students"),{
-studentID:newID,
-name:name.value,
-age:age.value,
-gender:gender.value,
-department:department.value,
-level:level.value,
-phone:phone.value,
-email:emailStudent.value
-});
-
-alert("Saved ✔ " + newID);
-};
-
 /* LOAD STUDENT */
 window.loadStudent = async ()=>{
 
 let id = studentID.value.trim();
+
+if(!id) return;
 
 let q = query(collection(db,"students"), where("studentID","==",id));
 let snap = await getDocs(q);
@@ -187,7 +139,7 @@ return;
 
 let s = snap.docs[0].data();
 
-studentName.innerHTML = s.name + " | " + s.department;
+studentName.innerHTML = `${s.name} | ${s.level} | ${s.department}`;
 
 let list = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
@@ -199,48 +151,48 @@ list.forEach(sub=>{
 subjects.innerHTML += `
 <div class="subject-box">
 <b>${sub}</b>
-<input class="ca" placeholder="CA">
-<input class="exam" placeholder="Exam">
+<input class="ca" placeholder="CA (0-40)" type="number">
+<input class="exam" placeholder="Exam (0-60)" type="number">
 </div>`;
 });
 };
 
-/* SAVE RESULT (REAL DATA) */
+/* SAVE RESULT (REAL VALUES ONLY) */
 window.saveResult = async ()=>{
 
 let id = studentID.value;
 let t = term.value;
 let s = session.value;
 
-let caEls = document.querySelectorAll(".ca");
-let exEls = document.querySelectorAll(".exam");
-let subs = document.querySelectorAll(".subject-box b");
+let ca = document.querySelectorAll(".ca");
+let exam = document.querySelectorAll(".exam");
 
-let subjects = {};
+let subjectsData = {};
+
 let total = 0;
 
-for(let i=0;i<subs.length;i++){
+for(let i=0;i<ca.length;i++){
 
-let ca = Number(caEls[i].value||0);
-let exam = Number(exEls[i].value||0);
-let sum = ca+exam;
+let caVal = Number(ca[i].value || 0);
+let examVal = Number(exam[i].value || 0);
+let subjectTotal = caVal + examVal;
 
-subjects[subs[i].innerText] = {ca,exam,total:sum};
-total += sum;
+total += subjectTotal;
+
+subjectsData[`sub${i}`] = {
+ca: caVal,
+exam: examVal,
+total: subjectTotal
+};
 }
 
-let avg = total / subs.length;
-
-let grade =
-avg>=70?"A":
-avg>=60?"B":
-avg>=50?"C":"F";
-
+let avg = total / ca.length;
+let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
 let status = avg>=50?"PASS":"FAIL";
 
 await addDoc(collection(db,"results"),{
 studentID:id,
-subjects,
+subjects:subjectsData,
 total,
 average:avg,
 grade,
@@ -249,9 +201,8 @@ term:t,
 session:s
 });
 
-msg.innerHTML = "Result Saved ✔";
+alert("Result Saved ✔");
 };
-
 </script>
 
 </body>
