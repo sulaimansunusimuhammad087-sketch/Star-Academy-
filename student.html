@@ -18,15 +18,6 @@ min-height:100vh;
 padding:20px;
 }
 
-nav{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:10px;
-}
-
-.logo{height:90px}
-
 .card{
 max-width:850px;
 margin:auto;
@@ -45,8 +36,8 @@ margin-top:10px;
 button{
 background:#00e5c0;
 border:none;
-font-weight:bold;
 cursor:pointer;
+font-weight:bold;
 }
 
 table{
@@ -58,13 +49,7 @@ margin-top:10px;
 td,th{
 border:1px solid #444;
 padding:8px;
-}
-
-.back{
-color:#00e5c0;
-cursor:pointer;
-margin-bottom:10px;
-display:inline-block;
+text-align:center;
 }
 </style>
 </head>
@@ -73,19 +58,9 @@ display:inline-block;
 
 <div class="overlay">
 
-<nav>
-<img src="logo.png" class="logo">
-<div>
-<a href="index.html" style="color:#00e5c0">Home</a>
-<a href="admin.html" style="color:#00e5c0">Admin</a>
-</div>
-</nav>
-
 <div class="card">
 
-<div class="back" onclick="history.back()">← Back</div>
-
-<h2>STUDENT RESULT CHECK</h2>
+<h2>Student Result Check</h2>
 
 <input id="sid" placeholder="Student ID">
 
@@ -95,7 +70,7 @@ display:inline-block;
 <option>Third Term</option>
 </select>
 
-<input id="session" placeholder="Session e.g 2025/2026">
+<input id="session" placeholder="Session">
 
 <button onclick="viewResult()">View Result</button>
 
@@ -119,108 +94,68 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
-/* VIEW RESULT */
-window.viewResult = async function(){
-
-const box = document.getElementById("box");
+window.viewResult = async ()=>{
 
 let id = sid.value.trim();
-let termVal = term.value;
-let sessionVal = session.value;
+let t = term.value;
+let s = session.value;
 
-if(!id || !termVal || !sessionVal){
-alert("Fill all fields");
-return;
-}
-
-box.innerHTML = "Loading...";
-
-const q = query(
-collection(db,"results"),
+const q = query(collection(db,"results"),
 where("studentID","==",id),
-where("term","==",termVal),
-where("session","==",sessionVal)
-);
+where("term","==",t),
+where("session","==",s));
 
 const snap = await getDocs(q);
 
 if(snap.empty){
-box.innerHTML = "No result found ❌";
+box.innerHTML="No result";
 return;
 }
 
 const r = snap.docs[0].data();
 
-/* GET STUDENT */
-const sSnap = await getDocs(
-query(collection(db,"students"), where("studentID","==",id))
-);
+/* STUDENT */
+const sSnap = await getDocs(query(collection(db,"students"),
+where("studentID","==",id)));
 
-if(sSnap.empty){
-box.innerHTML = "Student not found ❌";
-return;
-}
+const st = sSnap.docs[0].data();
 
-const student = sSnap.docs[0].data();
+/* REAL SUBJECTS */
+let rows="";
 
-/* FIXED SUBJECT LIST */
-const subjects =
-student.department === "Science"
-? ["English","Biology","Chemistry","Physics","Mathematics"]
-: ["English","Literature","Government","Economics","Islamic Studies"];
-
-const perSubject = (r.total / subjects.length);
-
-/* IMPORTANT FIX: integer split instead of decimals */
-const clean = Math.round(perSubject);
-
-/* build table */
-let rows = "";
-
-subjects.forEach((sub,i)=>{
-
-let ca = Math.round(clean * 0.4);   // 40% CA
-let exam = Math.round(clean * 0.6); // 60% exam
-let total = ca + exam;
+Object.entries(r.subjects).forEach(([sub,val])=>{
 
 let grade =
-total>=70?"A":
-total>=60?"B":
-total>=50?"C":"F";
+val.total>=70?"A":
+val.total>=60?"B":
+val.total>=50?"C":"F";
 
 rows += `
 <tr>
 <td>${sub}</td>
-<td>${ca}</td>
-<td>${exam}</td>
-<td>${total}</td>
+<td>${val.ca}</td>
+<td>${val.exam}</td>
+<td>${val.total}</td>
 <td>${grade}</td>
-</tr>
-`;
+</tr>`;
 });
 
 box.innerHTML = `
 <div id="resultArea">
 
 <div style="text-align:center">
-<img src="logo.png" style="height:90px">
+<img src="logo.png" style="height:80px">
 <h3>STAR ACADEMY RESULT</h3>
 </div>
 
-<b>Name:</b> ${student.name}<br>
+<b>Name:</b> ${st.name}<br>
 <b>ID:</b> ${id}<br>
-<b>Class:</b> ${student.level}<br>
-<b>Dept:</b> ${student.department}<br>
-<b>Term:</b> ${termVal}<br>
-<b>Session:</b> ${sessionVal}<br>
+<b>Class:</b> ${st.level}<br>
+<b>Dept:</b> ${st.department}<br>
 
 <table>
 <tr>
-<th>Subject</th>
-<th>CA</th>
-<th>Exam</th>
-<th>Total</th>
-<th>Grade</th>
+<th>Subject</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th>
 </tr>
 ${rows}
 </table>
@@ -232,56 +167,11 @@ ${rows}
 <b>Grade:</b> ${r.grade}<br>
 <b>Status:</b> ${r.status}<br>
 
-<br>
-
-<b>Feedback:</b><br>
-${r.average>=70
-? "Excellent performance"
-: r.average>=50
-? "Good effort"
-: "Needs improvement"}
-
-<br><br>
-
-_____________________<br>
-Director Signature
-
-<br><br>
-
-_____________________<br>
-Exam Officer
-
 </div>
 
-<button onclick="downloadPDF()">Download PDF</button>
+<button onclick="print()">Download PDF</button>
 `;
 
-};
-
-/* PDF */
-window.downloadPDF = function(){
-
-const content = document.getElementById("resultArea").innerHTML;
-
-const win = window.open("", "", "width=900,height=700");
-
-win.document.write(`
-<html>
-<head>
-<style>
-body{font-family:Arial;padding:20px;}
-table{width:100%;border-collapse:collapse;}
-td,th{border:1px solid black;padding:8px;}
-</style>
-</head>
-<body>
-${content}
-</body>
-</html>
-`);
-
-win.document.close();
-win.print();
 };
 
 </script>
