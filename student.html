@@ -28,7 +28,7 @@ flex-wrap:wrap;
 }
 
 .logo{
-height:80px;
+height:90px;
 border-radius:12px;
 }
 
@@ -40,7 +40,7 @@ font-weight:bold;
 }
 
 .card{
-max-width:800px;
+max-width:900px;
 margin:auto;
 background:#16161f;
 padding:20px;
@@ -62,27 +62,22 @@ cursor:pointer;
 font-weight:bold;
 }
 
-.back{
-color:#00e5c0;
-cursor:pointer;
-margin-bottom:10px;
-display:inline-block;
-}
-
 table{
 width:100%;
-margin-top:10px;
 border-collapse:collapse;
+margin-top:10px;
 }
 
 td,th{
 border:1px solid #444;
 padding:8px;
-text-align:left;
 }
 
-h3{
+.back{
 color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
 }
 </style>
 </head>
@@ -137,14 +132,13 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
-/* MAIN FUNCTION */
 window.viewResult = async function(){
 
 const box = document.getElementById("box");
 
-let id = document.getElementById("sid").value.trim();
-let termVal = document.getElementById("term").value;
-let sessionVal = document.getElementById("session").value;
+let id = sid.value.trim();
+let termVal = term.value;
+let sessionVal = session.value;
 
 if(!id || !termVal || !sessionVal){
 alert("Fill all fields ❗");
@@ -153,58 +147,56 @@ return;
 
 box.innerHTML = "Loading...";
 
-try{
-
-/* FETCH RESULTS */
-const resultsSnap = await getDocs(collection(db,"results"));
+/* GET RESULTS */
+let snap = await getDocs(collection(db,"results"));
 
 let found = null;
 
-resultsSnap.forEach(doc=>{
+snap.forEach(doc=>{
 let r = doc.data();
 
-if(
-String(r.studentID).trim() === id &&
-String(r.term).trim() === termVal &&
-String(r.session).trim() === sessionVal
-){
+if(r.studentID===id && r.term===termVal && r.session===sessionVal){
 found = r;
 }
 });
 
-/* DEBUG CHECK */
 if(!found){
-box.innerHTML = "No result found ❌<br><br>Check:<br>• Student ID<br>• Term<br>• Session";
+box.innerHTML = "No result found ❌";
 return;
 }
 
-/* FETCH STUDENT */
-const studentsSnap = await getDocs(collection(db,"students"));
+/* GET STUDENT */
+let studentSnap = await getDocs(collection(db,"students"));
 
 let student = null;
 
-studentsSnap.forEach(doc=>{
+studentSnap.forEach(doc=>{
 let s = doc.data();
-if(String(s.studentID).trim() === id){
+if(s.studentID === id){
 student = s;
 }
 });
 
 if(!student){
-box.innerHTML = "Student info missing ❌";
+box.innerHTML = "Student not found ❌";
 return;
 }
 
-/* SUBJECTS */
+/* SUBJECT TABLE */
 let subjectsHTML = "";
 
-if(found.subjects && typeof found.subjects === "object"){
+if(found.subjects){
 
 Object.entries(found.subjects).forEach(([sub,val])=>{
 
-let ca = val?.ca ?? "-";
-let exam = val?.exam ?? "-";
-let total = val?.total ?? (Number(val?.ca||0)+Number(val?.exam||0));
+let ca = val.ca ?? "-";
+let exam = val.exam ?? "-";
+let total = val.total ?? (Number(val.ca||0)+Number(val.exam||0));
+
+let grade =
+total>=70?"A":
+total>=60?"B":
+total>=50?"C":"F";
 
 subjectsHTML += `
 <tr>
@@ -212,20 +204,24 @@ subjectsHTML += `
 <td>${ca}</td>
 <td>${exam}</td>
 <td>${total}</td>
+<td>${grade}</td>
 </tr>
 `;
 
 });
 
 }else{
-subjectsHTML = `<tr><td colspan="4">No subject data available</td></tr>`;
+subjectsHTML = `<tr><td colspan="5">No subject data available</td></tr>`;
 }
 
-/* OUTPUT */
+/* DISPLAY */
 box.innerHTML = `
 <div id="resultArea">
 
+<div style="text-align:center">
+<img src="logo.png" style="height:80px"><br>
 <h3>STAR ACADEMY RESULT</h3>
+</div>
 
 <b>Name:</b> ${student.name}<br>
 <b>Student ID:</b> ${id}<br>
@@ -240,22 +236,23 @@ box.innerHTML = `
 <th>CA</th>
 <th>Exam</th>
 <th>Total</th>
+<th>Grade</th>
 </tr>
 ${subjectsHTML}
 </table>
 
 <br>
 
-<b>Total Score:</b> ${found.total ?? "-"}<br>
-<b>Average:</b> ${found.average ? found.average.toFixed(2) : "-"}<br>
-<b>Grade:</b> ${found.grade ?? "-"}<br>
-<b>Status:</b> ${found.status ?? "-"}<br>
+<b>Total Score:</b> ${found.total}<br>
+<b>Average:</b> ${found.average.toFixed(2)}<br>
+<b>Grade:</b> ${found.grade}<br>
+<b>Status:</b> ${found.status}<br>
 
 <br>
 
 <b>School Feedback:</b><br>
-${found.average >= 70 ? "Excellent performance. Keep it up." :
-found.average >= 50 ? "Good effort. Improve more." :
+${found.average>=70?"Excellent performance. Keep it up.":
+found.average>=50?"Good effort. Improve more.":
 "Needs serious improvement."}
 
 <br><br>
@@ -272,13 +269,6 @@ Examination Officer
 
 <button onclick="downloadPDF()">Download PDF</button>
 `;
-
-}catch(err){
-
-box.innerHTML = "Error loading result ❌<br><br>" + err.message;
-
-}
-
 };
 
 /* PDF */
@@ -287,6 +277,7 @@ window.downloadPDF = function(){
 let content = document.getElementById("resultArea").innerHTML;
 
 let win = window.open("", "", "width=800,height=600");
+
 win.document.write(`
 <html>
 <head>
@@ -295,6 +286,7 @@ win.document.write(`
 body{font-family:Arial;padding:20px;}
 table{width:100%;border-collapse:collapse;}
 td,th{border:1px solid black;padding:8px;}
+h3{text-align:center;}
 </style>
 </head>
 <body>
