@@ -10,7 +10,9 @@ input,select,button{width:100%;padding:10px;margin-top:10px;}
 button{background:#00e5c0;border:none;cursor:pointer;}
 .hidden{display:none;}
 .menu button{margin-top:5px;}
+h2,h3{color:#00e5c0;}
 </style>
+
 </head>
 
 <body>
@@ -24,6 +26,7 @@ button{background:#00e5c0;border:none;cursor:pointer;}
 <p id="msg"></p>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
 <div class="card menu">
@@ -32,61 +35,55 @@ button{background:#00e5c0;border:none;cursor:pointer;}
 <button onclick="showSection('resultSection')">Add Result</button>
 </div>
 
-<!-- ================= ADD STUDENT ================= -->
+<!-- ADD STUDENT -->
 <div id="studentSection" class="card hidden">
 
 <h3>Add Student</h3>
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
-
-<select id="state" onchange="loadLGA()">
-<option value="">Select State</option>
-<option>Kano</option>
-<option>Lagos</option>
-<option>Kaduna</option>
-<option>Abuja</option>
-</select>
-
-<select id="lga">
-<option>Select LGA</option>
-</select>
-
+<input id="state" placeholder="State">
+<input id="lga" placeholder="Local Government">
 <input id="address" placeholder="Address">
 <input id="phone" placeholder="Phone Number">
-<input id="emailStudent" placeholder="Email">
+<input id="emailStudent" placeholder="Student Email (optional)">
 
 <select id="department">
+<option value="">Department</option>
 <option>Science</option>
 <option>Arts</option>
 </select>
 
 <select id="level">
+<option value="">Level</option>
 <option>Primary</option>
 <option>Junior Secondary</option>
 <option>Fresh Class</option>
+<option>AI Class</option>
 <option>Level 1</option>
 <option>Level 2</option>
 <option>Level 3</option>
 </select>
 
 <select id="schoolType">
-<option>Public</option>
+<option value="">School Type</option>
 <option>Private</option>
+<option>Public</option>
 </select>
 
 <input id="schoolName" placeholder="School Name">
 
 <select id="graduated">
-<option>No</option>
+<option value="">Graduated?</option>
 <option>Yes</option>
+<option>No</option>
 </select>
 
 <button onclick="addStudent()">Save Student</button>
 
 </div>
 
-<!-- ================= ADD RESULT ================= -->
+<!-- ADD RESULT -->
 <div id="resultSection" class="card hidden">
 
 <h3>Add Result</h3>
@@ -97,6 +94,7 @@ button{background:#00e5c0;border:none;cursor:pointer;}
 <div id="subjects"></div>
 
 <select id="term">
+<option value="">Select Term</option>
 <option>First Term</option>
 <option>Second Term</option>
 <option>Third Term</option>
@@ -114,19 +112,22 @@ button{background:#00e5c0;border:none;cursor:pointer;}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, addDoc, getDocs
+getFirestore, collection, addDoc, doc, runTransaction,
+query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
 getAuth, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const app = initializeApp({
-apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain:"star-academy-system.firebaseapp.com",
-projectId:"star-academy-system"
-});
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system"
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -137,7 +138,7 @@ await signInWithEmailAndPassword(auth,email.value.trim(),password.value.trim());
 loginBox.style.display="none";
 dashboard.classList.remove("hidden");
 }catch(e){
-msg.innerHTML = e.code;
+msg.innerHTML = "Login failed: " + e.code;
 }
 };
 
@@ -149,30 +150,32 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-/* STATE → LGA */
-window.loadLGA = function(){
-let state = document.getElementById("state").value;
+/* ID GENERATOR */
+async function generateID(dept){
 
-let data = {
-"Kano":["Nasarawa","Dala","Gwale","Fagge","Tarauni"],
-"Lagos":["Ikeja","Lekki","Yaba"],
-"Kaduna":["Zaria","Kafanchan"],
-"Abuja":["Gwagwalada","Kuje"]
-};
+const ref = doc(db,"meta","counter");
 
-lga.innerHTML = "";
-
-(data[state]||[]).forEach(l=>{
-lga.innerHTML += `<option>${l}</option>`;
+const num = await runTransaction(db, async (tx)=>{
+const snap = await tx.get(ref);
+let count = snap.exists()? snap.data().count + 1 : 1;
+tx.set(ref,{count});
+return count;
 });
-};
+
+let code = dept==="Science"?"SCI":"ART";
+
+return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
+}
 
 /* ADD STUDENT */
 window.addStudent = async function(){
 
-let dept = department.value;
-let code = dept==="Science"?"SCI":"ART";
-let id = "STA/2026/"+code+"/"+Math.floor(Math.random()*1000);
+if(!name.value || !department.value || !level.value){
+alert("Fill required fields");
+return;
+}
+
+let id = await generateID(department.value);
 
 await addDoc(collection(db,"students"),{
 studentID:id,
@@ -183,42 +186,54 @@ lga:lga.value,
 address:address.value,
 phone:phone.value,
 email:emailStudent.value,
-department:dept,
+department:department.value,
 level:level.value,
 schoolType:schoolType.value,
 schoolName:schoolName.value,
-graduated:graduated.value
+graduated:graduated.value,
+createdAt: Date.now()
 });
 
-alert("Student Added: "+id);
+/* CLEAR FORM */
+document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
+document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
+
+alert("Student Added: " + id);
+
 };
 
-/* LOAD STUDENT */
+/* LOAD STUDENT (FIXED) */
 window.loadStudent = async function(){
 
-const snap = await getDocs(collection(db,"students"));
-let found=false;
+let id = studentID.value.trim();
 
-snap.forEach(doc=>{
-let s=doc.data();
+if(!id){
+studentName.innerHTML="";
+subjects.innerHTML="";
+return;
+}
 
-if(s.studentID===studentID.value){
-studentName.innerHTML="Name: "+s.name;
+/* SEARCH CORRECTLY */
+const q = query(collection(db,"students"), where("studentID","==",id));
+const snap = await getDocs(q);
 
-found=true;
+if(snap.empty){
+studentName.innerHTML = "Student not found ❌";
+subjects.innerHTML="";
+return;
+}
 
-if(s.department==="Science"){
+let s = snap.docs[0].data();
+
+studentName.innerHTML = "Name: " + s.name;
+
+/* SUBJECT AUTO LOAD */
+if(s.department === "Science"){
 loadSubjects("Science");
 }else{
 loadSubjects("Arts");
 }
-}
-});
 
-if(!found){
-studentName.innerHTML="Student not found ❌";
-subjects.innerHTML="";
-}
 };
 
 /* SUBJECTS */
@@ -231,7 +246,7 @@ let list = type==="Science"
 subjects.innerHTML="";
 
 list.forEach(sub=>{
-subjects.innerHTML+=`
+subjects.innerHTML += `
 <label>${sub}</label>
 <input class="score" type="number">
 `;
@@ -241,17 +256,21 @@ subjects.innerHTML+=`
 /* SAVE RESULT */
 window.saveResult = async function(){
 
-if(studentName.innerHTML.includes("not found")){
-alert("Invalid Student ID");
+let id = studentID.value.trim();
+let termVal = term.value;
+let sessionVal = session.value;
+
+if(!id || !termVal || !sessionVal){
+alert("Fill all fields");
 return;
 }
 
-let scores=document.querySelectorAll(".score");
-let total=0;
+let scores = document.querySelectorAll(".score");
 
-scores.forEach(s=> total+=Number(s.value));
+let total = 0;
+scores.forEach(s=> total += Number(s.value));
 
-let avg=total/scores.length;
+let avg = total / scores.length;
 
 let grade="F";
 if(avg>=70)grade="A";
@@ -259,16 +278,25 @@ else if(avg>=60)grade="B";
 else if(avg>=50)grade="C";
 
 await addDoc(collection(db,"results"),{
-studentID:studentID.value,
+studentID:id,
 total,
 average:avg,
 grade,
-status:total>=250?"PASS":"FAIL",
-term:term.value,
-session:session.value
+status: total>=250?"PASS":"FAIL",
+term: termVal,
+session: sessionVal,
+createdAt: Date.now()
 });
 
+/* CLEAR */
+studentID.value="";
+session.value="";
+term.value="";
+subjects.innerHTML="";
+studentName.innerHTML="";
+
 alert("Result Saved ✔");
+
 };
 
 </script>
