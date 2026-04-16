@@ -49,8 +49,8 @@ h2,h3{color:#00e5c0;}
 
 <select id="department">
 <option value="">Select Department</option>
-<option>Science</option>
-<option>Arts</option>
+<option value="Science">Science</option>
+<option value="Arts">Arts</option>
 </select>
 
 <select id="level">
@@ -119,7 +119,7 @@ import {
 getAuth, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-/* FIREBASE CONFIG */
+/* FIREBASE */
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
@@ -149,7 +149,7 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-/* ID GENERATOR (SEQUENTIAL) */
+/* GENERATE ID (SAFE + SEQUENTIAL) */
 async function generateID(dept){
 
 const ref = doc(db,"meta","counter");
@@ -184,12 +184,14 @@ schoolName: schoolName.value.trim(),
 graduated: graduated.value
 };
 
-/* VALIDATION */
-for(let key in data){
-if(!data[key]){
-alert("Please fill all fields ❗");
+/* VALIDATION (FIXED) */
+if(
+!data.name || !data.age || !data.state || !data.lga ||
+!data.address || !data.phone || !data.department ||
+!data.level || !data.schoolType || !data.schoolName || !data.graduated
+){
+alert("Fill all required fields ❗");
 return;
-}
 }
 
 /* GENERATE ID */
@@ -206,11 +208,12 @@ createdAt: Date.now()
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
 
+/* SUCCESS */
 alert("Student Added: " + id);
 
 };
 
-/* LOAD STUDENT (FIXED) */
+/* LOAD STUDENT */
 window.loadStudent = async function(){
 
 let id = studentID.value.trim();
@@ -234,7 +237,7 @@ let s = snap.docs[0].data();
 
 studentName.innerHTML = "Name: " + s.name;
 
-/* LOAD SUBJECT */
+/* FIXED SUBJECT DETECTION */
 if(s.department === "Science"){
 loadSubjects("Science");
 }else{
@@ -255,7 +258,7 @@ subjects.innerHTML="";
 list.forEach(sub=>{
 subjects.innerHTML += `
 <label>${sub}</label>
-<input class="score" type="number">
+<input class="score" type="number" placeholder="${sub}">
 `;
 });
 }
@@ -275,7 +278,7 @@ return;
 let scores = document.querySelectorAll(".score");
 
 let total = 0;
-scores.forEach(s=> total += Number(s.value));
+scores.forEach(s=> total += Number(s.value || 0));
 
 let avg = total / scores.length;
 
