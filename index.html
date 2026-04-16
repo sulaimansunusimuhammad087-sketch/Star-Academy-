@@ -4,61 +4,24 @@
 <title>Star Academy System</title>
 
 <style>
-body {
-  font-family: Arial;
-  margin: 0;
-  background: #0a0a0f;
-  color: white;
-}
-
-.center {
-  max-width: 550px;
-  margin: auto;
-  margin-top: 50px;
-  padding: 20px;
-  background: #16161f;
-  border-radius: 10px;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-button {
-  background: #00e5c0;
-  border: none;
-  cursor: pointer;
-}
-
-.hidden { display: none; }
-
-.card {
-  background: #111;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
-}
+body { font-family: Arial; background:#0a0a0f; color:white; }
+.center { max-width:550px; margin:auto; margin-top:50px; background:#16161f; padding:20px; }
+input,select,button { width:100%; padding:10px; margin-top:10px; }
+button { background:#00e5c0; border:none; }
+.card { background:#111; padding:10px; margin-top:10px; }
+.hidden{display:none;}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginPage" class="center">
-  <h2>Admin Login</h2>
-  <input id="email" placeholder="Email">
-
-  <div style="position:relative">
-    <input id="password" type="password" placeholder="Password">
-    <span onclick="togglePassword()" style="position:absolute;right:10px;top:10px;cursor:pointer">👁</span>
-  </div>
-
-  <button onclick="login()">Login</button>
+<h2>Admin Login</h2>
+<input id="email">
+<input id="password" type="password">
+<button onclick="login()">Login</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
 <div class="center">
@@ -67,8 +30,11 @@ button {
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
-<input id="state" placeholder="State">
-<input id="lga" placeholder="LGA">
+
+<select id="department">
+<option>Science</option>
+<option>Arts</option>
+</select>
 
 <select id="level">
 <option>Primary</option>
@@ -79,30 +45,26 @@ button {
 <option>Level 3</option>
 </select>
 
-<select id="schoolType">
-<option>Private</option>
-<option>Public</option>
-</select>
-
-<input id="schoolName" placeholder="School Name">
-
-<select id="graduated">
-<option value="">Graduated?</option>
-<option>Yes</option>
-<option>No</option>
-</select>
-
 <button onclick="addStudent()">Save Student</button>
 
 <h3>Add Result</h3>
 
 <input id="studentIDInput" placeholder="Student ID">
 
-<input id="sub1" type="number" placeholder="Subject 1">
-<input id="sub2" type="number" placeholder="Subject 2">
-<input id="sub3" type="number" placeholder="Subject 3">
-<input id="sub4" type="number" placeholder="Subject 4">
-<input id="sub5" type="number" placeholder="Subject 5">
+<select id="resDepartment" onchange="loadSubjects()">
+<option>Science</option>
+<option>Arts</option>
+</select>
+
+<div id="subjects"></div>
+
+<select id="term">
+<option>First Term</option>
+<option>Second Term</option>
+<option>Third Term</option>
+</select>
+
+<input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="addResult()">Save Result</button>
 
@@ -115,148 +77,136 @@ button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  runTransaction
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-import {
-  getAuth,
-  signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp({
+apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain:"star-academy-system.firebaseapp.com",
+projectId:"star-academy-system"
+});
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-  authDomain: "star-academy-system.firebaseapp.com",
-  projectId: "star-academy-system",
-  storageBucket: "star-academy-system.appspot.com",
-  messagingSenderId: "615097211278",
-  appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const db=getFirestore(app);
+const auth=getAuth(app);
 
 /* LOGIN */
-window.login = async function () {
-  try {
-    await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
-
-    loginPage.style.display = "none";
-    dashboard.classList.remove("hidden");
-
-  } catch (err) {
-    alert(err.message);
-  }
+window.login=async()=>{
+await signInWithEmailAndPassword(auth,email.value,password.value);
+loginPage.style.display="none";
+dashboard.classList.remove("hidden");
 };
 
-/* PASSWORD */
-window.togglePassword = function () {
-  password.type = password.type === "password" ? "text" : "password";
-};
+/* ID GENERATOR WITH DEPARTMENT */
+async function generateID(dept){
+const ref=doc(db,"meta","counter");
 
-/* ID SYSTEM */
-async function generateID() {
-  const ref = doc(db, "meta", "counter");
+const num=await runTransaction(db,async(tx)=>{
+const snap=await tx.get(ref);
+let count=snap.exists()?snap.data().count+1:1;
+tx.set(ref,{count});
+return count;
+});
 
-  const num = await runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
-    let count = snap.exists() ? snap.data().count + 1 : 1;
-    tx.set(ref, { count });
-    return count;
-  });
+let short=dept==="Science"?"SCI":"ART";
 
-  return "STA/2026/" + String(num).padStart(4, "0");
+return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 }
 
 /* ADD STUDENT */
-window.addStudent = async function () {
+window.addStudent=async()=>{
+if(!name.value||!age.value){
+alert("Fill required");
+return;
+}
 
-  if (!name.value || !age.value || !schoolName.value || !graduated.value) {
-    alert("Fill all required fields");
-    return;
-  }
+const id=await generateID(department.value);
 
-  const id = await generateID();
+await addDoc(collection(db,"students"),{
+studentID:id,
+name:name.value,
+age:age.value,
+department:department.value,
+level:level.value,
+createdAt:Date.now()
+});
 
-  await addDoc(collection(db, "students"), {
-    studentID: id,
-    name: name.value,
-    age: age.value,
-    state: state.value,
-    lga: lga.value,
-    level: level.value,
-    schoolType: schoolType.value,
-    schoolName: schoolName.value,
-    graduated: graduated.value,
-    createdAt: new Date().getTime()
-  });
-
-  alert("Saved: " + id);
+alert("Saved "+id);
 };
 
+/* SUBJECTS */
+function loadSubjects(){
+let dept=resDepartment.value;
+let list=dept==="Science"?
+["English","Biology","Chemistry","Physics","Mathematics"]:
+["English","Literature","Government","Economics","Islamic Studies"];
+
+subjects.innerHTML="";
+
+list.forEach(sub=>{
+subjects.innerHTML+=`
+<label>${sub}</label>
+<input class="score" data-sub="${sub}" type="number">
+`;
+});
+}
+
+loadSubjects();
+
 /* ADD RESULT */
-window.addResult = async function () {
+window.addResult=async()=>{
 
-  let scores = [
-    +sub1.value, +sub2.value, +sub3.value, +sub4.value, +sub5.value
-  ];
+let inputs=document.querySelectorAll(".score");
+let scores={};
+let total=0;
 
-  if (scores.some(s => isNaN(s))) {
-    alert("Enter all scores");
-    return;
-  }
+inputs.forEach(i=>{
+let val=Number(i.value);
+if(isNaN(val)){alert("Enter all marks");return;}
+scores[i.dataset.sub]=val;
+total+=val;
+});
 
-  let total = scores.reduce((a,b)=>a+b,0);
-  let avg = total / 5;
-  let status = total >= 250 ? "PASS" : "FAIL";
+let avg=total/5;
+let status=total>=250?"PASS":"FAIL";
 
-  await addDoc(collection(db, "results"), {
-    studentID: studentIDInput.value,
-    scores,
-    total,
-    average: avg,
-    status,
-    createdAt: new Date().getTime()
-  });
+let grade="F";
+if(avg>=70)grade="A";
+else if(avg>=60)grade="B";
+else if(avg>=50)grade="C";
+else if(avg>=45)grade="D";
 
-  alert("Result Saved");
+await addDoc(collection(db,"results"),{
+studentID:studentIDInput.value,
+department:resDepartment.value,
+scores,
+total,
+average:avg,
+status,
+grade,
+term:term.value,
+session:session.value,
+createdAt:Date.now()
+});
+
+alert("Result Saved");
 };
 
 /* SHOW STUDENTS */
-const div = document.getElementById("students");
+onSnapshot(collection(db,"students"),snap=>{
+students.innerHTML="";
+let arr=[];
+snap.forEach(d=>arr.push(d.data()));
+arr.sort((a,b)=>b.createdAt-a.createdAt);
 
-onSnapshot(collection(db, "students"), snap => {
-
-  let arr = [];
-  snap.forEach(doc => arr.push(doc.data()));
-
-  arr.sort((a,b)=>b.createdAt - a.createdAt);
-
-  div.innerHTML = "";
-
-  arr.forEach(s => {
-    div.innerHTML += `
-    <div class="card">
-      <b>${s.studentID}</b><br>
-      Full Name: ${s.name}<br>
-      Age: ${s.age}<br>
-      Level: ${s.level}<br>
-      School: ${s.schoolName} (${s.schoolType})<br>
-      Graduated: ${s.graduated}
-    </div>
-    `;
-  });
-
+arr.forEach(s=>{
+students.innerHTML+=`
+<div class="card">
+<b>${s.studentID}</b><br>
+${s.name}<br>
+${s.department}<br>
+${s.level}
+</div>`;
+});
 });
 
 </script>
