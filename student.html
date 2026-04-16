@@ -5,9 +5,10 @@
 
 <style>
 body{font-family:Arial;background:#0a0a0f;color:white;}
-.card{max-width:600px;margin:auto;background:#16161f;padding:20px;border-radius:10px;}
+.card{max-width:650px;margin:auto;background:#16161f;padding:20px;border-radius:10px;margin-top:40px;}
 input,button{width:100%;padding:10px;margin-top:10px;}
-button{background:#00e5c0;border:none;cursor:pointer;}
+button{background:#00e5c0;border:none;}
+.hidden{display:none;}
 </style>
 </head>
 
@@ -15,12 +16,16 @@ button{background:#00e5c0;border:none;cursor:pointer;}
 
 <div class="card">
 
-<h2>STUDENT RESULT CHECK</h2>
+<h2 onclick="openPortal()" style="cursor:pointer;">STUDENT RESULT CHECK</h2>
+
+<div id="portal" class="hidden">
 
 <input id="sid" placeholder="Enter Student ID">
 <button onclick="viewResult()">View Result</button>
 
 <div id="box"></div>
+
+</div>
 
 </div>
 
@@ -32,23 +37,24 @@ import { getFirestore, collection, getDocs } from "https://www.gstatic.com/fireb
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system",
-storageBucket: "star-academy-system.firebasestorage.app",
-messagingSenderId: "615097211278",
-appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+projectId: "star-academy-system"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* OPEN */
+window.openPortal = function(){
+portal.classList.toggle("hidden");
+};
+
 /* VIEW RESULT */
 window.viewResult = async function(){
 
-const id = document.getElementById("sid").value.trim();
-const box = document.getElementById("box");
+let id = sid.value.trim();
 
 if(!id){
-box.innerHTML="Enter Student ID";
+box.innerHTML="Enter ID";
 return;
 }
 
@@ -56,20 +62,21 @@ box.innerHTML="Loading...";
 
 const snap = await getDocs(collection(db,"results"));
 
-let found = false;
-let html = "";
+let found=false;
+let html="";
 
 snap.forEach(doc=>{
 let r = doc.data();
 
 if(r.studentID === id){
-found = true;
+found=true;
 
 html += `
 <div class="card">
 <h3>Result</h3>
 ID: ${r.studentID}<br>
 Total: ${r.total}<br>
+Average: ${r.average}<br>
 Grade: ${r.grade}<br>
 Status: ${r.status}<br>
 Term: ${r.term}<br>
