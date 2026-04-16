@@ -163,19 +163,18 @@ return;
 
 const student = sSnap.docs[0].data();
 
-/* SUBJECTS FROM ADMIN (REAL DATA) */
-let subjectsData = r.subjects || {};
+/* ✅ USE REAL SUBJECT DATA FROM ADMIN */
+const subjectsData = r.subjects || {};
+const subjects = Object.keys(subjectsData);
 
 let rows = "";
 
-/* FIX: real subject names missing, so we label properly */
-Object.keys(subjectsData).forEach((key, index)=>{
+/* BUILD TABLE FROM REAL DATA */
+subjects.forEach(sub => {
 
-let sub = subjectsData[key];
-
-let ca = sub.ca ?? 0;
-let exam = sub.exam ?? 0;
-let total = sub.total ?? (ca + exam);
+let ca = subjectsData[sub]?.ca ?? 0;
+let exam = subjectsData[sub]?.exam ?? 0;
+let total = subjectsData[sub]?.total ?? (ca + exam);
 
 let grade =
 total>=70?"A":
@@ -184,14 +183,20 @@ total>=50?"C":"F";
 
 rows += `
 <tr>
-<td>Subject ${index+1}</td>
+<td>${sub}</td>
 <td>${ca}</td>
 <td>${exam}</td>
 <td>${total}</td>
 <td>${grade}</td>
 </tr>
 `;
+
 });
+
+/* IF NO SUBJECTS */
+if(subjects.length === 0){
+rows = `<tr><td colspan="5">No subject data available</td></tr>`;
+}
 
 box.innerHTML = `
 <div id="resultArea">
@@ -226,6 +231,25 @@ ${rows}
 <b>Grade:</b> ${r.grade}<br>
 <b>Status:</b> ${r.status}<br>
 
+<br>
+
+<b>Feedback:</b><br>
+${r.average>=70
+? "Excellent performance"
+: r.average>=50
+? "Good effort"
+: "Needs improvement"}
+
+<br><br>
+
+_____________________<br>
+Director Signature
+
+<br><br>
+
+_____________________<br>
+Exam Officer
+
 </div>
 
 <button onclick="downloadPDF()">Download PDF</button>
@@ -233,11 +257,12 @@ ${rows}
 
 };
 
+/* PDF */
 window.downloadPDF = function(){
 
-let content = document.getElementById("resultArea").innerHTML;
+const content = document.getElementById("resultArea").innerHTML;
 
-let win = window.open("", "", "width=900,height=700");
+const win = window.open("", "", "width=900,height=700");
 
 win.document.write(`
 <html>
