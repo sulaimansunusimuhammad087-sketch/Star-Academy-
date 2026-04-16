@@ -363,8 +363,39 @@ let avg = total/ca.length;
 let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
 let status = avg>=50?"PASS":"FAIL";
 
-await addDoc(collection(db,"results"),{
-studentID:id,total,average:avg,grade,status,term:t,session:s
+let subjectsList = document.querySelectorAll(".subject-box");
+
+let subjectsData = {};
+let total = 0;
+
+subjectsList.forEach(box => {
+let name = box.querySelector("b").innerText;
+let ca = Number(box.querySelector(".ca").value || 0);
+let exam = Number(box.querySelector(".exam").value || 0);
+
+let subTotal = ca + exam;
+total += subTotal;
+
+subjectsData[name] = {
+ca: ca,
+exam: exam,
+total: subTotal
+};
+});
+
+let avg = total / subjectsList.length;
+let grade = avg >= 70 ? "A" : avg >= 60 ? "B" : avg >= 50 ? "C" : "F";
+let status = avg >= 50 ? "PASS" : "FAIL";
+
+await addDoc(collection(db,"results"), {
+studentID: id,
+term: t,
+session: s,
+subjects: subjectsData,
+total: total,
+average: avg,
+grade: grade,
+status: status
 });
 
 /* PREVIEW */
