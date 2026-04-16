@@ -5,108 +5,187 @@
 
 <style>
 body{font-family:Arial;background:#0a0a0f;color:white;}
-.card{max-width:600px;margin:auto;background:#16161f;padding:20px;border-radius:10px;}
+.card{max-width:650px;margin:auto;background:#16161f;padding:20px;border-radius:10px;margin-top:30px;}
 input,select,button{width:100%;padding:10px;margin-top:10px;}
 button{background:#00e5c0;border:none;cursor:pointer;}
-a{color:#00e5c0;}
 .hidden{display:none;}
+.menu button{margin-top:5px;}
 </style>
 </head>
 
 <body>
 
-<div class="card">
-
+<div class="card" id="loginBox">
 <h2>ADMIN LOGIN</h2>
-
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
-
 <p id="msg"></p>
-
 </div>
 
-<!-- DASHBOARD -->
-<div id="dash" class="hidden">
+<div id="dashboard" class="hidden">
 
-<div class="card">
+<div class="card menu">
+<h2>DASHBOARD</h2>
+<button onclick="showSection('studentSection')">Add Student</button>
+<button onclick="showSection('resultSection')">Add Result</button>
+</div>
 
-<h2>ADMIN DASHBOARD</h2>
+<!-- ADD STUDENT -->
+<div id="studentSection" class="card hidden">
+<h3>Add Student</h3>
 
-<a href="index.html">← Home</a>
+<input id="name" placeholder="Full Name">
+<input id="department" placeholder="Science or Arts">
+<input id="level" placeholder="Level">
 
-<hr>
+<button onclick="addStudent()">Save Student</button>
+</div>
 
+<!-- ADD RESULT -->
+<div id="resultSection" class="card hidden">
 <h3>Add Result</h3>
 
-<input id="sid" placeholder="Student ID">
-<input id="total" placeholder="Total Score">
-<input id="grade" placeholder="Grade">
-<input id="status" placeholder="PASS / FAIL">
+<input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
+<p id="studentName"></p>
+
+<div id="subjects"></div>
+
 <input id="term" placeholder="Term">
 <input id="session" placeholder="Session">
 
-<button onclick="addResult()">Save Result</button>
-
+<button onclick="saveResult()">Save Result</button>
 </div>
+
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+getFirestore, collection, addDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+import {
+getAuth, signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system",
-storageBucket: "star-academy-system.firebasestorage.app",
-messagingSenderId: "615097211278",
-appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+projectId: "star-academy-system"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 /* LOGIN */
 window.login = async function(){
-
 try{
-
-const email = document.getElementById("email").value.trim();
-const pass = document.getElementById("password").value.trim();
-
-await signInWithEmailAndPassword(auth,email,pass);
-
-document.querySelector(".card").style.display="none";
-document.getElementById("dash").classList.remove("hidden");
-
-msg.innerHTML="Login success";
-
+await signInWithEmailAndPassword(auth,email.value.trim(),password.value.trim());
+loginBox.style.display="none";
+dashboard.classList.remove("hidden");
 }catch(e){
-msg.innerHTML = "Login failed: " + e.code;
+msg.innerHTML = e.code;
 }
-
 };
 
-/* ADD RESULT */
-window.addResult = async function(){
+/* MENU */
+window.showSection = function(id){
+document.querySelectorAll("#dashboard .card").forEach(c=>{
+if(!c.classList.contains("menu")) c.classList.add("hidden");
+});
+document.getElementById(id).classList.remove("hidden");
+};
 
-await addDoc(collection(db,"results"),{
-studentID: sid.value.trim(),
-total: total.value,
-grade: grade.value,
-status: status.value,
-term: term.value,
-session: session.value,
-createdAt: Date.now()
+/* ADD STUDENT */
+window.addStudent = async function(){
+
+let dept = document.getElementById("department").value;
+
+let code = dept==="Science"?"SCI":"ART";
+let id = "STA/2026/"+code+"/"+Math.floor(Math.random()*1000);
+
+await addDoc(collection(db,"students"),{
+studentID:id,
+name:name.value,
+department:dept,
+level:level.value
 });
 
-alert("Saved ✔");
+alert("Student Added: "+id);
+};
 
+/* LOAD STUDENT + SUBJECT */
+window.loadStudent = async function(){
+
+let id = studentID.value;
+
+const snap = await getDocs(collection(db,"students"));
+
+let found = false;
+
+snap.forEach(doc=>{
+let s = doc.data();
+if(s.studentID === id){
+studentName.innerHTML = "Name: "+s.name;
+found = true;
+
+if(id.includes("SCI")) loadSubjects("Science");
+else loadSubjects("Arts");
+}
+});
+
+if(!found){
+studentName.innerHTML = "Student not found";
+subjects.innerHTML="";
+}
+};
+
+/* SUBJECTS */
+function loadSubjects(type){
+
+let list = type==="Science"
+? ["English","Biology","Chemistry","Physics","Mathematics"]
+: ["English","Literature","Government","Economics","Islamic Studies"];
+
+subjects.innerHTML="";
+
+list.forEach(sub=>{
+subjects.innerHTML += `
+<label>${sub}</label>
+<input class="score" type="number">
+`;
+});
+}
+
+/* SAVE RESULT */
+window.saveResult = async function(){
+
+let scores = document.querySelectorAll(".score");
+let total = 0;
+
+scores.forEach(s=> total += Number(s.value));
+
+let avg = total / scores.length;
+
+let grade="F";
+if(avg>=70)grade="A";
+else if(avg>=60)grade="B";
+else if(avg>=50)grade="C";
+
+await addDoc(collection(db,"results"),{
+studentID: studentID.value,
+total,
+average: avg,
+grade,
+status: total>=250?"PASS":"FAIL",
+term: term.value,
+session: session.value
+});
+
+alert("Result Saved ✔");
 };
 
 </script>
