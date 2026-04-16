@@ -7,7 +7,7 @@
 body { font-family: Arial; background:#0a0a0f; color:white; }
 .center { max-width:550px; margin:auto; margin-top:50px; background:#16161f; padding:20px; }
 input,select,button { width:100%; padding:10px; margin-top:10px; }
-button { background:#00e5c0; border:none; }
+button { background:#00e5c0; border:none; cursor:pointer; }
 .card { background:#111; padding:10px; margin-top:10px; }
 .hidden{display:none;}
 </style>
@@ -15,13 +15,15 @@ button { background:#00e5c0; border:none; }
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginPage" class="center">
 <h2>Admin Login</h2>
-<input id="email">
-<input id="password" type="password">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
 <div class="center">
@@ -30,6 +32,8 @@ button { background:#00e5c0; border:none; }
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
+<input id="state" placeholder="State">
+<input id="lga" placeholder="LGA">
 
 <select id="department">
 <option>Science</option>
@@ -45,7 +49,22 @@ button { background:#00e5c0; border:none; }
 <option>Level 3</option>
 </select>
 
+<select id="schoolType">
+<option>Private</option>
+<option>Public</option>
+</select>
+
+<input id="schoolName" placeholder="School Name">
+
+<select id="graduated">
+<option value="">Graduated?</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+
 <button onclick="addStudent()">Save Student</button>
+
+<hr>
 
 <h3>Add Result</h3>
 
@@ -67,6 +86,8 @@ button { background:#00e5c0; border:none; }
 <input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="addResult()">Save Result</button>
+
+<hr>
 
 <h3>Students</h3>
 <div id="students"></div>
@@ -90,10 +111,14 @@ const db=getFirestore(app);
 const auth=getAuth(app);
 
 /* LOGIN */
-window.login=async()=>{
+window.login = async function(){
+try{
 await signInWithEmailAndPassword(auth,email.value,password.value);
 loginPage.style.display="none";
 dashboard.classList.remove("hidden");
+}catch(err){
+alert(err.message);
+}
 };
 
 /* ID GENERATOR WITH DEPARTMENT */
@@ -113,58 +138,67 @@ return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 }
 
 /* ADD STUDENT */
-window.addStudent=async()=>{
-if(!name.value||!age.value){
-alert("Fill required");
+window.addStudent = async function(){
+
+if(!name.value || !age.value || !schoolName.value || !graduated.value){
+alert("Fill all required fields");
 return;
 }
 
-const id=await generateID(department.value);
+const id = await generateID(department.value);
 
 await addDoc(collection(db,"students"),{
 studentID:id,
 name:name.value,
 age:age.value,
+state:state.value,
+lga:lga.value,
 department:department.value,
 level:level.value,
+schoolType:schoolType.value,
+schoolName:schoolName.value,
+graduated:graduated.value,
 createdAt:Date.now()
 });
 
-alert("Saved "+id);
+alert("Saved: "+id);
 };
 
 /* SUBJECTS */
 function loadSubjects(){
 let dept=resDepartment.value;
-let list=dept==="Science"?
-["English","Biology","Chemistry","Physics","Mathematics"]:
+
+let list = dept==="Science" ?
+["English","Biology","Chemistry","Physics","Mathematics"] :
 ["English","Literature","Government","Economics","Islamic Studies"];
 
 subjects.innerHTML="";
 
 list.forEach(sub=>{
-subjects.innerHTML+=`
+subjects.innerHTML += `
 <label>${sub}</label>
 <input class="score" data-sub="${sub}" type="number">
 `;
 });
 }
-
 loadSubjects();
 
 /* ADD RESULT */
-window.addResult=async()=>{
+window.addResult = async function(){
 
 let inputs=document.querySelectorAll(".score");
 let scores={};
 let total=0;
 
-inputs.forEach(i=>{
+for(let i of inputs){
 let val=Number(i.value);
-if(isNaN(val)){alert("Enter all marks");return;}
+if(isNaN(val)){
+alert("Enter all marks");
+return;
+}
 scores[i.dataset.sub]=val;
 total+=val;
-});
+}
 
 let avg=total/5;
 let status=total>=250?"PASS":"FAIL";
@@ -193,18 +227,22 @@ alert("Result Saved");
 
 /* SHOW STUDENTS */
 onSnapshot(collection(db,"students"),snap=>{
-students.innerHTML="";
 let arr=[];
 snap.forEach(d=>arr.push(d.data()));
 arr.sort((a,b)=>b.createdAt-a.createdAt);
+
+students.innerHTML="";
 
 arr.forEach(s=>{
 students.innerHTML+=`
 <div class="card">
 <b>${s.studentID}</b><br>
-${s.name}<br>
-${s.department}<br>
-${s.level}
+Full Name: ${s.name}<br>
+Age: ${s.age}<br>
+Department: ${s.department}<br>
+Level: ${s.level}<br>
+School: ${s.schoolName} (${s.schoolType})<br>
+Graduated: ${s.graduated}
 </div>`;
 });
 });
