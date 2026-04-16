@@ -96,8 +96,19 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, doc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+getFirestore,
+collection,
+addDoc,
+onSnapshot,
+doc,
+runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+import {
+getAuth,
+signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp({
 apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -134,15 +145,18 @@ let short=dept==="Science"?"SCI":"ART";
 return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 }
 
-/* ADD STUDENT */
+/* ADD STUDENT - FIXED */
 window.addStudent = async function(){
 
-let nameVal = name.value.trim();
-let ageVal = age.value.trim();
-let deptVal = department.value;
-let levelVal = level.value;
-let schoolVal = schoolName.value.trim();
-let gradVal = graduated.value;
+const nameVal = document.getElementById("name").value.trim();
+const ageVal = document.getElementById("age").value.trim();
+const stateVal = document.getElementById("state").value.trim();
+const lgaVal = document.getElementById("lga").value.trim();
+const deptVal = document.getElementById("department").value;
+const levelVal = document.getElementById("level").value;
+const schoolVal = document.getElementById("schoolName").value.trim();
+const gradVal = document.getElementById("graduated").value;
+const schoolTypeVal = document.getElementById("schoolType").value;
 
 if(!nameVal || !ageVal || !deptVal || !levelVal || !schoolVal || !gradVal){
 alert("Please fill all required fields");
@@ -155,41 +169,41 @@ await addDoc(collection(db,"students"),{
 studentID:id,
 name:nameVal,
 age:ageVal,
-state:state.value,
-lga:lga.value,
+state:stateVal,
+lga:lgaVal,
 department:deptVal,
 level:levelVal,
-schoolType:schoolType.value,
+schoolType:schoolTypeVal,
 schoolName:schoolVal,
 graduated:gradVal,
 createdAt:Date.now()
 });
 
-/* CLEAR INPUTS */
-name.value="";
-age.value="";
-state.value="";
-lga.value="";
-department.value="";
-level.value="";
-schoolType.value="";
-schoolName.value="";
-graduated.value="";
+/* CLEAR FORM */
+document.getElementById("name").value="";
+document.getElementById("age").value="";
+document.getElementById("state").value="";
+document.getElementById("lga").value="";
+document.getElementById("department").value="";
+document.getElementById("level").value="";
+document.getElementById("schoolName").value="";
+document.getElementById("graduated").value="";
+document.getElementById("schoolType").value="";
 
-alert("Saved: "+id);
+alert("Saved: " + id);
 };
 
-/* AUTO DETECT DEPARTMENT FROM ID */
+/* AUTO DETECT */
 window.detectDepartment = function(){
 
-let id = studentIDInput.value;
+let id = document.getElementById("studentIDInput").value;
 
 if(id.includes("SCI")){
 loadSubjects("Science");
 }else if(id.includes("ART")){
 loadSubjects("Arts");
 }else{
-subjects.innerHTML="";
+document.getElementById("subjects").innerHTML="";
 }
 
 };
@@ -201,10 +215,11 @@ let list = dept==="Science" ?
 ["English","Biology","Chemistry","Physics","Mathematics"] :
 ["English","Literature","Government","Economics","Islamic Studies"];
 
-subjects.innerHTML="";
+let box = document.getElementById("subjects");
+box.innerHTML="";
 
 list.forEach(sub=>{
-subjects.innerHTML+=`
+box.innerHTML+=`
 <label>${sub}</label>
 <input class="score" type="number" placeholder="${sub} score">
 `;
@@ -214,26 +229,30 @@ subjects.innerHTML+=`
 /* ADD RESULT */
 window.addResult = async function(){
 
-if(!studentIDInput.value || !session.value){
+const studentID = document.getElementById("studentIDInput").value;
+const session = document.getElementById("session").value;
+const term = document.getElementById("term").value;
+
+if(!studentID || !session){
 alert("Enter Student ID and Session");
 return;
 }
 
-let inputs=document.querySelectorAll(".score");
+let inputs = document.querySelectorAll(".score");
 
-let total=0;
+let total = 0;
 
 for(let i of inputs){
-let val=Number(i.value);
+let val = Number(i.value);
 if(isNaN(val)){
 alert("Enter all scores");
 return;
 }
-total+=val;
+total += val;
 }
 
-let avg=total/5;
-let status=total>=250?"PASS":"FAIL";
+let avg = total/5;
+let status = total >= 250 ? "PASS" : "FAIL";
 
 let grade="F";
 if(avg>=70)grade="A";
@@ -242,26 +261,21 @@ else if(avg>=50)grade="C";
 else if(avg>=45)grade="D";
 
 await addDoc(collection(db,"results"),{
-studentID:studentIDInput.value,
+studentID,
 total,
 average:avg,
 status,
 grade,
-term:term.value,
-session:session.value,
+term,
+session,
 createdAt:Date.now()
 });
 
-/* CLEAR RESULT INPUT */
-studentIDInput.value="";
-session.value="";
-subjects.innerHTML="";
+document.getElementById("studentIDInput").value="";
+document.getElementById("session").value="";
+document.getElementById("subjects").innerHTML="";
 
-alert(`Result Saved
-Total: ${total}/500
-Average: ${avg}
-Grade: ${grade}
-Status: ${status}`);
+alert("Result Saved ✔");
 };
 
 /* SHOW STUDENTS */
@@ -272,10 +286,10 @@ snap.forEach(d=>arr.push(d.data()));
 
 arr.sort((a,b)=>b.createdAt-a.createdAt);
 
-students.innerHTML="";
+document.getElementById("students").innerHTML="";
 
 arr.forEach(s=>{
-students.innerHTML+=`
+document.getElementById("students").innerHTML+=`
 <div class="card">
 <b>${s.studentID}</b><br>
 Full Name: ${s.name}<br>
