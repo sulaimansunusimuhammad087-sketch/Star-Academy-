@@ -18,6 +18,14 @@ min-height:100vh;
 padding:20px;
 }
 
+nav{
+display:flex;
+justify-content:space-between;
+padding:10px;
+}
+
+.logo{height:90px}
+
 .card{
 max-width:850px;
 margin:auto;
@@ -36,8 +44,8 @@ margin-top:10px;
 button{
 background:#00e5c0;
 border:none;
-cursor:pointer;
 font-weight:bold;
+cursor:pointer;
 }
 
 table{
@@ -49,8 +57,9 @@ margin-top:10px;
 td,th{
 border:1px solid #444;
 padding:8px;
-text-align:center;
 }
+
+.back{color:#00e5c0}
 </style>
 </head>
 
@@ -58,9 +67,17 @@ text-align:center;
 
 <div class="overlay">
 
+<nav>
+<img src="logo.png" class="logo">
+<div>
+<a href="index.html" style="color:#00e5c0">Home</a>
+<a href="admin.html" style="color:#00e5c0">Admin</a>
+</div>
+</nav>
+
 <div class="card">
 
-<h2>Student Result Check</h2>
+<h2>STUDENT RESULT CHECK</h2>
 
 <input id="sid" placeholder="Student ID">
 
@@ -94,48 +111,54 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
-window.viewResult = async ()=>{
+window.viewResult = async function(){
+
+const box = document.getElementById("box");
 
 let id = sid.value.trim();
-let t = term.value;
-let s = session.value;
+let termVal = term.value;
+let sessionVal = session.value;
+
+box.innerHTML="Loading...";
 
 const q = query(collection(db,"results"),
 where("studentID","==",id),
-where("term","==",t),
-where("session","==",s));
+where("term","==",termVal),
+where("session","==",sessionVal)
+);
 
 const snap = await getDocs(q);
 
 if(snap.empty){
-box.innerHTML="No result";
+box.innerHTML="No result found";
 return;
 }
 
 const r = snap.docs[0].data();
 
-/* STUDENT */
-const sSnap = await getDocs(query(collection(db,"students"),
-where("studentID","==",id)));
+/* GET STUDENT */
+const sSnap = await getDocs(query(collection(db,"students"),where("studentID","==",id)));
 
-const st = sSnap.docs[0].data();
+const student = sSnap.docs[0].data();
 
-/* REAL SUBJECTS */
+/* SUBJECT DISPLAY (REAL DATA) */
 let rows="";
 
-Object.entries(r.subjects).forEach(([sub,val])=>{
+let subjects = r.subjects || {};
+
+Object.values(subjects).forEach(sub=>{
 
 let grade =
-val.total>=70?"A":
-val.total>=60?"B":
-val.total>=50?"C":"F";
+sub.total>=70?"A":
+sub.total>=60?"B":
+sub.total>=50?"C":"F";
 
 rows += `
 <tr>
-<td>${sub}</td>
-<td>${val.ca}</td>
-<td>${val.exam}</td>
-<td>${val.total}</td>
+<td>-</td>
+<td>${sub.ca}</td>
+<td>${sub.exam}</td>
+<td>${sub.total}</td>
 <td>${grade}</td>
 </tr>`;
 });
@@ -144,18 +167,24 @@ box.innerHTML = `
 <div id="resultArea">
 
 <div style="text-align:center">
-<img src="logo.png" style="height:80px">
+<img src="logo.png" style="height:90px">
 <h3>STAR ACADEMY RESULT</h3>
 </div>
 
-<b>Name:</b> ${st.name}<br>
+<b>Name:</b> ${student.name}<br>
 <b>ID:</b> ${id}<br>
-<b>Class:</b> ${st.level}<br>
-<b>Dept:</b> ${st.department}<br>
+<b>Class:</b> ${student.level}<br>
+<b>Dept:</b> ${student.department}<br>
+<b>Term:</b> ${termVal}<br>
+<b>Session:</b> ${sessionVal}<br>
 
 <table>
 <tr>
-<th>Subject</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th>
+<th>Subject</th>
+<th>CA</th>
+<th>Exam</th>
+<th>Total</th>
+<th>Grade</th>
 </tr>
 ${rows}
 </table>
@@ -169,9 +198,16 @@ ${rows}
 
 </div>
 
-<button onclick="print()">Download PDF</button>
+<button onclick="downloadPDF()">Download PDF</button>
 `;
 
+};
+
+window.downloadPDF = function(){
+let content=document.getElementById("resultArea").innerHTML;
+let win=window.open("","", "width=900,height=700");
+win.document.write(`<html><body>${content}</body></html>`);
+win.print();
 };
 
 </script>
