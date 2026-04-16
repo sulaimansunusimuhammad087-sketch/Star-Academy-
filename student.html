@@ -41,26 +41,33 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* RESULT FIXED */
 window.getResult = async function(){
 
-let id = studentID.value;
+let id = studentID.value.trim();
 
-const q = query(collection(db,"students"), where("studentID","==",id));
+/* STEP 1: FIND RESULT NOT STUDENT */
+const q = query(collection(db,"results"), where("studentID","==",id));
 const snap = await getDocs(q);
 
+/* FIXED: NO RESULT MESSAGE */
 if(snap.empty){
-output.innerHTML = "<h3 style='color:red'>No result found</h3>";
+output.innerHTML = "<h3 style='color:red'>No result found for this Student ID</h3>";
 return;
 }
 
+/* SHOW RESULTS */
 snap.forEach(doc=>{
-let d = doc.data();
+let r = doc.data();
 
 output.innerHTML = `
-<h3>${d.name}</h3>
-<p>Department: ${d.dept}</p>
-<p>Status: ACTIVE</p>
+<h3>Result Found</h3>
+<p>Student ID: ${r.studentID}</p>
+<p>Total: ${r.total}</p>
+<p>Average: ${r.average}</p>
+<p>Grade: ${r.grade}</p>
+<p>Status: ${r.status}</p>
+<p>Term: ${r.term}</p>
+<p>Session: ${r.session}</p>
 `;
 });
 
