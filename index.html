@@ -1,16 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Star Academy</title>
+<title>Star Academy Home</title>
+
+<style>
+body { font-family: Arial; background:#0a0a0f; color:white; text-align:center; }
+nav { background:#16161f; padding:15px; }
+a { color:#00e5c0; margin:10px; text-decoration:none; font-weight:bold; }
+.card { background:#16161f; margin:20px auto; padding:20px; max-width:600px; border-radius:10px; }
+</style>
 </head>
 
-<body style="background:#0a0a0f;color:white;text-align:center;font-family:Arial">
+<body>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="admin.html">Admin Login</a>
+<a href="student.html">Student Portal</a>
+</nav>
 
 <h1>STAR ACADEMY SYSTEM</h1>
 
-<a href="admin.html" style="color:#00e5c0;font-size:20px;">ADMIN DASHBOARD</a><br><br>
+<div class="card">
+<h2>About School</h2>
+<p>Star Academy trains students from Primary to Senior Secondary level and prepares them for university success in Science and Arts fields.</p>
+</div>
 
-<a href="student.html" style="color:#00e5c0;font-size:20px;">STUDENT PORTAL</a>
+<div class="card">
+<h2>Live Statistics</h2>
+<div id="stats">Loading...</div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let students = 0;
+let grad = 0;
+
+onSnapshot(collection(db,"students"),snap=>{
+students = snap.size;
+update();
+});
+
+function update(){
+stats.innerHTML = `
+Total Students: ${students}<br>
+Graduated: ${grad}
+`;
+}
+
+</script>
 
 </body>
 </html>
