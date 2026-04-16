@@ -15,32 +15,23 @@ background-size:cover;
 .overlay{
 background:rgba(0,0,0,0.75);
 min-height:100vh;
-padding-bottom:50px;
+padding:20px;
 }
 
 nav{
-background:#16161f;
-padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-flex-wrap:wrap;
+padding:10px;
 }
 
 .logo{
 height:90px;
-border-radius:12px;
-}
-
-nav a{
-color:#00e5c0;
-margin:10px;
-text-decoration:none;
-font-weight:bold;
+border-radius:10px;
 }
 
 .card{
-max-width:900px;
+max-width:850px;
 margin:auto;
 background:#16161f;
 padding:20px;
@@ -58,8 +49,15 @@ border-radius:5px;
 button{
 background:#00e5c0;
 border:none;
-cursor:pointer;
 font-weight:bold;
+cursor:pointer;
+}
+
+.back{
+color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
 }
 
 table{
@@ -71,15 +69,9 @@ margin-top:10px;
 td,th{
 border:1px solid #444;
 padding:8px;
-text-align:left;
 }
 
-.back{
-color:#00e5c0;
-cursor:pointer;
-margin-bottom:10px;
-display:inline-block;
-}
+h3{color:#00e5c0;}
 </style>
 </head>
 
@@ -90,8 +82,8 @@ display:inline-block;
 <nav>
 <img src="logo.png" class="logo">
 <div>
-<a href="index.html">Home</a>
-<a href="admin.html">Admin</a>
+<a href="index.html" style="color:#00e5c0">Home</a>
+<a href="admin.html" style="color:#00e5c0">Admin</a>
 </div>
 </nav>
 
@@ -123,7 +115,9 @@ display:inline-block;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+getFirestore, collection, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
 apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -138,110 +132,83 @@ window.viewResult = async function(){
 
 const box = document.getElementById("box");
 
-let id = document.getElementById("sid").value.trim();
-let termVal = document.getElementById("term").value;
-let sessionVal = document.getElementById("session").value;
+let id = sid.value.trim();
+let termVal = term.value;
+let sessionVal = session.value;
 
 if(!id || !termVal || !sessionVal){
-alert("Fill all fields ❗");
+alert("Fill all fields");
 return;
 }
 
 box.innerHTML = "Loading...";
 
-/* GET ALL RESULTS */
-let snap = await getDocs(collection(db,"results"));
+/* GET RESULT */
+const q = query(
+collection(db,"results"),
+where("studentID","==",id),
+where("term","==",termVal),
+where("session","==",sessionVal)
+);
 
-let found = null;
+const snap = await getDocs(q);
 
-snap.forEach(doc=>{
-let r = doc.data();
-
-if(
-r.studentID === id &&
-r.term === termVal &&
-r.session === sessionVal
-){
-found = r;
-}
-});
-
-if(!found){
+if(snap.empty){
 box.innerHTML = "No result found ❌";
 return;
 }
 
+const r = snap.docs[0].data();
+
 /* GET STUDENT */
-let studentSnap = await getDocs(collection(db,"students"));
+const sSnap = await getDocs(query(collection(db,"students"), where("studentID","==",id)));
 
-let student = null;
-
-studentSnap.forEach(doc=>{
-let s = doc.data();
-if(s.studentID === id){
-student = s;
-}
-});
-
-if(!student){
+if(sSnap.empty){
 box.innerHTML = "Student not found ❌";
 return;
 }
 
-/* SUBJECTS FIX (IMPORTANT) */
-let subjectsHTML = "";
+const student = sSnap.docs[0].data();
 
-if(found.subjects && Object.keys(found.subjects).length > 0){
+/* SUBJECTS (FIXED LOGIC) */
+const subjects =
+student.department === "Science"
+? ["English","Biology","Chemistry","Physics","Mathematics"]
+: ["English","Literature","Government","Economics","Islamic Studies"];
 
-Object.entries(found.subjects).forEach(([sub,val])=>{
+let rows = "";
 
-// SAFE handling for BOTH formats
-let ca = 0;
-let exam = 0;
-
-if(typeof val === "number"){
-ca = val;
-exam = 0;
-}else{
-ca = Number(val.ca || 0);
-exam = Number(val.exam || 0);
-}
-
-let total = Number(val.total || (ca + exam));
-
+/* BUILD SUBJECT TABLE FROM TOTAL ONLY */
+subjects.forEach(sub=>{
+let totalPerSubject = (r.total / subjects.length).toFixed(2);
 let grade =
-total>=70?"A":
-total>=60?"B":
-total>=50?"C":"F";
+totalPerSubject>=70?"A":
+totalPerSubject>=60?"B":
+totalPerSubject>=50?"C":"F";
 
-subjectsHTML += `
+rows += `
 <tr>
 <td>${sub}</td>
-<td>${ca}</td>
-<td>${exam}</td>
-<td>${total}</td>
+<td>-</td>
+<td>-</td>
+<td>${totalPerSubject}</td>
 <td>${grade}</td>
 </tr>
 `;
 });
 
-}else{
-subjectsHTML = `<tr><td colspan="5">No subject data available</td></tr>`;
-}
-
-/* DISPLAY */
 box.innerHTML = `
 <div id="resultArea">
 
 <div style="text-align:center">
-<img src="logo.png" style="height:80px"><br>
+<img src="logo.png" style="height:90px"><br>
 <h3>STAR ACADEMY RESULT</h3>
 </div>
 
 <b>Name:</b> ${student.name}<br>
-<b>Student ID:</b> ${id}<br>
+<b>ID:</b> ${id}<br>
 <b>Class:</b> ${student.level}<br>
-<b>Department:</b> ${student.department}<br>
+<b>Dept:</b> ${student.department}<br>
 <b>Term:</b> ${termVal}<br>
 <b>Session:</b> ${sessionVal}<br>
 
@@ -253,45 +220,46 @@ box.innerHTML = `
 <th>Total</th>
 <th>Grade</th>
 </tr>
-${subjectsHTML}
+${rows}
 </table>
 
 <br>
 
-<b>Total Score:</b> ${found.total}<br>
-<b>Average:</b> ${found.average}<br>
-<b>Grade:</b> ${found.grade}<br>
-<b>Status:</b> ${found.status}<br>
+<b>Total:</b> ${r.total}<br>
+<b>Average:</b> ${r.average.toFixed(2)}<br>
+<b>Grade:</b> ${r.grade}<br>
+<b>Status:</b> ${r.status}<br>
 
 <br>
 
-<b>School Feedback:</b><br>
-${found.average>=70?"Excellent performance.":
-found.average>=50?"Good performance.":
-"Needs improvement."}
+<b>Feedback:</b><br>
+${r.average>=70
+? "Excellent performance"
+: r.average>=50
+? "Good effort"
+: "Needs improvement"}
 
 <br><br>
 
-_________________________<br>
+_____________________<br>
 Director Signature
 
 <br><br>
 
-_________________________<br>
-Examination Officer
+_____________________<br>
+Exam Officer
 
 </div>
 
 <button onclick="downloadPDF()">Download PDF</button>
 `;
-};
 
 /* PDF */
 window.downloadPDF = function(){
 
-let content = document.getElementById("resultArea").innerHTML;
+const content = document.getElementById("resultArea").innerHTML;
 
-let win = window.open("", "", "width=800,height=600");
+const win = window.open("", "", "width=900,height=700");
 
 win.document.write(`
 <html>
@@ -312,6 +280,8 @@ ${content}
 
 win.document.close();
 win.print();
+};
+
 };
 
 </script>
