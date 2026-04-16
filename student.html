@@ -127,9 +127,7 @@ color:#00e5c0;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-getFirestore, collection, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
 apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -139,7 +137,7 @@ projectId:"star-academy-system"
 
 const db = getFirestore(app);
 
-/* VIEW RESULT (NO INDEX VERSION) */
+/* MAIN FUNCTION */
 window.viewResult = async function(){
 
 const box = document.getElementById("box");
@@ -155,66 +153,75 @@ return;
 
 box.innerHTML = "Loading...";
 
-/* GET ALL RESULTS (SAFE METHOD) */
-let snap = await getDocs(collection(db,"results"));
+try{
+
+/* FETCH RESULTS */
+const resultsSnap = await getDocs(collection(db,"results"));
 
 let found = null;
 
-snap.forEach(doc=>{
+resultsSnap.forEach(doc=>{
 let r = doc.data();
 
 if(
-r.studentID === id &&
-r.term === termVal &&
-r.session === sessionVal
+String(r.studentID).trim() === id &&
+String(r.term).trim() === termVal &&
+String(r.session).trim() === sessionVal
 ){
 found = r;
 }
 });
 
+/* DEBUG CHECK */
 if(!found){
-box.innerHTML = "No result found ❌";
+box.innerHTML = "No result found ❌<br><br>Check:<br>• Student ID<br>• Term<br>• Session";
 return;
 }
 
-/* GET STUDENT */
-let studentSnap = await getDocs(collection(db,"students"));
+/* FETCH STUDENT */
+const studentsSnap = await getDocs(collection(db,"students"));
 
 let student = null;
 
-studentSnap.forEach(doc=>{
+studentsSnap.forEach(doc=>{
 let s = doc.data();
-if(s.studentID === id){
+if(String(s.studentID).trim() === id){
 student = s;
 }
 });
 
 if(!student){
-box.innerHTML = "Student not found ❌";
+box.innerHTML = "Student info missing ❌";
 return;
 }
 
-/* SUBJECT TABLE */
+/* SUBJECTS */
 let subjectsHTML = "";
 
-if(found.subjects){
+if(found.subjects && typeof found.subjects === "object"){
 
 Object.entries(found.subjects).forEach(([sub,val])=>{
+
+let ca = val?.ca ?? "-";
+let exam = val?.exam ?? "-";
+let total = val?.total ?? (Number(val?.ca||0)+Number(val?.exam||0));
 
 subjectsHTML += `
 <tr>
 <td>${sub}</td>
-<td>${val.ca || "-"}</td>
-<td>${val.exam || "-"}</td>
-<td>${val.total || (Number(val.ca||0)+Number(val.exam||0))}</td>
+<td>${ca}</td>
+<td>${exam}</td>
+<td>${total}</td>
 </tr>
 `;
 
 });
 
+}else{
+subjectsHTML = `<tr><td colspan="4">No subject data available</td></tr>`;
 }
 
-/* DISPLAY */
+/* OUTPUT */
 box.innerHTML = `
 <div id="resultArea">
 
@@ -239,10 +246,10 @@ ${subjectsHTML}
 
 <br>
 
-<b>Total Score:</b> ${found.total}<br>
-<b>Average:</b> ${found.average.toFixed(2)}<br>
-<b>Grade:</b> ${found.grade}<br>
-<b>Status:</b> ${found.status}<br>
+<b>Total Score:</b> ${found.total ?? "-"}<br>
+<b>Average:</b> ${found.average ? found.average.toFixed(2) : "-"}<br>
+<b>Grade:</b> ${found.grade ?? "-"}<br>
+<b>Status:</b> ${found.status ?? "-"}<br>
 
 <br>
 
@@ -265,6 +272,12 @@ Examination Officer
 
 <button onclick="downloadPDF()">Download PDF</button>
 `;
+
+}catch(err){
+
+box.innerHTML = "Error loading result ❌<br><br>" + err.message;
+
+}
 
 };
 
