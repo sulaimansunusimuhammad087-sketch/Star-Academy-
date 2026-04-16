@@ -15,14 +15,17 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginPage" class="center">
 <h2>Admin Login</h2>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+<input id="email" placeholder="Enter Email">
+<input id="password" type="password" placeholder="Enter Password">
 <button onclick="login()">Login</button>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
+
 <div class="center">
 
 <h3>Add Student</h3>
@@ -30,14 +33,16 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
 <input id="state" placeholder="State">
-<input id="lga" placeholder="LGA">
+<input id="lga" placeholder="Local Government">
 
 <select id="department">
+<option value="">Select Department</option>
 <option>Science</option>
 <option>Arts</option>
 </select>
 
 <select id="level">
+<option value="">Select Level</option>
 <option>Primary</option>
 <option>Junior Secondary</option>
 <option>Fresh Class</option>
@@ -47,6 +52,7 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 </select>
 
 <select id="schoolType">
+<option value="">School Type</option>
 <option>Private</option>
 <option>Public</option>
 </select>
@@ -54,8 +60,9 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 <input id="schoolName" placeholder="School Name">
 
 <select id="graduated">
-<option value="Yes">Yes</option>
-<option value="No">No</option>
+<option value="">Graduated?</option>
+<option>Yes</option>
+<option>No</option>
 </select>
 
 <button onclick="addStudent()">Save Student</button>
@@ -64,7 +71,12 @@ button { background:#00e5c0; border:none; cursor:pointer; }
 
 <h3>Add Result</h3>
 
-<input id="studentIDInput" placeholder="Student ID" oninput="autoLoadSubjects()">
+<input id="studentIDInput" placeholder="Enter Student ID">
+
+<select id="resDepartment" onchange="loadSubjects()">
+<option>Science</option>
+<option>Arts</option>
+</select>
 
 <div id="subjects"></div>
 
@@ -130,8 +142,16 @@ return `STA/2026/${short}/${String(num).padStart(4,"0")}`;
 /* ADD STUDENT */
 window.addStudent = async function(){
 
-if(!name.value || !age.value || !schoolName.value){
-alert("Fill all required fields");
+if(
+!name.value ||
+!age.value ||
+!department.value ||
+!level.value ||
+!schoolType.value ||
+!schoolName.value ||
+!graduated.value
+){
+alert("Please fill all required fields");
 return;
 }
 
@@ -154,14 +174,9 @@ createdAt:Date.now()
 alert("Saved: "+id);
 };
 
-/* AUTO SUBJECT BASED ON ID */
-window.autoLoadSubjects = function(){
-
-let id = studentIDInput.value;
-
-if(!id.includes("/")) return;
-
-let dept = id.includes("SCI") ? "Science" : "Arts";
+/* SUBJECTS */
+function loadSubjects(){
+let dept=resDepartment.value;
 
 let list = dept==="Science" ?
 ["English","Biology","Chemistry","Physics","Mathematics"] :
@@ -172,13 +187,19 @@ subjects.innerHTML="";
 list.forEach(sub=>{
 subjects.innerHTML += `
 <label>${sub}</label>
-<input class="score" data-sub="${sub}" type="number">
+<input class="score" data-sub="${sub}" type="number" placeholder="Enter ${sub} score">
 `;
 });
-};
+}
+loadSubjects();
 
 /* ADD RESULT */
 window.addResult = async function(){
+
+if(!studentIDInput.value || !session.value){
+alert("Fill Student ID and Session");
+return;
+}
 
 let inputs=document.querySelectorAll(".score");
 let scores={};
@@ -197,12 +218,20 @@ total+=val;
 let avg=total/5;
 let status=total>=250?"PASS":"FAIL";
 
+let grade="F";
+if(avg>=70)grade="A";
+else if(avg>=60)grade="B";
+else if(avg>=50)grade="C";
+else if(avg>=45)grade="D";
+
 await addDoc(collection(db,"results"),{
 studentID:studentIDInput.value,
+department:resDepartment.value,
 scores,
 total,
 average:avg,
 status,
+grade,
 term:term.value,
 session:session.value,
 createdAt:Date.now()
