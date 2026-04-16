@@ -16,14 +16,16 @@ h2,h3{color:#00e5c0;}
 
 <body>
 
+<!-- LOGIN -->
 <div class="card" id="loginBox">
 <h2>ADMIN LOGIN</h2>
-<input id="email">
-<input id="password" type="password">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
 <p id="msg"></p>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
 <div class="card menu">
@@ -37,13 +39,13 @@ h2,h3{color:#00e5c0;}
 
 <h3>Add Student</h3>
 
-<input id="name">
-<input id="age" type="number">
-<input id="state">
-<input id="lga">
-<input id="address">
-<input id="phone">
-<input id="emailStudent">
+<input id="name" placeholder="Full Name">
+<input id="age" type="number" placeholder="Age">
+<input id="state" placeholder="State">
+<input id="lga" placeholder="Local Government">
+<input id="address" placeholder="Address">
+<input id="phone" placeholder="Phone Number">
+<input id="emailStudent" placeholder="Student Email">
 
 <select id="department">
 <option value="">Select Department</option>
@@ -68,7 +70,7 @@ h2,h3{color:#00e5c0;}
 <option>Public</option>
 </select>
 
-<input id="schoolName">
+<input id="schoolName" placeholder="School Name">
 
 <select id="graduated">
 <option value="">Graduated?</option>
@@ -85,7 +87,7 @@ h2,h3{color:#00e5c0;}
 
 <h3>Add Result</h3>
 
-<input id="studentID" oninput="loadStudent()">
+<input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
 <p id="studentName"></p>
 
 <div id="subjects"></div>
@@ -97,7 +99,7 @@ h2,h3{color:#00e5c0;}
 <option>Third Term</option>
 </select>
 
-<input id="session">
+<input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="saveResult()">Save Result</button>
 
@@ -117,6 +119,7 @@ import {
 getAuth, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+/* FIREBASE */
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
@@ -130,16 +133,11 @@ const auth = getAuth(app);
 /* LOGIN */
 window.login = async function(){
 try{
-const emailVal = document.getElementById("email").value.trim();
-const passVal = document.getElementById("password").value.trim();
-
-await signInWithEmailAndPassword(auth,emailVal,passVal);
-
-document.getElementById("loginBox").style.display="none";
-document.getElementById("dashboard").classList.remove("hidden");
-
+await signInWithEmailAndPassword(auth,email.value.trim(),password.value.trim());
+loginBox.style.display="none";
+dashboard.classList.remove("hidden");
 }catch(e){
-document.getElementById("msg").innerHTML = e.message;
+msg.innerHTML = "Login failed: " + e.message;
 }
 };
 
@@ -151,8 +149,9 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-/* ID GENERATOR */
+/* GENERATE ID */
 async function generateID(dept){
+
 const ref = doc(db,"meta","counter");
 
 const num = await runTransaction(db, async (tx)=>{
@@ -166,47 +165,50 @@ let code = dept==="Science"?"SCI":"ART";
 return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
 }
 
-/* ADD STUDENT (FIXED) */
+/* ADD STUDENT (FIXED ✅) */
 window.addStudent = async function(){
 
-const data = {
-name: document.getElementById("name").value.trim(),
-age: document.getElementById("age").value.trim(),
-state: document.getElementById("state").value.trim(),
-lga: document.getElementById("lga").value.trim(),
-address: document.getElementById("address").value.trim(),
-phone: document.getElementById("phone").value.trim(),
-email: document.getElementById("emailStudent").value.trim(),
-department: document.getElementById("department").value,
-level: document.getElementById("level").value,
-schoolType: document.getElementById("schoolType").value,
-schoolName: document.getElementById("schoolName").value.trim(),
-graduated: document.getElementById("graduated").value
-};
+let name = document.getElementById("name").value.trim();
+let age = document.getElementById("age").value.trim();
+let state = document.getElementById("state").value.trim();
+let lga = document.getElementById("lga").value.trim();
+let address = document.getElementById("address").value.trim();
+let phone = document.getElementById("phone").value.trim();
+let email = document.getElementById("emailStudent").value.trim();
+let department = document.getElementById("department").value;
+let level = document.getElementById("level").value;
+let schoolType = document.getElementById("schoolType").value;
+let schoolName = document.getElementById("schoolName").value.trim();
+let graduated = document.getElementById("graduated").value;
 
-if(Object.values(data).some(v => v==="")){
-alert("Fill all fields ❗");
+/* SIMPLE VALIDATION (FIXED) */
+if(!name || !age || !state || !lga || !address || !phone || !department || !level || !schoolType || !schoolName || !graduated){
+alert("Please fill all fields ❗");
 return;
 }
 
-let id = await generateID(data.department);
+/* GENERATE ID */
+let id = await generateID(department);
 
+/* SAVE */
 await addDoc(collection(db,"students"),{
 studentID:id,
-...data,
+name,age,state,lga,address,phone,email,
+department,level,schoolType,schoolName,graduated,
 createdAt: Date.now()
 });
 
+/* CLEAR */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
 
-alert("Student Added: " + id);
+alert("Student Added ✔ ID: " + id);
 };
 
-/* LOAD STUDENT */
+/* LOAD STUDENT (FIXED 🔥) */
 window.loadStudent = async function(){
 
-let id = document.getElementById("studentID").value.trim();
+let id = studentID.value.trim();
 
 if(!id){
 studentName.innerHTML="";
@@ -227,7 +229,13 @@ let s = snap.docs[0].data();
 
 studentName.innerHTML = "Name: " + s.name;
 
-loadSubjects(s.department);
+/* LOAD SUBJECT */
+if(s.department === "Science"){
+loadSubjects("Science");
+}else{
+loadSubjects("Arts");
+}
+
 };
 
 /* SUBJECTS */
@@ -247,9 +255,9 @@ subjects.innerHTML += `<input class="score" type="number" placeholder="${sub}">`
 /* SAVE RESULT */
 window.saveResult = async function(){
 
-let id = document.getElementById("studentID").value.trim();
-let termVal = document.getElementById("term").value;
-let sessionVal = document.getElementById("session").value;
+let id = studentID.value.trim();
+let termVal = term.value;
+let sessionVal = session.value;
 
 if(!id || !termVal || !sessionVal){
 alert("Fill all fields");
