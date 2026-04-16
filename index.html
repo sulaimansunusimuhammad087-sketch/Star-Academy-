@@ -12,20 +12,30 @@ background:url("bg.jpg") no-repeat center center fixed;
 background-size:cover;
 }
 
+/* DARK OVERLAY */
 .overlay{
 background:rgba(0,0,0,0.75);
 min-height:100vh;
 padding-bottom:50px;
 }
 
+/* NAV */
 nav{
 background:#16161f;
 padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+flex-wrap:wrap;
 }
 
+/* LOGO BIGGER + RESPONSIVE */
+.logo{
+height:70px;
+border-radius:12px;
+}
+
+/* NAV LINKS */
 nav a{
 color:#00e5c0;
 margin:10px;
@@ -33,11 +43,18 @@ text-decoration:none;
 font-weight:bold;
 }
 
+/* MOBILE FIX */
+@media(max-width:600px){
 .logo{
-height:50px;
-border-radius:10px;
+height:90px;
+margin-bottom:10px;
+}
+nav{
+flex-direction:column;
+}
 }
 
+/* TITLE */
 .container{
 text-align:center;
 padding:20px;
@@ -48,6 +65,7 @@ margin-top:10px;
 color:#00e5c0;
 }
 
+/* CARDS */
 .card{
 background:#16161f;
 margin:20px auto;
@@ -63,12 +81,14 @@ transition:0.3s;
 transform:scale(1.02);
 }
 
+/* SECTION CONTENT */
 .section-content{
 display:none;
 margin-top:10px;
 line-height:1.6;
 }
 
+/* BUTTON */
 button{
 padding:10px;
 background:#00e5c0;
@@ -78,6 +98,16 @@ cursor:pointer;
 font-weight:bold;
 }
 
+/* BACK BUTTON */
+.back-btn{
+display:inline-block;
+margin-bottom:10px;
+color:#00e5c0;
+cursor:pointer;
+font-weight:bold;
+}
+
+/* STATS */
 .stats{
 text-align:center;
 font-size:18px;
@@ -110,65 +140,73 @@ font-size:18px;
 
 <!-- ABOUT -->
 <div class="card" onclick="toggle(this)">
-<h2>📘 About Star Academy</h2>
+<h2>About Star Academy</h2>
 <div class="section-content">
+<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
+
 Star Academy is a community-based extra lesson program designed to prepare students for university admission.
+
 It runs every Saturday and Sunday from 8:30am to 6:00pm.
 
-Students are trained from Primary, Junior Secondary, and Senior Secondary levels.
-The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
+Students are trained from Primary, Junior Secondary, and Senior Secondary levels. The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
 </div>
 </div>
 
 <!-- MISSION -->
 <div class="card" onclick="toggle(this)">
-<h2>🎯 Mission</h2>
+<h2>Mission</h2>
 <div class="section-content">
-To provide quality academic support that helps students pass examinations and gain admission into universities,
-while building strong academic discipline and excellence.
+<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
+
+To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
 </div>
 </div>
 
 <!-- VISION -->
 <div class="card" onclick="toggle(this)">
-<h2>🌍 Vision</h2>
+<h2>Vision</h2>
 <div class="section-content">
-To become one of the leading community academic support centers producing successful professionals
-in science, technology, arts, and social sciences.
+<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
+
+To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
 </div>
 </div>
 
 <!-- MOTTO -->
 <div class="card" onclick="toggle(this)">
-<h2>📌 Motto</h2>
+<h2>Motto</h2>
 <div class="section-content">
+<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
+
 Knowledge • Discipline • Success
 </div>
 </div>
 
-<!-- DEVELOPER STORY -->
+<!-- DEVELOPER INFO -->
 <div class="card" onclick="toggle(this)">
-<h2>💡 Developer Story</h2>
+<h2>Developer Info</h2>
 <div class="section-content">
-This system was built by a former student and current tutor of Star Academy.
+<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
 
-The goal is to solve a major problem:
-the academy was not properly recording student data, performance, or graduation records.
+This system was developed by <b>Sulaiman Sunusi</b> (Sir Mean).
 
-This system helps:
-- Automatically generate student IDs
-- Store student records permanently
-- Track performance per term
-- Show pass/fail analytics
-- Support future academic decision making
+A student of Statistics and a data science enthusiast, former student and current tutor at Star Academy, and currently serving as an Examination Officer.
 
-It is designed using knowledge from Data Science and Statistics to improve education management.
+Purpose of this system:
+
+- To solve the lack of proper student record keeping  
+- To digitally manage student data and academic performance  
+- To automatically generate student IDs  
+- To track results, pass/fail rates, and academic progress  
+- To provide data-driven insights for better decision making  
+
+This project is part of applying data analysis and technology to improve education management in the community.
 </div>
 </div>
 
 <!-- LIVE STATS -->
 <div class="card">
-<h2>📊 Live Statistics</h2>
+<h2>Live Statistics</h2>
 <div class="stats" id="stats">Loading...</div>
 </div>
 
@@ -190,11 +228,17 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* TOGGLE SECTION */
+/* TOGGLE */
 window.toggle = function(el){
 let content = el.querySelector(".section-content");
 content.style.display =
 content.style.display === "block" ? "none" : "block";
+};
+
+/* CLOSE WITH BACK BUTTON */
+window.closeSection = function(el){
+let parent = el.closest(".section-content");
+parent.style.display = "none";
 };
 
 /* LIVE STATS */
