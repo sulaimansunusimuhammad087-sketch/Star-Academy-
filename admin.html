@@ -4,29 +4,24 @@
 <title>Star Academy Admin</title>
 
 <style>
-body { font-family:Arial; background:#0a0a0f; color:white; text-align:center; }
-.card { background:#16161f; padding:20px; max-width:600px; margin:auto; border-radius:10px; }
-input,button { width:100%; padding:10px; margin-top:10px; border-radius:5px; }
-button { background:#00e5c0; border:none; font-weight:bold; cursor:pointer; }
+body{font-family:Arial;background:#0a0a0f;color:white;}
+.card{max-width:600px;margin:auto;background:#16161f;padding:20px;border-radius:10px;}
+input,select,button{width:100%;padding:10px;margin-top:10px;}
+button{background:#00e5c0;border:none;cursor:pointer;}
+a{color:#00e5c0;}
 .hidden{display:none;}
-a{color:#00e5c0; text-decoration:none;}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN PAGE -->
-<div id="login" class="card">
+<div class="card">
 
 <h2>ADMIN LOGIN</h2>
 
-<input id="email" placeholder="Email" autocomplete="email">
-<input id="password" type="password" placeholder="Password" autocomplete="current-password">
-
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
-
-<br><br>
-<a href="index.html">← Back Home</a>
 
 <p id="msg"></p>
 
@@ -39,15 +34,15 @@ a{color:#00e5c0; text-decoration:none;}
 
 <h2>ADMIN DASHBOARD</h2>
 
-<a href="index.html">← Back Home</a>
+<a href="index.html">← Home</a>
 
 <hr>
 
-<h3>Add Student Result</h3>
+<h3>Add Result</h3>
 
 <input id="sid" placeholder="Student ID">
-<input id="score" placeholder="Total Score">
-<input id="grade" placeholder="Grade (A/B/C/D/F)">
+<input id="total" placeholder="Total Score">
+<input id="grade" placeholder="Grade">
 <input id="status" placeholder="PASS / FAIL">
 <input id="term" placeholder="Term">
 <input id="session" placeholder="Session">
@@ -63,7 +58,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* FIREBASE CONFIG */
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
@@ -78,40 +72,32 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 /* LOGIN */
-window.login = async function () {
-try {
+window.login = async function(){
 
-msg.innerHTML = "Logging in...";
+try{
 
 const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
+const pass = document.getElementById("password").value.trim();
 
-const user = await signInWithEmailAndPassword(auth, email, password);
+await signInWithEmailAndPassword(auth,email,pass);
 
-console.log("LOGIN SUCCESS:", user.user.email);
-
-msg.innerHTML = "Login successful ✔";
-
-document.getElementById("login").style.display = "none";
+document.querySelector(".card").style.display="none";
 document.getElementById("dash").classList.remove("hidden");
 
-} catch (e) {
+msg.innerHTML="Login success";
 
-console.log(e.code, e.message);
-
-msg.innerHTML = "❌ " + e.code + "<br>" + e.message;
-
+}catch(e){
+msg.innerHTML = "Login failed: " + e.code;
 }
+
 };
 
 /* ADD RESULT */
-window.addResult = async function () {
-
-try {
+window.addResult = async function(){
 
 await addDoc(collection(db,"results"),{
 studentID: sid.value.trim(),
-total: Number(score.value),
+total: total.value,
 grade: grade.value,
 status: status.value,
 term: term.value,
@@ -119,12 +105,7 @@ session: session.value,
 createdAt: Date.now()
 });
 
-alert("Result Saved ✔");
-
-} catch (e) {
-alert("Error saving result");
-console.log(e);
-}
+alert("Saved ✔");
 
 };
 
