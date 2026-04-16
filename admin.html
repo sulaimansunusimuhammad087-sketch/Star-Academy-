@@ -33,6 +33,11 @@ cursor:pointer;
 font-weight:bold;
 }
 
+button:disabled{
+background:#555;
+cursor:not-allowed;
+}
+
 .hidden{display:none;}
 .menu button{margin-top:8px;}
 h2,h3{color:#00e5c0;}
@@ -113,7 +118,7 @@ a{color:#00e5c0; cursor:pointer;}
 <option>No</option>
 </select>
 
-<button onclick="addStudent()">Save Student</button>
+<button id="saveStudentBtn" onclick="addStudent()">Save Student</button>
 
 </div>
 
@@ -138,7 +143,7 @@ a{color:#00e5c0; cursor:pointer;}
 
 <input id="session" placeholder="Session e.g 2025/2026">
 
-<button onclick="saveResult()">Save Result</button>
+<button id="saveResultBtn" onclick="saveResult()">Save Result</button>
 
 <div id="resultPreview" class="card hidden"></div>
 
@@ -168,7 +173,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* SAFE LOGIN */
+/* LOGIN */
 window.login = async function(){
 try{
 const email = document.getElementById("email").value.trim();
@@ -180,7 +185,7 @@ document.getElementById("loginBox").style.display="none";
 document.getElementById("dashboard").classList.remove("hidden");
 
 }catch(e){
-document.getElementById("msg").innerText = "Login failed: " + e.message;
+document.getElementById("msg").innerText = e.message;
 }
 };
 
@@ -200,6 +205,7 @@ if(!c.classList.contains("menu")) c.classList.add("hidden");
 
 /* ID GENERATOR */
 async function generateID(dept){
+
 const ref = doc(db,"meta","counter");
 
 const num = await runTransaction(db, async (tx)=>{
@@ -213,8 +219,12 @@ let code = dept==="Science"?"SCI":"ART";
 return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
 }
 
-/* FIXED ADD STUDENT (NO CRASH) */
+/* ADD STUDENT */
 window.addStudent = async function(){
+
+const btn = document.getElementById("saveStudentBtn");
+btn.disabled = true;
+btn.innerText = "Saving...";
 
 try{
 
@@ -234,10 +244,12 @@ schoolName: document.getElementById("schoolName").value.trim(),
 graduated: document.getElementById("graduated").value
 };
 
-/* VALIDATION */
+/* validation */
 for(let k in data){
-if(data[k] === ""){
+if(data[k]===""){
 alert("Fill all fields ❗");
+btn.disabled=false;
+btn.innerText="Save Student";
 return;
 }
 }
@@ -250,16 +262,18 @@ studentID:id,
 createdAt:Date.now()
 });
 
-alert("Student Added ✔ " + id);
+alert("Student Added ✔ ID: " + id);
 
-/* CLEAR */
+/* clear */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
 
 }catch(err){
-alert("ERROR: " + err.message);
+alert(err.message);
 }
 
+btn.disabled=false;
+btn.innerText="Save Student";
 };
 
 /* LOAD STUDENT */
@@ -268,7 +282,7 @@ window.loadStudent = async function(){
 let id = document.getElementById("studentID").value.trim();
 
 if(!id){
-document.getElementById("studentName").innerText="";
+document.getElementById("studentName").innerHTML="";
 document.getElementById("subjects").innerHTML="";
 return;
 }
@@ -277,25 +291,24 @@ const q = query(collection(db,"students"), where("studentID","==",id));
 const snap = await getDocs(q);
 
 if(snap.empty){
-document.getElementById("studentName").innerText="Student not found ❌";
-document.getElementById("subjects").innerHTML="";
+document.getElementById("studentName").innerHTML="Student not found ❌";
 return;
 }
 
 let s = snap.docs[0].data();
 
-document.getElementById("studentName").innerText =
+document.getElementById("studentName").innerHTML =
 `Name: ${s.name} | Class: ${s.level} | Dept: ${s.department}`;
 
-let subjects = s.department==="Science"
+let list = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
 let box = document.getElementById("subjects");
 box.innerHTML="";
 
-subjects.forEach(sub=>{
-box.innerHTML += `<input class="score" type="number" placeholder="${sub}">`;
+list.forEach(sub=>{
+box.innerHTML += `<input class="score" placeholder="${sub}" type="number">`;
 });
 };
 
@@ -319,7 +332,7 @@ scores.forEach(s=> total += Number(s.value||0));
 let avg = total / scores.length;
 
 let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
-let status = total>=250?"PASS":"FAIL";
+let status = avg>=50?"PASS":"FAIL";
 
 await addDoc(collection(db,"results"),{
 studentID:id,
@@ -332,14 +345,13 @@ session,
 createdAt:Date.now()
 });
 
-/* PREVIEW */
 document.getElementById("resultPreview").classList.remove("hidden");
-document.getElementById("resultPreview").innerHTML = `
-<h3>Result Summary</h3>
+document.getElementById("resultPreview").innerHTML=`
+<h3>Result</h3>
 Total: ${total}<br>
 Average: ${avg.toFixed(2)}<br>
 Grade: ${grade}<br>
-Status: ${status}<br>
+Status: ${status}
 `;
 
 alert("Result Saved ✔");
