@@ -5,13 +5,47 @@
 
 <style>
 body{
+margin:0;
 font-family:Arial;
-background:#0a0a0f;
 color:white;
+background:url("bg.jpg") no-repeat center center fixed;
+background-size:cover;
+}
+
+.overlay{
+background:rgba(0,0,0,0.75);
+min-height:100vh;
+padding-bottom:50px;
+}
+
+nav{
+background:#16161f;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.logo{
+height:70px;
+border-radius:12px;
+}
+
+nav a{
+color:#00e5c0;
+margin:10px;
+text-decoration:none;
+font-weight:bold;
+}
+
+@media(max-width:600px){
+.logo{height:90px;}
+nav{flex-direction:column;}
 }
 
 .card{
-max-width:750px;
+max-width:800px;
 margin:auto;
 background:#16161f;
 padding:20px;
@@ -19,7 +53,7 @@ border-radius:10px;
 margin-top:20px;
 }
 
-input,select,button{
+input,select{
 width:100%;
 padding:10px;
 margin-top:10px;
@@ -27,25 +61,37 @@ border-radius:5px;
 }
 
 button{
+width:100%;
+padding:10px;
+margin-top:10px;
 background:#00e5c0;
 border:none;
 cursor:pointer;
 font-weight:bold;
 }
 
-button:disabled{
-background:#555;
-cursor:not-allowed;
-}
-
 .hidden{display:none;}
-.menu button{margin-top:8px;}
-h2,h3{color:#00e5c0;}
-a{color:#00e5c0; cursor:pointer;}
+
+.back{
+color:#00e5c0;
+cursor:pointer;
+margin-bottom:10px;
+display:inline-block;
+}
 </style>
 </head>
 
 <body>
+<div class="overlay">
+
+<!-- NAV -->
+<nav>
+<img src="logo.png" class="logo">
+<div>
+<a href="index.html">Home</a>
+<a href="student.html">Student</a>
+</div>
+</nav>
 
 <!-- LOGIN -->
 <div class="card" id="loginBox">
@@ -59,18 +105,15 @@ a{color:#00e5c0; cursor:pointer;}
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
-<div class="card menu">
+<div class="card">
 <h2>DASHBOARD</h2>
 <button onclick="showSection('studentSection')">Add Student</button>
 <button onclick="showSection('resultSection')">Add Result</button>
-<button onclick="goHome()">Home</button>
 </div>
 
 <!-- ADD STUDENT -->
 <div id="studentSection" class="card hidden">
-
-<h3>Add Student</h3>
-<a onclick="goHome()">← Back</a>
+<div class="back" onclick="goHome()">← Back</div>
 
 <input id="name" placeholder="Full Name">
 <input id="age" type="number" placeholder="Age">
@@ -95,10 +138,6 @@ a{color:#00e5c0; cursor:pointer;}
 
 <select id="level">
 <option value="">Level</option>
-<option>Primary</option>
-<option>Junior Secondary</option>
-<option>Fresh Class</option>
-<option>AI Class</option>
 <option>Level 1</option>
 <option>Level 2</option>
 <option>Level 3</option>
@@ -118,18 +157,14 @@ a{color:#00e5c0; cursor:pointer;}
 <option>No</option>
 </select>
 
-<button id="saveStudentBtn" onclick="addStudent()">Save Student</button>
-
+<button onclick="addStudent()">Save Student</button>
 </div>
 
 <!-- ADD RESULT -->
 <div id="resultSection" class="card hidden">
-
-<h3>Add Result</h3>
-<a onclick="goHome()">← Back</a>
+<div class="back" onclick="goHome()">← Back</div>
 
 <input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
-
 <p id="studentName"></p>
 
 <div id="subjects"></div>
@@ -143,9 +178,10 @@ a{color:#00e5c0; cursor:pointer;}
 
 <input id="session" placeholder="Session e.g 2025/2026">
 
-<button id="saveResultBtn" onclick="saveResult()">Save Result</button>
+<button onclick="saveResult()">Save Result</button>
 
-<div id="resultPreview" class="card hidden"></div>
+<div id="resultPreview"></div>
+</div>
 
 </div>
 
@@ -159,202 +195,154 @@ getFirestore, collection, addDoc, doc, runTransaction,
 query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-import {
-getAuth, signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system"
-};
+const app = initializeApp({
+apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain:"star-academy-system.firebaseapp.com",
+projectId:"star-academy-system"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 /* LOGIN */
-window.login = async function(){
+window.login = async ()=>{
 try{
-const email = document.getElementById("email").value.trim();
-const pass = document.getElementById("password").value.trim();
-
-await signInWithEmailAndPassword(auth,email,pass);
-
-document.getElementById("loginBox").style.display="none";
-document.getElementById("dashboard").classList.remove("hidden");
-
-}catch(e){
-document.getElementById("msg").innerText = e.message;
-}
+await signInWithEmailAndPassword(auth,email.value,password.value);
+loginBox.style.display="none";
+dashboard.classList.remove("hidden");
+}catch(e){ msg.innerText=e.message; }
 };
 
 /* NAV */
-window.showSection = function(id){
-document.querySelectorAll("#dashboard .card").forEach(c=>{
-if(!c.classList.contains("menu")) c.classList.add("hidden");
-});
+window.showSection = id=>{
+document.querySelectorAll("#dashboard .card").forEach(c=>c.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
 };
 
-window.goHome = function(){
+window.goHome = ()=>{
 document.querySelectorAll("#dashboard .card").forEach(c=>{
-if(!c.classList.contains("menu")) c.classList.add("hidden");
+if(c.id!=="studentSection" && c.id!=="resultSection") c.classList.remove("hidden");
+else c.classList.add("hidden");
 });
 };
-
-/* ID GENERATOR */
-async function generateID(dept){
-
-const ref = doc(db,"meta","counter");
-
-const num = await runTransaction(db, async (tx)=>{
-const snap = await tx.get(ref);
-let count = snap.exists()?snap.data().count+1:1;
-tx.set(ref,{count});
-return count;
-});
-
-let code = dept==="Science"?"SCI":"ART";
-return `STA/2026/${code}/${String(num).padStart(5,"0")}`;
-}
 
 /* ADD STUDENT */
-window.addStudent = async function(){
+window.addStudent = async ()=>{
 
-const btn = document.getElementById("saveStudentBtn");
-btn.disabled = true;
-btn.innerText = "Saving...";
+let phoneVal = phone.value.trim();
+let emailVal = emailStudent.value.trim();
 
-try{
+/* CHECK DUPLICATE */
+let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
+let q2 = query(collection(db,"students"), where("email","==",emailVal));
 
-const data = {
-name: document.getElementById("name").value.trim(),
-age: document.getElementById("age").value.trim(),
-gender: document.getElementById("gender").value,
-state: document.getElementById("state").value.trim(),
-lga: document.getElementById("lga").value.trim(),
-address: document.getElementById("address").value.trim(),
-phone: document.getElementById("phone").value.trim(),
-email: document.getElementById("emailStudent").value.trim(),
-department: document.getElementById("department").value,
-level: document.getElementById("level").value,
-schoolType: document.getElementById("schoolType").value,
-schoolName: document.getElementById("schoolName").value.trim(),
-graduated: document.getElementById("graduated").value
-};
-
-/* validation */
-for(let k in data){
-if(data[k]===""){
-alert("Fill all fields ❗");
-btn.disabled=false;
-btn.innerText="Save Student";
+if(!(await getDocs(q1)).empty || !(await getDocs(q2)).empty){
+alert("Student already exists ❌");
 return;
 }
-}
 
-let id = await generateID(data.department);
+/* GENERATE ID */
+let ref = doc(db,"meta","counter");
+let id = await runTransaction(db, async tx=>{
+let snap = await tx.get(ref);
+let count = snap.exists()?snap.data().count+1:1;
+tx.set(ref,{count});
+return `STA/2026/${department.value==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
+});
 
 await addDoc(collection(db,"students"),{
 studentID:id,
-...data,
+name:name.value,
+age:age.value,
+gender:gender.value,
+state:state.value,
+lga:lga.value,
+address:address.value,
+phone:phoneVal,
+email:emailVal,
+department:department.value,
+level:level.value,
+schoolType:schoolType.value,
+schoolName:schoolName.value,
+graduated:graduated.value,
 createdAt:Date.now()
 });
 
-alert("Student Added ✔ ID: " + id);
-
-/* clear */
-document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
-document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
-
-}catch(err){
-alert(err.message);
-}
-
-btn.disabled=false;
-btn.innerText="Save Student";
+alert("Student Added ✔ "+id);
 };
 
 /* LOAD STUDENT */
-window.loadStudent = async function(){
+window.loadStudent = async ()=>{
+let id = studentID.value.trim();
+let q = query(collection(db,"students"), where("studentID","==",id));
+let snap = await getDocs(q);
 
-let id = document.getElementById("studentID").value.trim();
-
-if(!id){
-document.getElementById("studentName").innerHTML="";
-document.getElementById("subjects").innerHTML="";
-return;
-}
-
-const q = query(collection(db,"students"), where("studentID","==",id));
-const snap = await getDocs(q);
-
-if(snap.empty){
-document.getElementById("studentName").innerHTML="Student not found ❌";
-return;
-}
+if(snap.empty){ studentName.innerHTML="Not found"; return;}
 
 let s = snap.docs[0].data();
 
-document.getElementById("studentName").innerHTML =
-`Name: ${s.name} | Class: ${s.level} | Dept: ${s.department}`;
+studentName.innerHTML = `Name: ${s.name} | Class: ${s.level} | Dept: ${s.department}`;
 
-let list = s.department==="Science"
+let subjects = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
-let box = document.getElementById("subjects");
-box.innerHTML="";
-
-list.forEach(sub=>{
-box.innerHTML += `<input class="score" placeholder="${sub}" type="number">`;
+subjectsDiv.innerHTML="";
+subjects.forEach(sub=>{
+subjectsDiv.innerHTML+=`
+<label>${sub}</label>
+<input class="ca" placeholder="CA">
+<input class="exam" placeholder="Exam">
+`;
 });
 };
 
 /* SAVE RESULT */
-window.saveResult = async function(){
+window.saveResult = async ()=>{
 
-let id = document.getElementById("studentID").value.trim();
-let term = document.getElementById("term").value;
-let session = document.getElementById("session").value;
+let id = studentID.value;
+let t = term.value;
+let s = session.value;
 
-if(!id || !term || !session){
-alert("Fill all fields");
+/* PREVENT DUPLICATE RESULT */
+let q = query(collection(db,"results"),
+where("studentID","==",id),
+where("term","==",t),
+where("session","==",s)
+);
+
+if(!(await getDocs(q)).empty){
+alert("Result already exists ❌");
 return;
 }
 
-let scores = document.querySelectorAll(".score");
+let ca = document.querySelectorAll(".ca");
+let exam = document.querySelectorAll(".exam");
 
-let total = 0;
-scores.forEach(s=> total += Number(s.value||0));
+let total=0;
 
-let avg = total / scores.length;
+for(let i=0;i<ca.length;i++){
+let subTotal = Number(ca[i].value||0)+Number(exam[i].value||0);
+total+=subTotal;
+}
 
+let avg = total/ca.length;
 let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
 let status = avg>=50?"PASS":"FAIL";
 
 await addDoc(collection(db,"results"),{
-studentID:id,
-total,
-average:avg,
-grade,
-status,
-term,
-session,
-createdAt:Date.now()
+studentID:id,total,average:avg,grade,status,term:t,session:s
 });
 
-document.getElementById("resultPreview").classList.remove("hidden");
-document.getElementById("resultPreview").innerHTML=`
-<h3>Result</h3>
+resultPreview.innerHTML = `
+<h3>Result Summary</h3>
 Total: ${total}<br>
 Average: ${avg.toFixed(2)}<br>
 Grade: ${grade}<br>
 Status: ${status}
 `;
-
-alert("Result Saved ✔");
 };
 
 </script>
