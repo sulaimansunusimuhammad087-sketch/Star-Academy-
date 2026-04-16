@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Star Academy Admin</title>
+
+<style>
+body { font-family: Arial; background:#0a0a0f; color:white; }
+.center { max-width:650px; margin:auto; margin-top:40px; background:#16161f; padding:20px; border-radius:10px; }
+input,select,button { width:100%; padding:10px; margin-top:10px; border-radius:5px; }
+button { background:#00e5c0; border:none; cursor:pointer; font-weight:bold; }
+.card { background:#111; padding:10px; margin-top:10px; border-radius:8px; }
+hr{margin:20px 0;}
+h2,h3{color:#00e5c0;}
+a{color:#00e5c0;}
+</style>
+</head>
+
+<body>
+
+<div class="center">
+
+<h2>ADMIN DASHBOARD</h2>
+
+<a href="student.html">Go to Student Portal →</a>
+
+<hr>
+
+<h3>Add Student</h3>
+
+<input id="name" placeholder="Full Name">
+<input id="age" type="number" placeholder="Age">
+<input id="state" placeholder="State">
+<input id="lga" placeholder="LGA">
+
+<select id="department">
+<option>Science</option>
+<option>Arts</option>
+</select>
+
+<select id="level">
+<option>Fresh Class</option>
+<option>Level 1</option>
+<option>Level 2</option>
+<option>Level 3</option>
+</select>
+
+<input id="schoolName" placeholder="School Name">
+
+<button onclick="addStudent()">Save Student</button>
+
+<hr>
+
+<h3>Quick Note</h3>
+<p>Use Firebase for full functionality (same config as before).</p>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system",
+storageBucket: "star-academy-system.firebasestorage.app",
+messagingSenderId: "615097211278",
+appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addStudent = async function(){
+
+let id = "STA-" + Math.floor(Math.random()*100000);
+
+await addDoc(collection(db,"students"),{
+studentID:id,
+name:name.value,
+age:age.value,
+state:state.value,
+lga:lga.value,
+department:department.value,
+level:level.value,
+schoolName:schoolName.value,
+createdAt:Date.now()
+});
+
+alert("Student Added: " + id);
+};
+
+</script>
+
+</body>
+</html>
