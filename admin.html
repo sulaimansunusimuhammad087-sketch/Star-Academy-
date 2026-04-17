@@ -264,14 +264,23 @@ alert("Student already exists ❌");
 return;
 }
 
-/* GENERATE ID */
-let ref = doc(db,"meta","counter");
+/* ✅ NEW SEPARATE COUNTER SYSTEM */
+let ref = doc(
+db,
+"meta",
+dept === "Science" ? "scienceCounter" : "artsCounter"
+);
 
-let id = await runTransaction(db, async tx=>{
+let id = await runTransaction(db, async (tx) => {
 let snap = await tx.get(ref);
-let count = snap.exists()?snap.data().count+1:1;
-tx.set(ref,{count});
-return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
+
+let count = snap.exists() ? snap.data().count + 1 : 1;
+
+tx.set(ref, { count });
+
+let prefix = dept === "Science" ? "SCI" : "ART";
+
+return `STA/2026/${prefix}/${String(count).padStart(5, "0")}`;
 });
 
 await addDoc(collection(db,"students"),{
@@ -346,7 +355,7 @@ subjects.innerHTML += `
 });
 };
 
-/* SAVE RESULT (unchanged logic) */
+/* SAVE RESULT (unchanged) */
 window.saveResult = async ()=>{
 
 let id = document.getElementById("studentID").value;
