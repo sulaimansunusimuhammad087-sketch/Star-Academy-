@@ -110,6 +110,7 @@ border-radius:8px;
 <h2>DASHBOARD</h2>
 <button onclick="showSection('studentSection')">Student Registration</button>
 <button onclick="showSection('resultSection')">Add Students Results</button>
+<button onclick="showSection('deleteSection')">Delete Student</button>
 </div>
 
 <!-- STUDENT -->
@@ -202,7 +203,7 @@ border-radius:8px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, doc, runTransaction,
-query, where, getDocs
+query, where, getDocs, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -220,6 +221,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+<!-- DELETE STUDENT SECTION -->
+<div id="deleteSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back</div>
+
+<h3>Delete Student</h3>
+
+<input id="deleteID" placeholder="Enter Student ID">
+
+<button onclick="deleteStudent()">Delete Student</button>
+
+</div> 
+  
 /* LOGIN */
 window.login = async () => {
 try {
@@ -422,6 +435,49 @@ subjects.innerHTML="";
 studentName.innerHTML="";
 };
 
+window.deleteStudent = async () => {
+try {
+
+let id = document.getElementById("deleteID").value.trim();
+
+if (!id) {
+alert("Enter Student ID");
+return;
+}
+
+if (!confirm("Are you sure you want to delete this student?")) return;
+
+/* DELETE STUDENT */
+let sQuery = query(collection(db, "students"), where("studentID", "==", id));
+let sSnap = await getDocs(sQuery);
+
+if (sSnap.empty) {
+alert("Student not found");
+return;
+}
+
+sSnap.forEach(docItem => {
+deleteDoc(docItem.ref);
+});
+
+/* DELETE RESULTS */
+let rQuery = query(collection(db, "results"), where("studentID", "==", id));
+let rSnap = await getDocs(rQuery);
+
+rSnap.forEach(docItem => {
+deleteDoc(docItem.ref);
+});
+
+alert("Student deleted successfully ✔");
+
+document.getElementById("deleteID").value = "";
+
+} catch (e) {
+alert(e.message);
+console.error(e);
+}
+};
+  
 </script>
 
 </body>
