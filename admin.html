@@ -349,19 +349,7 @@ alert("Result already exists ❌");
 return;
 }
 
-let ca = document.querySelectorAll(".ca");
-let exam = document.querySelectorAll(".exam");
-
-let total=0;
-
-for(let i=0;i<ca.length;i++){
-let subTotal = Number(ca[i].value||0)+Number(exam[i].value||0);
-total+=subTotal;
-}
-
-let avg = total/ca.length;
-let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
-let status = avg>=50?"PASS":"FAIL";
+ 
 
 let subjectsList = document.querySelectorAll(".subject-box");
 
