@@ -251,19 +251,71 @@ deleteSection.classList.add("hidden");
 };
 
 /* ADD STUDENT */
-window.addStudent = async ()=>{
+window.addStudent = async () => {
+try {
 
-let phoneVal = phone.value.trim();
-let emailVal = emailStudent.value.trim();
-let dept = department.value;
+let name = document.getElementById("name")?.value || "";
+let age = document.getElementById("age")?.value || "";
+let gender = document.getElementById("gender")?.value || "";
+let state = document.getElementById("state")?.value || "";
+let lga = document.getElementById("lga")?.value || "";
+let address = document.getElementById("address")?.value || "";
+let phone = document.getElementById("phone")?.value || "";
+let email = document.getElementById("emailStudent")?.value || "";
+let dept = document.getElementById("department")?.value || "";
+let level = document.getElementById("level")?.value || "";
+let schoolType = document.getElementById("schoolType")?.value || "";
+let schoolName = document.getElementById("schoolName")?.value || "";
+let graduated = document.getElementById("graduated")?.value || "";
 
-let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
-let q2 = query(collection(db,"students"), where("email","==",emailVal));
-
-if(!(await getDocs(q1)).empty || !(await getDocs(q2)).empty){
-alert("Student already exists ❌");
+/* VALIDATION */
+if (!name || !dept || !phone) {
+alert("Fill required fields");
 return;
 }
+
+/* COUNTER */
+let ref = doc(db, "meta", dept === "Science" ? "scienceCounter" : "artsCounter");
+
+let id = await runTransaction(db, async (tx) => {
+let snap = await tx.get(ref);
+let count = snap.exists() ? snap.data().count + 1 : 1;
+tx.set(ref, { count });
+
+let prefix = dept === "Science" ? "SCI" : "ART";
+return `STA/2026/${prefix}/${String(count).padStart(4, "0")}`;
+});
+
+/* SAVE */
+await addDoc(collection(db, "students"), {
+studentID: id,
+name,
+age,
+gender,
+state,
+lga,
+address,
+phone,
+email,
+department: dept,
+level,
+schoolType,
+schoolName,
+graduated,
+createdAt: Date.now()
+});
+
+alert("Student Added ✔ " + id);
+
+/* CLEAR */
+document.querySelectorAll("#studentSection input").forEach(i => i.value = "");
+document.querySelectorAll("#studentSection select").forEach(s => s.value = "");
+
+} catch (e) {
+alert("Error: " + e.message);
+console.error(e);
+}
+};
 
 let ref = doc(db,"meta",dept==="Science"?"scienceCounter":"artsCounter");
 
