@@ -111,6 +111,7 @@ border-radius:8px;
 <h2>DASHBOARD</h2>
 <button onclick="showSection('studentSection')">Student Registration</button>
 <button onclick="showSection('resultSection')">Add Students Results</button>
+<button onclick="showSection('deleteSection')">Delete Student</button>
 </div>
 
 <!-- STUDENT -->
@@ -194,6 +195,18 @@ border-radius:8px;
 <div id="resultPreview"></div>
 </div>
 
+<!-- ✅ DELETE SECTION (NEW) -->
+<div id="deleteSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back</div>
+
+<h3>Delete Student</h3>
+
+<input id="deleteID" placeholder="Enter Student ID to delete">
+
+<button onclick="deleteStudent()">Delete Student & Results</button>
+
+</div>
+
 </div>
 
 </div>
@@ -203,7 +216,7 @@ border-radius:8px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, doc, runTransaction,
-query, where, getDocs
+query, where, getDocs, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -237,6 +250,7 @@ window.showSection = id=>{
 document.getElementById("menu").classList.add("hidden");
 document.getElementById("studentSection").classList.add("hidden");
 document.getElementById("resultSection").classList.add("hidden");
+document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
@@ -244,6 +258,7 @@ window.goHome = ()=>{
 document.getElementById("menu").classList.remove("hidden");
 document.getElementById("studentSection").classList.add("hidden");
 document.getElementById("resultSection").classList.add("hidden");
+document.getElementById("deleteSection").classList.add("hidden");
 };
 
 /* ADD STUDENT */
@@ -255,7 +270,6 @@ let phoneVal = document.getElementById("phone").value.trim();
 let emailVal = document.getElementById("emailStudent").value.trim();
 let dept = document.getElementById("department").value;
 
-/* DUPLICATE CHECK */
 let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
 let q2 = query(collection(db,"students"), where("email","==",emailVal));
 
@@ -264,7 +278,6 @@ alert("Student already exists ❌");
 return;
 }
 
-/* ✅ NEW SEPARATE COUNTER SYSTEM */
 let ref = doc(
 db,
 "meta",
@@ -273,13 +286,9 @@ dept === "Science" ? "scienceCounter" : "artsCounter"
 
 let id = await runTransaction(db, async (tx) => {
 let snap = await tx.get(ref);
-
 let count = snap.exists() ? snap.data().count + 1 : 1;
-
 tx.set(ref, { count });
-
 let prefix = dept === "Science" ? "SCI" : "ART";
-
 return `STA/2026/${prefix}/${String(count).padStart(5, "0")}`;
 });
 
@@ -303,122 +312,48 @@ createdAt:Date.now()
 
 alert("Student Added ✔ " + id);
 
-/* CLEAR */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
 
 }catch(e){
 alert("Error: " + e.message);
-console.error(e);
 }
-
 };
 
-/* LOAD STUDENT */
-window.loadStudent = async ()=>{
+/* ✅ DELETE FUNCTION */
+window.deleteStudent = async ()=>{
 
-let id = document.getElementById("studentID").value.trim();
+let id = document.getElementById("deleteID").value.trim();
 
 if(!id){
-studentName.innerHTML="";
-subjects.innerHTML="";
+alert("Enter Student ID ❌");
 return;
 }
 
-let q = query(collection(db,"students"), where("studentID","==",id));
-let snap = await getDocs(q);
-
-if(snap.empty){
-studentName.innerHTML="Student not found ❌";
-subjects.innerHTML="";
+if(!confirm("Are you sure you want to delete this student?")){
 return;
 }
 
-let s = snap.docs[0].data();
+/* DELETE STUDENT */
+let sQuery = query(collection(db,"students"), where("studentID","==",id));
+let sSnap = await getDocs(sQuery);
 
-studentName.innerHTML =
-`<b>${s.name}</b> | ${s.level} | ${s.department}`;
-
-let list = s.department==="Science"
-? ["English","Biology","Chemistry","Physics","Mathematics"]
-: ["English","Literature","Government","Economics","Islamic Studies"];
-
-subjects.innerHTML="";
-
-list.forEach(sub=>{
-subjects.innerHTML += `
-<div class="subject-box">
-<b>${sub}</b>
-<input class="ca" placeholder="CA (0-40)" type="number">
-<input class="exam" placeholder="Exam (0-60)" type="number">
-</div>`;
-});
-};
-
-/* SAVE RESULT (unchanged) */
-window.saveResult = async ()=>{
-
-let id = document.getElementById("studentID").value;
-let t = document.getElementById("term").value;
-let s = document.getElementById("session").value;
-
-let q = query(collection(db,"results"),
-where("studentID","==",id),
-where("term","==",t),
-where("session","==",s)
-);
-
-if(!(await getDocs(q)).empty){
-alert("Result already exists ❌");
-return;
-}
-
-let subjectsList = document.querySelectorAll(".subject-box");
-
-let subjectsData = {};
-let total = 0;
-
-subjectsList.forEach(box => {
-let name = box.querySelector("b").innerText;
-let ca = Number(box.querySelector(".ca").value || 0);
-let exam = Number(box.querySelector(".exam").value || 0);
-
-let subTotal = ca + exam;
-total += subTotal;
-
-subjectsData[name] = { ca, exam, total: subTotal };
+sSnap.forEach(async (docSnap)=>{
+await deleteDoc(docSnap.ref);
 });
 
-let avg = total / subjectsList.length;
-let grade = avg >= 70 ? "A" : avg >= 60 ? "B" : avg >= 50 ? "C" : "F";
-let status = avg >= 50 ? "PASS" : "FAIL";
+/* DELETE RESULTS */
+let rQuery = query(collection(db,"results"), where("studentID","==",id));
+let rSnap = await getDocs(rQuery);
 
-await addDoc(collection(db,"results"), {
-studentID: id,
-term: t,
-session: s,
-subjects: subjectsData,
-total: total,
-average: avg,
-grade: grade,
-status: status
+rSnap.forEach(async (docSnap)=>{
+await deleteDoc(docSnap.ref);
 });
 
-resultPreview.innerHTML = `
-<h3>Result Summary</h3>
-Student ID: ${id}<br>
-Total: ${total}<br>
-Average: ${avg.toFixed(2)}<br>
-Grade: ${grade}<br>
-Status: ${status}
-`;
+alert("Student and results deleted ✔");
 
-document.querySelectorAll("#resultSection input").forEach(i=>i.value="");
-document.querySelectorAll("#resultSection select").forEach(s=>s.value="");
-subjects.innerHTML="";
-studentName.innerHTML="";
+document.getElementById("deleteID").value="";
 
-alert("Result Saved ✔");
 };
 
 </script>
