@@ -113,6 +113,17 @@ border-radius:8px;
 <button onclick="showSection('deleteSection')">Delete Student</button>
 </div>
 
+<!-- DELETE -->
+<div id="deleteSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back</div>
+
+<h3>Delete Student</h3>
+
+<input id="deleteID" placeholder="Enter Student ID">
+
+<button onclick="deleteStudent()">Delete Student</button>
+</div>
+  
 <!-- STUDENT -->
 <div id="studentSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
@@ -221,17 +232,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// DELETE STUDENT SECTION 
-<div id="deleteSection" class="card hidden">
-<div class="back" onclick="goHome()">← Back</div>
-
-<h3>Delete Student</h3>
-
-<input id="deleteID" placeholder="Enter Student ID">
-
-<button onclick="deleteStudent()">Delete Student</button>
-
-</div> 
   
 /* LOGIN */
 window.login = async () => {
@@ -252,16 +252,19 @@ msg.innerText = e.message;
 
 /* NAV */
 window.showSection = id => {
-menu.classList.add("hidden");
-studentSection.classList.add("hidden");
-resultSection.classList.add("hidden");
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("studentSection").classList.add("hidden");
+document.getElementById("resultSection").classList.add("hidden");
+document.getElementById("deleteSection").classList.add("hidden");
+
 document.getElementById(id).classList.remove("hidden");
 };
 
 window.goHome = () => {
-menu.classList.remove("hidden");
-studentSection.classList.add("hidden");
-resultSection.classList.add("hidden");
+document.getElementById("menu").classList.remove("hidden");
+document.getElementById("studentSection").classList.add("hidden");
+document.getElementById("resultSection").classList.add("hidden");
+document.getElementById("deleteSection").classList.add("hidden");
 };
 
 /* ADD STUDENT (WITH DUPLICATE BLOCK) */
