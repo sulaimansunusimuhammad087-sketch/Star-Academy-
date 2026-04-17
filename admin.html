@@ -220,10 +220,16 @@ const auth = getAuth(app);
 /* LOGIN */
 window.login = async ()=>{
 try{
-await signInWithEmailAndPassword(auth,email.value,password.value);
-loginBox.style.display="none";
-dashboard.classList.remove("hidden");
-}catch(e){ msg.innerText=e.message; }
+await signInWithEmailAndPassword(
+auth,
+document.getElementById("email").value,
+document.getElementById("password").value
+);
+document.getElementById("loginBox").style.display="none";
+document.getElementById("dashboard").classList.remove("hidden");
+}catch(e){
+document.getElementById("msg").innerText = e.message;
+}
 };
 
 /* NAV */
@@ -243,8 +249,11 @@ document.getElementById("resultSection").classList.add("hidden");
 /* ADD STUDENT */
 window.addStudent = async ()=>{
 
-let phoneVal = phone.value.trim();
-let emailVal = emailStudent.value.trim();
+try{
+
+let phoneVal = document.getElementById("phone").value.trim();
+let emailVal = document.getElementById("emailStudent").value.trim();
+let dept = document.getElementById("department").value;
 
 /* DUPLICATE CHECK */
 let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
@@ -257,28 +266,29 @@ return;
 
 /* GENERATE ID */
 let ref = doc(db,"meta","counter");
+
 let id = await runTransaction(db, async tx=>{
 let snap = await tx.get(ref);
 let count = snap.exists()?snap.data().count+1:1;
 tx.set(ref,{count});
-return `STA/2026/${department.value==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
+return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
 });
 
 await addDoc(collection(db,"students"),{
 studentID:id,
-name:name.value,
-age:age.value,
-gender:gender.value,
-state:state.value,
-lga:lga.value,
-address:address.value,
+name:document.getElementById("name").value,
+age:document.getElementById("age").value,
+gender:document.getElementById("gender").value,
+state:document.getElementById("state").value,
+lga:document.getElementById("lga").value,
+address:document.getElementById("address").value,
 phone:phoneVal,
 email:emailVal,
-department:department.value,
-level:level.value,
-schoolType:schoolType.value,
-schoolName:schoolName.value,
-graduated:graduated.value,
+department:dept,
+level:document.getElementById("level").value,
+schoolType:document.getElementById("schoolType").value,
+schoolName:document.getElementById("schoolName").value,
+graduated:document.getElementById("graduated").value,
 createdAt:Date.now()
 });
 
@@ -287,12 +297,18 @@ alert("Student Added ✔ " + id);
 /* CLEAR */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
+
+}catch(e){
+alert("Error: " + e.message);
+console.error(e);
+}
+
 };
 
 /* LOAD STUDENT */
 window.loadStudent = async ()=>{
 
-let id = studentID.value.trim();
+let id = document.getElementById("studentID").value.trim();
 
 if(!id){
 studentName.innerHTML="";
@@ -330,14 +346,13 @@ subjects.innerHTML += `
 });
 };
 
-/* SAVE RESULT */
+/* SAVE RESULT (unchanged logic) */
 window.saveResult = async ()=>{
 
-let id = studentID.value;
-let t = term.value;
-let s = session.value;
+let id = document.getElementById("studentID").value;
+let t = document.getElementById("term").value;
+let s = document.getElementById("session").value;
 
-/* DUPLICATE RESULT */
 let q = query(collection(db,"results"),
 where("studentID","==",id),
 where("term","==",t),
@@ -348,8 +363,6 @@ if(!(await getDocs(q)).empty){
 alert("Result already exists ❌");
 return;
 }
-
- 
 
 let subjectsList = document.querySelectorAll(".subject-box");
 
@@ -364,11 +377,7 @@ let exam = Number(box.querySelector(".exam").value || 0);
 let subTotal = ca + exam;
 total += subTotal;
 
-subjectsData[name] = {
-ca: ca,
-exam: exam,
-total: subTotal
-};
+subjectsData[name] = { ca, exam, total: subTotal };
 });
 
 let avg = total / subjectsList.length;
@@ -386,7 +395,6 @@ grade: grade,
 status: status
 });
 
-/* PREVIEW */
 resultPreview.innerHTML = `
 <h3>Result Summary</h3>
 Student ID: ${id}<br>
@@ -396,7 +404,6 @@ Grade: ${grade}<br>
 Status: ${status}
 `;
 
-/* CLEAR */
 document.querySelectorAll("#resultSection input").forEach(i=>i.value="");
 document.querySelectorAll("#resultSection select").forEach(s=>s.value="");
 subjects.innerHTML="";
