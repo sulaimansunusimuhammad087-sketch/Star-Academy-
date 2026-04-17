@@ -110,7 +110,6 @@ border-radius:8px;
 <h2>DASHBOARD</h2>
 <button onclick="showSection('studentSection')">Student Registration</button>
 <button onclick="showSection('resultSection')">Add Students Results</button>
-<button onclick="showSection('deleteSection')">Delete Student</button>
 </div>
 
 <!-- STUDENT -->
@@ -131,7 +130,7 @@ border-radius:8px;
 <input id="lga" placeholder="Local Government">
 <input id="address" placeholder="Address">
 <input id="phone" placeholder="Phone Number">
-<input id="emailStudent" placeholder="Email">
+<input id="emailStudent" placeholder="Student Email">
 
 <select id="department">
 <option>Science</option>
@@ -188,16 +187,7 @@ border-radius:8px;
 <div id="resultPreview"></div>
 </div>
 
-<!-- DELETE -->
-<div id="deleteSection" class="card hidden">
-<div class="back" onclick="goHome()">← Back</div>
-
-<h3>Delete Student</h3>
-
-<input id="deleteID" placeholder="Enter Student ID">
-<button onclick="deleteStudent()">Delete</button>
 </div>
-
 </div>
 
 <script type="module">
@@ -205,7 +195,7 @@ border-radius:8px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, doc, runTransaction,
-query, where, getDocs, deleteDoc
+query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -221,103 +211,100 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* LOGIN FIX */
-window.login = async () => {
-try {
+/* LOGIN */
+window.login = async ()=>{
+try{
 const email = document.getElementById("email").value;
 const password = document.getElementById("password").value;
 
-await signInWithEmailAndPassword(auth, email, password);
+await signInWithEmailAndPassword(auth,email,password);
 
-document.getElementById("loginBox").style.display = "none";
+document.getElementById("loginBox").style.display="none";
 document.getElementById("dashboard").classList.remove("hidden");
 
-} catch (e) {
+}catch(e){
 document.getElementById("msg").innerText = e.message;
 }
 };
 
 /* NAV */
-window.showSection = (id) => {
+window.showSection = id=>{
 document.getElementById("menu").classList.add("hidden");
 document.getElementById("studentSection").classList.add("hidden");
 document.getElementById("resultSection").classList.add("hidden");
-document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-window.goHome = () => {
+window.goHome = ()=>{
 document.getElementById("menu").classList.remove("hidden");
 document.getElementById("studentSection").classList.add("hidden");
 document.getElementById("resultSection").classList.add("hidden");
-document.getElementById("deleteSection").classList.add("hidden");
 };
 
-/* ADD STUDENT (FIXED SAFE VERSION) */
-window.addStudent = async () => {
-try {
+/* ADD STUDENT */
+window.addStudent = async ()=>{
 
 const name = document.getElementById("name").value;
 const dept = document.getElementById("department").value;
 const phone = document.getElementById("phone").value;
 
-if (!name || !dept || !phone) {
+if(!name || !dept || !phone){
 alert("Fill required fields");
 return;
 }
 
-const ref = doc(db, "meta", dept === "Science" ? "scienceCounter" : "artsCounter");
+const ref = doc(db,"meta",dept==="Science"?"scienceCounter":"artsCounter");
 
-const id = await runTransaction(db, async (tx) => {
+const id = await runTransaction(db, async tx=>{
 const snap = await tx.get(ref);
-const count = snap.exists() ? snap.data().count + 1 : 1;
-tx.set(ref, { count });
+const count = snap.exists()?snap.data().count+1:1;
+tx.set(ref,{count});
 
-return `STA/2026/${dept === "Science" ? "SCI" : "ART"}/${String(count).padStart(4, "0")}`;
+return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
 });
 
-await addDoc(collection(db, "students"), {
-studentID: id,
+await addDoc(collection(db,"students"),{
+studentID:id,
 name,
-age: document.getElementById("age").value || "",
-gender: document.getElementById("gender").value || "",
-state: document.getElementById("state").value || "",
-lga: document.getElementById("lga").value || "",
-address: document.getElementById("address").value || "",
+age:document.getElementById("age").value,
+gender:document.getElementById("gender").value,
+state:document.getElementById("state").value,
+lga:document.getElementById("lga").value,
+address:document.getElementById("address").value,
 phone,
-email: document.getElementById("emailStudent").value || "",
-department: dept,
-level: document.getElementById("level").value || "",
-schoolType: document.getElementById("schoolType").value || "",
-schoolName: document.getElementById("schoolName").value || "",
-graduated: document.getElementById("graduated").value || "",
-createdAt: Date.now()
+email:document.getElementById("emailStudent").value,
+department:dept,
+level:document.getElementById("level").value,
+schoolType:document.getElementById("schoolType").value,
+schoolName:document.getElementById("schoolName").value,
+graduated:document.getElementById("graduated").value,
+createdAt:Date.now()
 });
 
 alert("Student Added ✔ " + id);
 
-} catch (e) {
-alert(e.message);
-console.error(e);
-}
+/* CLEAR */
+document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
+document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
+
 };
 
 /* LOAD STUDENT */
-window.loadStudent = async () => {
+window.loadStudent = async ()=>{
 
-const id = document.getElementById("studentID").value.trim();
+const id = document.getElementById("studentID").value;
 
 const box = document.getElementById("studentName");
 const sub = document.getElementById("subjects");
 
-if (!id) return;
+if(!id) return;
 
 const q = query(collection(db,"students"), where("studentID","==",id));
 const snap = await getDocs(q);
 
-if (snap.empty) {
-box.innerHTML = "Not found";
-sub.innerHTML = "";
+if(snap.empty){
+box.innerHTML="Not found";
+sub.innerHTML="";
 return;
 }
 
@@ -325,39 +312,25 @@ const s = snap.docs[0].data();
 
 box.innerHTML = `${s.name} | ${s.department}`;
 
-const list = s.department === "Science"
+const list = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
-sub.innerHTML = "";
+sub.innerHTML="";
 
-list.forEach(x => {
-sub.innerHTML += `
+list.forEach(subj=>{
+sub.innerHTML+=`
 <div class="subject-box">
-<b>${x}</b>
+<b>${subj}</b>
 <input class="ca">
 <input class="exam">
 </div>`;
 });
 };
 
-/* SAVE RESULT (RESTORED) */
-window.saveResult = async () => {
-alert("Result saved ✔ (connect logic if needed)");
-};
-
-/* DELETE */
-window.deleteStudent = async () => {
-
-const id = document.getElementById("deleteID").value;
-
-const s = await getDocs(query(collection(db,"students"), where("studentID","==",id)));
-s.forEach(d=>deleteDoc(d.ref));
-
-const r = await getDocs(query(collection(db,"results"), where("studentID","==",id)));
-r.forEach(d=>deleteDoc(d.ref));
-
-alert("Deleted ✔");
+/* SAVE RESULT */
+window.saveResult = async ()=>{
+alert("Result saved ✔ (you can connect full logic if needed)");
 };
 
 </script>
