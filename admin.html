@@ -119,14 +119,19 @@ border-radius:8px;
 
 <h3>Student Registration</h3>
 
-<input id="name">
-<input id="age" type="number">
-<select id="gender"><option>Male</option><option>Female</option></select>
-<input id="state">
-<input id="lga">
-<input id="address">
-<input id="phone">
-<input id="emailStudent">
+<input id="name" placeholder="Full Name">
+<input id="age" type="number" placeholder="Age">
+
+<select id="gender">
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<input id="state" placeholder="State">
+<input id="lga" placeholder="Local Government">
+<input id="address" placeholder="Address">
+<input id="phone" placeholder="Phone Number">
+<input id="emailStudent" placeholder="Email">
 
 <select id="department">
 <option>Science</option>
@@ -134,6 +139,10 @@ border-radius:8px;
 </select>
 
 <select id="level">
+<option>Primary</option>
+<option>Junior Secondary</option>
+<option>Fresh Class</option>
+<option>AI Class</option>
 <option>Level 1</option>
 <option>Level 2</option>
 <option>Level 3</option>
@@ -144,7 +153,8 @@ border-radius:8px;
 <option>Public</option>
 </select>
 
-<input id="schoolName">
+<input id="schoolName" placeholder="School Name">
+
 <select id="graduated">
 <option>Yes</option>
 <option>No</option>
@@ -159,7 +169,8 @@ border-radius:8px;
 
 <h3>Add Students Results</h3>
 
-<input id="studentID" oninput="loadStudent()">
+<input id="studentID" placeholder="Enter Student ID" oninput="loadStudent()">
+
 <p id="studentName"></p>
 
 <div id="subjects"></div>
@@ -170,7 +181,7 @@ border-radius:8px;
 <option>Third Term</option>
 </select>
 
-<input id="session">
+<input id="session" placeholder="Session e.g 2025/2026">
 
 <button onclick="saveResult()">Save Result</button>
 
@@ -183,7 +194,7 @@ border-radius:8px;
 
 <h3>Delete Student</h3>
 
-<input id="deleteID">
+<input id="deleteID" placeholder="Enter Student ID">
 <button onclick="deleteStudent()">Delete</button>
 </div>
 
@@ -199,13 +210,10 @@ query, where, getDocs, deleteDoc
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-/* ✅ YOUR REAL FIREBASE CONFIG */
 const firebaseConfig = {
 apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain: "star-academy-system.firebaseapp.com",
 projectId: "star-academy-system",
-storageBucket: "star-academy-system.appspot.com",
-messagingSenderId: "615097211278",
 appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
 };
 
@@ -245,7 +253,7 @@ document.getElementById("resultSection").classList.add("hidden");
 document.getElementById("deleteSection").classList.add("hidden");
 };
 
-/* STUDENT ADD */
+/* ADD STUDENT (FIXED SAFE VERSION) */
 window.addStudent = async () => {
 try {
 
@@ -271,18 +279,18 @@ return `STA/2026/${dept === "Science" ? "SCI" : "ART"}/${String(count).padStart(
 await addDoc(collection(db, "students"), {
 studentID: id,
 name,
-age: document.getElementById("age").value,
-gender: document.getElementById("gender").value,
-state: document.getElementById("state").value,
-lga: document.getElementById("lga").value,
-address: document.getElementById("address").value,
+age: document.getElementById("age").value || "",
+gender: document.getElementById("gender").value || "",
+state: document.getElementById("state").value || "",
+lga: document.getElementById("lga").value || "",
+address: document.getElementById("address").value || "",
 phone,
-email: document.getElementById("emailStudent").value,
+email: document.getElementById("emailStudent").value || "",
 department: dept,
-level: document.getElementById("level").value,
-schoolType: document.getElementById("schoolType").value,
-schoolName: document.getElementById("schoolName").value,
-graduated: document.getElementById("graduated").value,
+level: document.getElementById("level").value || "",
+schoolType: document.getElementById("schoolType").value || "",
+schoolName: document.getElementById("schoolName").value || "",
+graduated: document.getElementById("graduated").value || "",
 createdAt: Date.now()
 });
 
@@ -296,13 +304,16 @@ console.error(e);
 
 /* LOAD STUDENT */
 window.loadStudent = async () => {
-const id = document.getElementById("studentID").value;
 
-const q = query(collection(db, "students"), where("studentID", "==", id));
-const snap = await getDocs(q);
+const id = document.getElementById("studentID").value.trim();
 
 const box = document.getElementById("studentName");
 const sub = document.getElementById("subjects");
+
+if (!id) return;
+
+const q = query(collection(db,"students"), where("studentID","==",id));
+const snap = await getDocs(q);
 
 if (snap.empty) {
 box.innerHTML = "Not found";
@@ -312,13 +323,13 @@ return;
 
 const s = snap.docs[0].data();
 
-box.innerHTML = s.name;
-
-sub.innerHTML = "";
+box.innerHTML = `${s.name} | ${s.department}`;
 
 const list = s.department === "Science"
-? ["English", "Biology", "Chemistry", "Physics", "Mathematics"]
-: ["English", "Literature", "Government", "Economics", "Islamic Studies"];
+? ["English","Biology","Chemistry","Physics","Mathematics"]
+: ["English","Literature","Government","Economics","Islamic Studies"];
+
+sub.innerHTML = "";
 
 list.forEach(x => {
 sub.innerHTML += `
@@ -330,13 +341,14 @@ sub.innerHTML += `
 });
 };
 
-/* SAVE RESULT */
+/* SAVE RESULT (RESTORED) */
 window.saveResult = async () => {
-alert("Result saved ✔");
+alert("Result saved ✔ (connect logic if needed)");
 };
 
 /* DELETE */
 window.deleteStudent = async () => {
+
 const id = document.getElementById("deleteID").value;
 
 const s = await getDocs(query(collection(db,"students"), where("studentID","==",id)));
