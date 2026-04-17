@@ -122,6 +122,7 @@ border-radius:8px;
 <input id="age" type="number" placeholder="Age">
 
 <select id="gender">
+<option value="">Gender</option>
 <option>Male</option>
 <option>Female</option>
 </select>
@@ -133,11 +134,13 @@ border-radius:8px;
 <input id="emailStudent" placeholder="Student Email">
 
 <select id="department">
-<option>Science</option>
-<option>Arts</option>
+<option value="">Department</option>
+<option value="Science">Science</option>
+<option value="Arts">Arts</option>
 </select>
 
 <select id="level">
+<option value="">Level</option>
 <option>Primary</option>
 <option>Junior Secondary</option>
 <option>Fresh Class</option>
@@ -148,6 +151,7 @@ border-radius:8px;
 </select>
 
 <select id="schoolType">
+<option value="">School Type</option>
 <option>Private</option>
 <option>Public</option>
 </select>
@@ -155,6 +159,7 @@ border-radius:8px;
 <input id="schoolName" placeholder="School Name">
 
 <select id="graduated">
+<option value="">Graduated</option>
 <option>Yes</option>
 <option>No</option>
 </select>
@@ -175,6 +180,7 @@ border-radius:8px;
 <div id="subjects"></div>
 
 <select id="term">
+<option value="">Term</option>
 <option>First Term</option>
 <option>Second Term</option>
 <option>Third Term</option>
@@ -188,6 +194,7 @@ border-radius:8px;
 </div>
 
 </div>
+
 </div>
 
 <script type="module">
@@ -201,10 +208,10 @@ query, where, getDocs
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+apiKey: "YOUR_API_KEY",
 authDomain: "star-academy-system.firebaseapp.com",
 projectId: "star-academy-system",
-appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -212,58 +219,72 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 /* LOGIN */
-window.login = async ()=>{
-try{
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+window.login = async () => {
+try {
+await signInWithEmailAndPassword(
+auth,
+document.getElementById("email").value,
+document.getElementById("password").value
+);
 
-await signInWithEmailAndPassword(auth,email,password);
+loginBox.style.display = "none";
+dashboard.classList.remove("hidden");
 
-document.getElementById("loginBox").style.display="none";
-document.getElementById("dashboard").classList.remove("hidden");
-
-}catch(e){
-document.getElementById("msg").innerText = e.message;
+} catch (e) {
+msg.innerText = e.message;
 }
 };
 
 /* NAV */
-window.showSection = id=>{
-document.getElementById("menu").classList.add("hidden");
-document.getElementById("studentSection").classList.add("hidden");
-document.getElementById("resultSection").classList.add("hidden");
+window.showSection = id => {
+menu.classList.add("hidden");
+studentSection.classList.add("hidden");
+resultSection.classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-window.goHome = ()=>{
-document.getElementById("menu").classList.remove("hidden");
-document.getElementById("studentSection").classList.add("hidden");
-document.getElementById("resultSection").classList.add("hidden");
+window.goHome = () => {
+menu.classList.remove("hidden");
+studentSection.classList.add("hidden");
+resultSection.classList.add("hidden");
 };
 
-/* ADD STUDENT */
-window.addStudent = async ()=>{
+/* ADD STUDENT (WITH DUPLICATE BLOCK) */
+window.addStudent = async () => {
+try {
 
-const name = document.getElementById("name").value;
-const dept = document.getElementById("department").value;
-const phone = document.getElementById("phone").value;
+let name = document.getElementById("name").value.trim();
+let phone = document.getElementById("phone").value.trim();
+let email = document.getElementById("emailStudent").value.trim();
+let dept = document.getElementById("department").value;
 
-if(!name || !dept || !phone){
+if (!name || !phone || !dept) {
 alert("Fill required fields");
 return;
 }
 
-const ref = doc(db,"meta",dept==="Science"?"scienceCounter":"artsCounter");
+/* BLOCK DUPLICATES */
+let q1 = query(collection(db,"students"), where("phone","==",phone));
+let q2 = query(collection(db,"students"), where("email","==",email));
 
-const id = await runTransaction(db, async tx=>{
-const snap = await tx.get(ref);
-const count = snap.exists()?snap.data().count+1:1;
+if (!(await getDocs(q1)).empty || !(await getDocs(q2)).empty) {
+alert("Student already exists (phone/email duplicate)");
+return;
+}
+
+/* COUNTER */
+let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
+
+let id = await runTransaction(db, async (tx) => {
+let snap = await tx.get(ref);
+let count = snap.exists()?snap.data().count+1:1;
 tx.set(ref,{count});
 
 return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
 });
 
-await addDoc(collection(db,"students"),{
+/* SAVE */
+await addDoc(collection(db,"students"), {
 studentID:id,
 name,
 age:document.getElementById("age").value,
@@ -272,7 +293,7 @@ state:document.getElementById("state").value,
 lga:document.getElementById("lga").value,
 address:document.getElementById("address").value,
 phone,
-email:document.getElementById("emailStudent").value,
+email,
 department:dept,
 level:document.getElementById("level").value,
 schoolType:document.getElementById("schoolType").value,
@@ -287,50 +308,116 @@ alert("Student Added ✔ " + id);
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
 
+} catch (e) {
+alert(e.message);
+}
 };
 
 /* LOAD STUDENT */
-window.loadStudent = async ()=>{
+window.loadStudent = async () => {
 
-const id = document.getElementById("studentID").value;
+let id = document.getElementById("studentID").value.trim();
 
-const box = document.getElementById("studentName");
-const sub = document.getElementById("subjects");
+let box = document.getElementById("studentName");
+let sub = document.getElementById("subjects");
 
-if(!id) return;
+if (!id) return;
 
-const q = query(collection(db,"students"), where("studentID","==",id));
-const snap = await getDocs(q);
+let q = query(collection(db,"students"), where("studentID","==",id));
+let snap = await getDocs(q);
 
-if(snap.empty){
-box.innerHTML="Not found";
-sub.innerHTML="";
+if (snap.empty) {
+box.innerHTML = "Not found";
+sub.innerHTML = "";
 return;
 }
 
-const s = snap.docs[0].data();
+let s = snap.docs[0].data();
 
-box.innerHTML = `${s.name} | ${s.department}`;
+box.innerHTML = `<b>${s.name}</b> | ${s.department}`;
 
-const list = s.department==="Science"
+let list = s.department==="Science"
 ? ["English","Biology","Chemistry","Physics","Mathematics"]
 : ["English","Literature","Government","Economics","Islamic Studies"];
 
-sub.innerHTML="";
+sub.innerHTML = "";
 
-list.forEach(subj=>{
-sub.innerHTML+=`
+list.forEach(x=>{
+sub.innerHTML += `
 <div class="subject-box">
-<b>${subj}</b>
-<input class="ca">
-<input class="exam">
+<b>${x}</b><br>
+CA <input class="ca" type="number" placeholder="0-40">
+Exam <input class="exam" type="number" placeholder="0-60">
 </div>`;
 });
 };
 
-/* SAVE RESULT */
-window.saveResult = async ()=>{
-alert("Result saved ✔ (you can connect full logic if needed)");
+/* SAVE RESULT (WITH FULL BLOCK SYSTEM) */
+window.saveResult = async () => {
+
+let id = document.getElementById("studentID").value;
+let t = document.getElementById("term").value;
+let s = document.getElementById("session").value;
+
+/* BLOCK DUPLICATE RESULT */
+let q = query(collection(db,"results"),
+where("studentID","==",id),
+where("term","==",t),
+where("session","==",s)
+);
+
+if (!(await getDocs(q)).empty) {
+alert("Result already exists for this term/session");
+return;
+}
+
+let boxes = document.querySelectorAll(".subject-box");
+let data = {};
+let total = 0;
+
+boxes.forEach(b=>{
+let name = b.querySelector("b").innerText;
+let ca = Number(b.querySelector(".ca").value || 0);
+let exam = Number(b.querySelector(".exam").value || 0);
+
+let sum = ca + exam;
+total += sum;
+
+data[name] = {ca, exam, total:sum};
+});
+
+let avg = total / boxes.length;
+let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
+let status = avg>=50?"PASS":"FAIL";
+
+await addDoc(collection(db,"results"), {
+studentID:id,
+term:t,
+session:s,
+subjects:data,
+total,
+average:avg,
+grade,
+status
+});
+
+/* SUMMARY */
+resultPreview.innerHTML = `
+<h3>Result Summary</h3>
+Total: ${total}<br>
+Average: ${avg.toFixed(2)}<br>
+Grade: ${grade}<br>
+Status: ${status}
+`;
+
+alert("Saved ✔");
+
+/* CLEAR */
+studentID.value="";
+term.value="";
+session.value="";
+subjects.innerHTML="";
+studentName.innerHTML="";
 };
 
 </script>
