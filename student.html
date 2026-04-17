@@ -124,9 +124,10 @@ window.viewResult = async function(){
 
 const box = document.getElementById("box");
 
-let id = sid.value.trim();
-let termVal = term.value;
-let sessionVal = session.value;
+/* ✅ FIX: MOBILE SAFE ACCESS */
+let id = document.getElementById("sid").value.trim();
+let termVal = document.getElementById("term").value;
+let sessionVal = document.getElementById("session").value;
 
 if(!id || !termVal || !sessionVal){
 alert("Fill all fields");
@@ -163,13 +164,12 @@ return;
 
 const student = sSnap.docs[0].data();
 
-/* ✅ USE REAL SUBJECT DATA FROM ADMIN */
+/* SUBJECTS */
 const subjectsData = r.subjects || {};
 const subjects = Object.keys(subjectsData);
 
 let rows = "";
 
-/* BUILD TABLE FROM REAL DATA */
 subjects.forEach(sub => {
 
 let ca = subjectsData[sub]?.ca ?? 0;
@@ -193,7 +193,6 @@ rows += `
 
 });
 
-/* IF NO SUBJECTS */
 if(subjects.length === 0){
 rows = `<tr><td colspan="5">No subject data available</td></tr>`;
 }
