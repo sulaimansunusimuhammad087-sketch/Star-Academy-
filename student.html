@@ -104,27 +104,26 @@ display:inline-block;
 </div>
 </div>
 
-<script type="module">
+<!-- ✅ FIREBASE COMPAT (MOBILE SAFE) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-getFirestore, collection, query, where, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
 
-const app = initializeApp({
+/* INIT FIREBASE */
+const app = firebase.initializeApp({
 apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
 authDomain:"star-academy-system.firebaseapp.com",
 projectId:"star-academy-system"
 });
 
-const db = getFirestore(app);
+const db = firebase.firestore();
 
 /* VIEW RESULT */
-window.viewResult = async function(){
+function viewResult(){
 
 const box = document.getElementById("box");
 
-/* ✅ FIX: MOBILE SAFE ACCESS */
 let id = document.getElementById("sid").value.trim();
 let termVal = document.getElementById("term").value;
 let sessionVal = document.getElementById("session").value;
@@ -136,14 +135,12 @@ return;
 
 box.innerHTML = "Loading...";
 
-const q = query(
-collection(db,"results"),
-where("studentID","==",id),
-where("term","==",termVal),
-where("session","==",sessionVal)
-);
-
-const snap = await getDocs(q);
+db.collection("results")
+.where("studentID","==",id)
+.where("term","==",termVal)
+.where("session","==",sessionVal)
+.get()
+.then(snap=>{
 
 if(snap.empty){
 box.innerHTML = "No result found ❌";
@@ -153,9 +150,10 @@ return;
 const r = snap.docs[0].data();
 
 /* GET STUDENT */
-const sSnap = await getDocs(
-query(collection(db,"students"), where("studentID","==",id))
-);
+db.collection("students")
+.where("studentID","==",id)
+.get()
+.then(sSnap=>{
 
 if(sSnap.empty){
 box.innerHTML = "Student not found ❌";
@@ -254,10 +252,14 @@ Exam Officer
 <button onclick="downloadPDF()">Download PDF</button>
 `;
 
-};
+});
+
+});
+
+}
 
 /* PDF */
-window.downloadPDF = function(){
+function downloadPDF(){
 
 const content = document.getElementById("resultArea").innerHTML;
 
@@ -280,7 +282,7 @@ ${content}
 
 win.document.close();
 win.print();
-};
+}
 
 </script>
 
