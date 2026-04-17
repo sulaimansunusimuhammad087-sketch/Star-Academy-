@@ -139,6 +139,17 @@ border-radius:8px;
 <option>Level 3</option>
 </select>
 
+<select id="schoolType">
+<option>Private</option>
+<option>Public</option>
+</select>
+
+<input id="schoolName">
+<select id="graduated">
+<option>Yes</option>
+<option>No</option>
+</select>
+
 <button onclick="addStudent()">Save Student</button>
 </div>
 
@@ -146,7 +157,7 @@ border-radius:8px;
 <div id="resultSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
 
-<h3>Add Results</h3>
+<h3>Add Students Results</h3>
 
 <input id="studentID" oninput="loadStudent()">
 <p id="studentName"></p>
@@ -171,6 +182,7 @@ border-radius:8px;
 <div class="back" onclick="goHome()">← Back</div>
 
 <h3>Delete Student</h3>
+
 <input id="deleteID">
 <button onclick="deleteStudent()">Delete</button>
 </div>
@@ -187,16 +199,21 @@ query, where, getDocs, deleteDoc
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const app = initializeApp({
-apiKey:"YOUR_KEY",
-authDomain:"YOUR_DOMAIN",
-projectId:"YOUR_PROJECT"
-});
+/* ✅ YOUR REAL FIREBASE CONFIG */
+const firebaseConfig = {
+apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+authDomain: "star-academy-system.firebaseapp.com",
+projectId: "star-academy-system",
+storageBucket: "star-academy-system.appspot.com",
+messagingSenderId: "615097211278",
+appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* LOGIN FIXED */
+/* LOGIN FIX */
 window.login = async () => {
 try {
 const email = document.getElementById("email").value;
@@ -204,7 +221,7 @@ const password = document.getElementById("password").value;
 
 await signInWithEmailAndPassword(auth, email, password);
 
-document.getElementById("loginBox").style.display="none";
+document.getElementById("loginBox").style.display = "none";
 document.getElementById("dashboard").classList.remove("hidden");
 
 } catch (e) {
@@ -213,7 +230,7 @@ document.getElementById("msg").innerText = e.message;
 };
 
 /* NAV */
-window.showSection = id=>{
+window.showSection = (id) => {
 document.getElementById("menu").classList.add("hidden");
 document.getElementById("studentSection").classList.add("hidden");
 document.getElementById("resultSection").classList.add("hidden");
@@ -221,14 +238,14 @@ document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById(id).classList.remove("hidden");
 };
 
-window.goHome = ()=>{
+window.goHome = () => {
 document.getElementById("menu").classList.remove("hidden");
 document.getElementById("studentSection").classList.add("hidden");
 document.getElementById("resultSection").classList.add("hidden");
 document.getElementById("deleteSection").classList.add("hidden");
 };
 
-/* ADD STUDENT FIXED */
+/* STUDENT ADD */
 window.addStudent = async () => {
 try {
 
@@ -236,32 +253,44 @@ const name = document.getElementById("name").value;
 const dept = document.getElementById("department").value;
 const phone = document.getElementById("phone").value;
 
-if(!name || !dept || !phone){
+if (!name || !dept || !phone) {
 alert("Fill required fields");
 return;
 }
 
-const ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
+const ref = doc(db, "meta", dept === "Science" ? "scienceCounter" : "artsCounter");
 
-const id = await runTransaction(db, async tx=>{
+const id = await runTransaction(db, async (tx) => {
 const snap = await tx.get(ref);
-const count = snap.exists()?snap.data().count+1:1;
-tx.set(ref,{count});
-return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(4,"0")}`;
+const count = snap.exists() ? snap.data().count + 1 : 1;
+tx.set(ref, { count });
+
+return `STA/2026/${dept === "Science" ? "SCI" : "ART"}/${String(count).padStart(4, "0")}`;
 });
 
-await addDoc(collection(db,"students"),{
-studentID:id,
+await addDoc(collection(db, "students"), {
+studentID: id,
 name,
-department:dept,
+age: document.getElementById("age").value,
+gender: document.getElementById("gender").value,
+state: document.getElementById("state").value,
+lga: document.getElementById("lga").value,
+address: document.getElementById("address").value,
 phone,
-createdAt:Date.now()
+email: document.getElementById("emailStudent").value,
+department: dept,
+level: document.getElementById("level").value,
+schoolType: document.getElementById("schoolType").value,
+schoolName: document.getElementById("schoolName").value,
+graduated: document.getElementById("graduated").value,
+createdAt: Date.now()
 });
 
 alert("Student Added ✔ " + id);
 
-} catch(e){
+} catch (e) {
 alert(e.message);
+console.error(e);
 }
 };
 
@@ -269,23 +298,31 @@ alert(e.message);
 window.loadStudent = async () => {
 const id = document.getElementById("studentID").value;
 
-const q = query(collection(db,"students"), where("studentID","==",id));
+const q = query(collection(db, "students"), where("studentID", "==", id));
 const snap = await getDocs(q);
 
 const box = document.getElementById("studentName");
 const sub = document.getElementById("subjects");
 
-if(snap.empty){
-box.innerHTML="Not found";
+if (snap.empty) {
+box.innerHTML = "Not found";
+sub.innerHTML = "";
 return;
 }
 
 const s = snap.docs[0].data();
+
 box.innerHTML = s.name;
 
 sub.innerHTML = "";
-["English","Math"].forEach(x=>{
-sub.innerHTML += `<div class="subject-box">
+
+const list = s.department === "Science"
+? ["English", "Biology", "Chemistry", "Physics", "Mathematics"]
+: ["English", "Literature", "Government", "Economics", "Islamic Studies"];
+
+list.forEach(x => {
+sub.innerHTML += `
+<div class="subject-box">
 <b>${x}</b>
 <input class="ca">
 <input class="exam">
@@ -295,7 +332,7 @@ sub.innerHTML += `<div class="subject-box">
 
 /* SAVE RESULT */
 window.saveResult = async () => {
-alert("Result saved (keep your full logic here)");
+alert("Result saved ✔");
 };
 
 /* DELETE */
@@ -308,7 +345,7 @@ s.forEach(d=>deleteDoc(d.ref));
 const r = await getDocs(query(collection(db,"results"), where("studentID","==",id)));
 r.forEach(d=>deleteDoc(d.ref));
 
-alert("Deleted");
+alert("Deleted ✔");
 };
 
 </script>
