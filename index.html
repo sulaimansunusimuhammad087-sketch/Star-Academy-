@@ -16,7 +16,7 @@ background-size:cover;
 .overlay{
 background:rgba(0,0,0,0.75);
 min-height:100vh;
-padding-bottom:50px;
+padding-bottom:80px;
 }
 
 /* NAV */
@@ -41,6 +41,15 @@ color:#00e5c0;
 margin:10px;
 text-decoration:none;
 font-weight:bold;
+padding:10px 15px;
+border:1px solid #00e5c0;
+border-radius:8px;
+transition:0.3s;
+}
+
+nav a:hover{
+background:#00e5c0;
+color:black;
 }
 
 /* MOBILE FIX */
@@ -68,12 +77,13 @@ color:#00e5c0;
 /* CARDS */
 .card{
 background:#16161f;
-margin:20px auto;
-padding:20px;
-max-width:800px;
-border-radius:10px;
+margin:25px auto;
+padding:30px;
+max-width:950px;
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,0.5);
 text-align:left;
-cursor:pointer;
+cursor:default;
 transition:0.3s;
 }
 
@@ -83,7 +93,7 @@ transform:scale(1.02);
 
 /* SECTION CONTENT */
 .section-content{
-display:none;
+display:block;
 margin-top:10px;
 line-height:1.6;
 }
@@ -139,10 +149,9 @@ font-size:18px;
 </div>
 
 <!-- ABOUT -->
-<div class="card" onclick="toggle(this)">
+<div class="card">
 <h2>About Star Academy</h2>
 <div class="section-content">
-<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
 
 Star Academy is a community-based extra lesson program designed to prepare students for university admission.
 
@@ -153,44 +162,40 @@ Students are trained from Primary, Junior Secondary, and Senior Secondary levels
 </div>
 
 <!-- MISSION -->
-<div class="card" onclick="toggle(this)">
+<div class="card">
 <h2>Mission</h2>
 <div class="section-content">
-<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
 
 To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
 </div>
 </div>
 
 <!-- VISION -->
-<div class="card" onclick="toggle(this)">
+<div class="card">
 <h2>Vision</h2>
 <div class="section-content">
-<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
 
 To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
 </div>
 </div>
 
 <!-- MOTTO -->
-<div class="card" onclick="toggle(this)">
+<div class="card">
 <h2>Motto</h2>
 <div class="section-content">
-<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
 
-Knowledge • Discipline • Success
+Learn Today • Lead Tomorrow
 </div>
 </div>
 
 <!-- DEVELOPER INFO -->
-<div class="card" onclick="toggle(this)">
+<div class="card">
 <h2>Developer Info</h2>
 <div class="section-content">
-<div class="back-btn" onclick="event.stopPropagation(); closeSection(this)">← Back</div>
 
-This system was developed by <b>Sulaiman Sunusi</b> (Sir Mean).
+This system was developed by <b>Sulaiman Sunusi Muhammad</b> (Sir Mean).
 
-A student of Statistics and a data science enthusiast, former student and current tutor at Star Academy, and currently serving as an Examination Officer.
+A student of Statistics at Bayero University Kano Level 200 and a data science enthusiast, former student and current tutor at Star Academy, and currently serving as an Examination Officer.
 
 Purpose of this system:
 
@@ -229,17 +234,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* TOGGLE */
-window.toggle = function(el){
-let content = el.querySelector(".section-content");
-content.style.display =
-content.style.display === "block" ? "none" : "block";
-};
 
 /* CLOSE WITH BACK BUTTON */
-window.closeSection = function(el){
-let parent = el.closest(".section-content");
-parent.style.display = "none";
-};
 
 /* LIVE STATS */
 onSnapshot(collection(db,"students"),snap=>{
@@ -249,6 +245,58 @@ document.getElementById("stats").innerHTML = `
 });
 
 </script>
+<!-- HELP BUTTON -->
+<div onclick="openHelp()" style="
+position:fixed;
+bottom:20px;
+right:20px;
+background:#00e5c0;
+color:black;
+padding:15px;
+border-radius:50%;
+cursor:pointer;
+font-weight:bold;
+z-index:999;
+">
+?
+</div>
+
+<div id="helpBox" style="
+display:none;
+position:fixed;
+bottom:80px;
+right:20px;
+background:#16161f;
+padding:20px;
+border-radius:10px;
+width:250px;
+">
+
+<b>Need Help?</b><br><br>
+Contact admin:<br>
+📞 07087672424<br>
+✉️ sulaimansunusi783@gmail.com<br><br>
+<button onclick="closeHelp()">Close</button>
+</div>
+
+<script>
+window.openHelp = function(){
+document.getElementById("helpBox").style.display = "block";
+};
+
+window.closeHelp = function(){
+document.getElementById("helpBox").style.display = "none";
+};
+</script>
+<div style="
+text-align:center;
+margin-top:40px;
+padding:20px;
+color:#aaa;
+">
+Sulaiman "Sir Mean"  Future Data Scientist © 2026 / Star Academy System
+
+</div>  <!-- this is overlay closing -->
 
 </body>
 </html>
