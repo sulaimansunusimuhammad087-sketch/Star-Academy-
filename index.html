@@ -234,35 +234,49 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
   window.openAI = function(){
-  alert(`🤖 Star Academy AI Assistant
+document.getElementById("aiBox").style.display = "block";
+addAI("🤖 Hello! I am Star Academy AI Assistant. Ask me anything.");
+};
 
-📘 STUDENT HELP:
-1. How do I check my result?
-→ Go to Student page, enter Student ID, Term, Session.
-
-2. Why is my result not showing?
-→ Make sure all fields are correct (ID, term, session).
-
-3. What subjects are included?
-→ Science: English, Biology, Chemistry, Physics, Maths
-→ Arts: English, Literature, Government, Economics, Islamic Studies
-
-📞 ADMIN HELP:
-4. How do I contact school?
-→ Use WhatsApp, Call, or Email in Help Center.
-
-5. What if I forget my Student ID?
-→ Ask support via Help Center only.
-
-⚠ SYSTEM INFO:
-6. Is this system official?
-→ Yes, managed by Star Academy administration.
-
-📌 NOTE:
-Admin details are protected for security.
-Contact system support only through Help center
-`);
+function addAI(text){
+let box = document.getElementById("aiMessages");
+box.innerHTML += "<div style='margin:5px 0;'>"+text+"</div>";
+box.scrollTop = box.scrollHeight;
 }
+
+window.sendAI = function(){
+let input = document.getElementById("aiInput");
+let msg = input.value;
+if(!msg || msg.trim() === "") return;
+
+addAI("👤 " + msg);
+
+let reply = "";
+
+msg = msg.toLowerCase();
+
+if(msg.includes("result")){
+reply = "Go to Student page and enter your ID.";
+}
+else if(msg.includes("hello")){
+reply = "Hello 👋 Welcome to Star Academy.";
+}
+else if(msg.includes("admin")){
+reply = "Admin contact is in Help Center.";
+}
+else if(msg.includes("help")){
+reply = "Use Help Center for call, WhatsApp or email.";
+}
+else{
+reply = "I can only answer basic school questions.";
+}
+
+setTimeout(()=>{
+addAI("🤖 " + reply);
+}, 500);
+
+input.value = "";
+};
 /* TOGGLE */
 
 /* CLOSE WITH BACK BUTTON */
@@ -275,6 +289,58 @@ document.getElementById("stats").innerHTML = `
 });
 
 </script>
+
+<!-- AI CHAT BOX -->
+<div id="aiBox" style="
+display:none;
+position:fixed;
+bottom:90px;
+right:20px;
+width:280px;
+height:350px;
+background:#16161f;
+border-radius:10px;
+box-shadow:0 0 10px black;
+overflow:hidden;
+z-index:999;
+">
+
+<div style="
+background:#00e5c0;
+color:black;
+padding:10px;
+font-weight:bold;
+">
+🤖 Star AI Assistant
+</div>
+
+<div id="aiMessages" style="
+height:260px;
+overflow:auto;
+padding:10px;
+font-size:14px;
+">
+</div>
+
+<div style="display:flex;">
+<input id="aiInput" placeholder="Ask question..." style="
+flex:1;
+padding:8px;
+border:none;
+outline:none;
+">
+<button onclick="sendAI()" style="
+background:#00e5c0;
+border:none;
+padding:8px;
+cursor:pointer;
+">
+Send
+</button>
+</div>
+
+</div>
+  
 <!-- HELP BUTTON -->
 <div onclick="openHelp()" style="
 position:fixed;
