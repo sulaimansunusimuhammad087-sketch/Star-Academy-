@@ -233,8 +233,14 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+function addAI(text){
+let box = document.getElementById("aiMessages");
+box.innerHTML += "<div style='margin:5px 0;'>" + text + "</div>";
+box.scrollTop = box.scrollHeight;
+}
+  
 window.sendAI = function(){
-let input = document.getElementById("aiInput");
+document.getElementById("aiBox").style.display = "block";
 let msg = input.value;
 
 if(!msg || msg.trim() === "") return;
@@ -427,6 +433,9 @@ document.getElementById("helpBox").style.display = "block";
 window.closeHelp = function(){
 document.getElementById("helpBox").style.display = "none";
 };
+ window.openAI = function(){
+document.getElementById("aiBox").style.display = "block";
+}; 
 </script>
 <div style="
 text-align:center;
