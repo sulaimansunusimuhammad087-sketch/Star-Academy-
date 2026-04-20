@@ -313,20 +313,25 @@ document.getElementById("stats").innerHTML = `
 </script>
 
 <!-- AI CHAT BOX -->
+<!-- AI CHAT BOX -->
 <div id="aiBox" style="
 display:none;
 position:fixed;
-bottom:90px;
-right:20px;
-width:280px;
-height:350px;
+top:0;
+left:0;
+width:100%;
+height:100%;
 background:#16161f;
-border-radius:10px;
-box-shadow:0 0 10px black;
-overflow:hidden;
 z-index:999;
 ">
 
+<!-- BACK BUTTON -->
+<div onclick="document.getElementById('aiBox').style.display='none'" 
+style="padding:10px; cursor:pointer;">
+← Back
+</div>
+
+<!-- HEADER -->
 <div style="
 background:#00e5c0;
 color:black;
@@ -336,25 +341,27 @@ font-weight:bold;
 🤖 Star AI Assistant
 </div>
 
+<!-- MESSAGES -->
 <div id="aiMessages" style="
-height:260px;
+height:80%;
 overflow:auto;
 padding:10px;
 font-size:14px;
 ">
 </div>
 
-<div style="display:flex;">
+<!-- INPUT -->
+<div style="position:absolute; bottom:0; width:100%; display:flex;">
 <input id="aiInput" placeholder="Ask question..." style="
 flex:1;
-padding:8px;
+padding:10px;
 border:none;
 outline:none;
 ">
 <button onclick="sendAI()" style="
 background:#00e5c0;
 border:none;
-padding:8px;
+padding:10px;
 cursor:pointer;
 ">
 Send
@@ -380,17 +387,27 @@ Help Including AI Support
 </div>
 
 
+<!-- HELP BOX -->
 <div id="helpBox" style="
 display:none;
 position:fixed;
-bottom:80px;
-right:20px;
+top:0;
+left:0;
+width:100%;
+height:100%;
 background:#16161f;
-padding:15px;
-border-radius:10px;
-width:260px;
-box-shadow:0 0 10px black;
+padding:20px;
+z-index:999;
+overflow:auto;
 ">
+
+<!-- BACK BUTTON -->
+<div onclick="closeHelp()" style="
+margin-bottom:10px;
+cursor:pointer;
+">
+← Back
+</div>
 
 <h3 style="color:#00e5c0">Help Center</h3>
 
@@ -398,7 +415,7 @@ box-shadow:0 0 10px black;
 
 <a href="tel:07087672424" style="color:white;display:block;margin:8px 0;">📞 Call Admin</a>
 
-<a href="mailto:sulaimansunusi783@gmail.com" style="color:white;display:block;margin:8px 0;">📧 Send Email message to Admin</a>
+<a href="mailto:sulaimansunusi783@gmail.com" style="color:white;display:block;margin:8px 0;">📧 Send Email</a>
 
 <a href="https://wa.me/2347087672424" target="_blank" style="color:white;display:block;margin:8px 0;">💬 WhatsApp</a>
 
@@ -407,25 +424,28 @@ width:100%;
 margin-top:10px;
 background:#00e5c0;
 border:none;
-padding:8px;
+padding:10px;
 font-weight:bold;
 cursor:pointer;
 ">
 🤖 Ask AI Assistant
 </button>
 
+<!-- CLOSE BUTTON -->
 <button onclick="closeHelp()" style="
 width:100%;
 margin-top:10px;
 background:red;
 border:none;
-padding:8px;
+padding:10px;
 color:white;
 ">
 Close
 </button>
 
-</div>
+</div> <!-- END OF helpBox -->
+
+
 <script>
 window.openHelp = function(){
 document.getElementById("helpBox").style.display = "block";
