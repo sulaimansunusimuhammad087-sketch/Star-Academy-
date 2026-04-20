@@ -240,8 +240,8 @@ box.scrollTop = box.scrollHeight;
 }
   
 window.sendAI = function(){
-document.getElementById("aiBox").style.display = "block";
 addAI("🤖 Hello! I am Star Academy AI Assistant. Ask me anything.");
+let input = document.getElementById("aiInput"); 
 let msg = input.value;
 
 if(!msg || msg.trim() === "") return;
