@@ -233,6 +233,33 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+  function openAI(){
+alert(`🤖 Star Academy AI Assistant
+
+📘 STUDENT HELP:
+1. How do I check my result?
+→ Go to Student page, enter Student ID, Term, Session.
+
+2. Why is my result not showing?
+→ Make sure all fields are correct (ID, term, session).
+
+3. What subjects are included?
+→ Science: English, Biology, Chemistry, Physics, Maths
+→ Arts: English, Literature, Government, Economics, Islamic Studies
+
+📞 ADMIN HELP:
+4. How do I contact school?
+→ Use WhatsApp, Call, or Email in Help Center.
+
+5. What if I forget my Student ID?
+→ Ask admin directly.
+
+⚠ SYSTEM INFO:
+6. Is this system official?
+→ Yes, managed by Star Academy administration.
+
+`);
+}
 /* TOGGLE */
 
 /* CLOSE WITH BACK BUTTON */
@@ -252,14 +279,15 @@ bottom:20px;
 right:20px;
 background:#00e5c0;
 color:black;
-padding:15px;
-border-radius:50%;
+padding:12px 18px;
+border-radius:30px;
 cursor:pointer;
 font-weight:bold;
 z-index:999;
 ">
-?
+Help
 </div>
+
 
 <div id="helpBox" style="
 display:none;
@@ -267,18 +295,46 @@ position:fixed;
 bottom:80px;
 right:20px;
 background:#16161f;
-padding:20px;
+padding:15px;
 border-radius:10px;
-width:250px;
+width:260px;
+box-shadow:0 0 10px black;
 ">
 
-<b>Need Help?</b><br><br>
-Contact admin:<br>
-📞 07087672424<br>
-✉️ sulaimansunusi783@gmail.com<br><br>
-<button onclick="closeHelp()">Close</button>
-</div>
+<h3 style="color:#00e5c0">Help Center</h3>
 
+<p>Choose option:</p>
+
+<a href="tel:07087672424" style="color:white;display:block;margin:8px 0;">📞 Call Admin</a>
+
+<a href="mailto:sulaimansunusi783@gmail.com" style="color:white;display:block;margin:8px 0;">📧 Send Email message to Admin</a>
+
+<a href="https://wa.me/2347087672424" target="_blank" style="color:white;display:block;margin:8px 0;">💬 WhatsApp</a>
+
+<button onclick="openAI()" style="
+width:100%;
+margin-top:10px;
+background:#00e5c0;
+border:none;
+padding:8px;
+font-weight:bold;
+cursor:pointer;
+">
+🤖 Ask AI Assistant
+</button>
+
+<button onclick="closeHelp()" style="
+width:100%;
+margin-top:10px;
+background:red;
+border:none;
+padding:8px;
+color:white;
+">
+Close
+</button>
+
+</div>
 <script>
 window.openHelp = function(){
 document.getElementById("helpBox").style.display = "block";
