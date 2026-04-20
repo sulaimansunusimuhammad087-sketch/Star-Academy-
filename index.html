@@ -233,47 +233,62 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-  window.openAI = function(){
-document.getElementById("aiBox").style.display = "block";
-addAI("🤖 Hello! I am Star Academy AI Assistant. Ask me anything.");
-};
-
-function addAI(text){
-let box = document.getElementById("aiMessages");
-box.innerHTML += "<div style='margin:5px 0;'>"+text+"</div>";
-box.scrollTop = box.scrollHeight;
-}
-
 window.sendAI = function(){
 let input = document.getElementById("aiInput");
 let msg = input.value;
+
 if(!msg || msg.trim() === "") return;
 
 addAI("👤 " + msg);
 
-let reply = "";
-
 msg = msg.toLowerCase();
 
-if(msg.includes("result")){
-reply = "Go to Student page and enter your ID.";
+let reply = "";
+
+/* RESULT PATTERNS */
+if(
+msg.includes("how can i check result") ||
+msg.includes("check result") ||
+msg.includes(" my score") ||
+msg.includes("my marks")
+){
+reply = "To check your result:\n1. Go to Student page\n2. Enter your Student ID\n3. Enter Term and Session\n4. Click Search";
 }
-else if(msg.includes("hello")){
-reply = "Hello 👋 Welcome to Star Academy.";
+
+/* LOGIN */
+else if(
+msg.includes("login") ||
+msg.includes("admin") ||
+msg.includes("sign in")
+){
+reply = "Admin login is protected 🔐\nOnly authorized staff can access it.\nUse Help Center to contact support.";
 }
-else if(msg.includes("admin")){
-reply = "Admin contact is in Help Center.";
+
+/* GREETING */
+else if(
+msg.includes("hello") ||
+msg.includes("hi") ||
+msg.includes("hey")
+){
+reply = "Hello 👋 Welcome to Star Academy AI Assistant.";
 }
-else if(msg.includes("help")){
-reply = "Use Help Center for call, WhatsApp or email.";
+
+/* HELP */
+else if(
+msg.includes("help") ||
+msg.includes("support")
+){
+reply = "You can use Help Center:\n📞 Call\n💬 WhatsApp\n📧 Email";
 }
+
+/* DEFAULT */
 else{
-reply = "I can only answer basic school questions.";
+reply = "I understand your question, but I am still learning from my boss Sulaiman Sir Mean contact Him instead He will help you thank you have a nice day.\nif you have another question Try asking about result, login, or help.";
 }
 
 setTimeout(()=>{
 addAI("🤖 " + reply);
-}, 500);
+}, 400);
 
 input.value = "";
 };
