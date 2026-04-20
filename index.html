@@ -8,7 +8,7 @@ body{
 margin:0;
 font-family:Arial;
 color:white;
-background:url("bg.jpg") no-repeat center center fixed;
+background: url("bg.jpg") no-repeat center center fixed;
 background-size:cover;
 }
 
@@ -233,8 +233,8 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-  function openAI(){
-alert(`🤖 Star Academy AI Assistant
+  window.openAI = function(){
+  alert(`🤖 Star Academy AI Assistant
 
 📘 STUDENT HELP:
 1. How do I check my result?
@@ -252,12 +252,15 @@ alert(`🤖 Star Academy AI Assistant
 → Use WhatsApp, Call, or Email in Help Center.
 
 5. What if I forget my Student ID?
-→ Ask admin directly.
+→ Ask support via Help Center only.
 
 ⚠ SYSTEM INFO:
 6. Is this system official?
 → Yes, managed by Star Academy administration.
 
+📌 NOTE:
+Admin details are protected for security.
+Contact system support only through Help center
 `);
 }
 /* TOGGLE */
