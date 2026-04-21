@@ -428,7 +428,16 @@ if(snapStudent.empty){
 alert("Student not found");
 return;
 }
-
+document.getElementById("resultPreview").innerHTML = `
+<div class="card">
+<h3>Result Summary</h3>
+<b>Total:</b> ${total}<br>
+<b>Average:</b> ${avg.toFixed(2)}<br>
+<b>Grade:</b> ${avg>=70?"A":avg>=60?"B":avg>=50?"C":"F"}<br>
+<b>Status:</b> ${avg>=50?"PASS":"FAIL"}<br>
+</div>
+`;
+  
 let studentData = snapStudent.docs[0].data();
   
 await addDoc(collection(db,"results"),{
@@ -445,7 +454,13 @@ createdAt: Date.now()
 });
 
 alert("Saved ✔");
-};
+
+document.getElementById("resultPreview").innerHTML = "";
+studentID.value = "";
+term.value = "";
+session.value = "";
+subjects.innerHTML = "";
+studentName.innerHTML = "";                }
 
 /* DELETE STUDENT */
 window.deleteStudent = async () => {
@@ -500,12 +515,22 @@ searchResults.innerHTML = "";
 results.forEach(s=>{
 searchResults.innerHTML += `
 <div class="card">
-<b>${s.name}</b><br>
-${s.studentID}<br>
-${s.level}<br>
-<button onclick="editStudent('${s.id}')">Edit</button>
+
+<b>Name:</b> ${s.name}<br>
+<b>ID:</b> ${s.studentID}<br>
+<b>Level:</b> ${s.level}<br>
+<b>Department:</b> ${s.department}<br>
+<b>Phone:</b> ${s.phone}<br>
+<b>Email:</b> ${s.email}<br>
+<b>Age:</b> ${s.age}<br>
+<b>State:</b> ${s.state}<br>
+<b>LGA:</b> ${s.lga}<br>
+<b>Address:</b> ${s.address}<br>
+
+<button onclick="editStudent('${s.id}')">Edit Student</button>
+
 </div>`;
-});
+}); 
 };
 
 /* EDIT STUDENT */
@@ -513,7 +538,6 @@ window.editStudent = async (id) => {
 
 let ref = doc(db,"students",id);
 
-/* fetch single doc correctly */
 let snap = await getDocs(collection(db,"students"));
 
 let student;
@@ -529,13 +553,25 @@ return;
 let newName = prompt("Name:", student.name);
 let newPhone = prompt("Phone:", student.phone);
 let newLevel = prompt("Level:", student.level);
+let newDept = prompt("Department:", student.department);
+let newEmail = prompt("Email:", student.email);
+let newState = prompt("State:", student.state);
+let newLga = prompt("LGA:", student.lga);
+let newAddress = prompt("Address:", student.address);
+let newAge = prompt("Age:", student.age);
 
-if(!newName || !newPhone || !newLevel) return;
+if(!newName || !newPhone) return;
 
 await updateDoc(ref,{
 name:newName,
 phone:newPhone,
-level:newLevel
+level:newLevel,
+department:newDept,
+email:newEmail,
+state:newState,
+lga:newLga,
+address:newAddress,
+age:newAge
 });
 
 alert("Updated ✔");
