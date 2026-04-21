@@ -144,6 +144,7 @@ db.collection("results")
 .where("studentID","==",id)
 .where("term","==",termVal)
 .where("session","==",sessionVal)
+.orderBy("createdAt","desc")
 .get()
 .then(snap=>{
 
@@ -153,6 +154,7 @@ return;
 }
 
 const r = snap.docs[0].data();
+if (!r) return;
 
 /* GET STUDENT */
 db.collection("students")
