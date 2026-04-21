@@ -421,6 +421,16 @@ data[name] = {ca, exam, total:sum};
 
 let avg = total / boxes.length;
 
+  let qStudent = query(collection(db,"students"), where("studentID","==",id));
+let snapStudent = await getDocs(qStudent);
+
+if(snapStudent.empty){
+alert("Student not found");
+return;
+}
+
+let studentData = snapStudent.docs[0].data();
+  
 await addDoc(collection(db,"results"),{
 studentID:id,
 term:t,
@@ -430,6 +440,7 @@ total,
 average:avg,
 grade:avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
 status:avg>=50?"PASS":"FAIL"
+classAtTime: studentData.level 
 });
 
 alert("Saved ✔");
