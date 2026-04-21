@@ -354,9 +354,46 @@ let s = snap.docs[0].data();
 
 box.innerHTML = `<b>${s.name}</b> | ${s.department}`;
 
-let list = s.department==="Science"
-? ["English","Biology","Chemistry","Physics","Mathematics"]
-: ["English","Literature","Government","Economics","Islamic Studies"];
+let list = [];
+
+/* FRESH CLASS SUBJECTS */
+if (s.level === "Fresh Class") {
+
+list = [
+"General English",
+"Oral English",
+"Grammar",
+"Public Speaking",
+"Novel"
+];
+
+}
+
+/* SCIENCE */
+else if (s.department === "Science") {
+
+list = [
+"English",
+"Biology",
+"Chemistry",
+"Physics",
+"Mathematics"
+];
+
+}
+
+/* ARTS */
+else {
+
+list = [
+"English",
+"Literature",
+"Government",
+"Economics",
+"Islamic Studies"
+];
+
+}
 
 sub.innerHTML = "";
 
