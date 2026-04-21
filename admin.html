@@ -286,10 +286,10 @@ manageSection.classList.add("hidden");
 /* ADD STUDENT */
 window.addStudent = async () => {
 
-let nameVal = name.value.trim();
-let phoneVal = phone.value.trim();
-let emailVal = emailStudent.value.trim();
-let dept = department.value;
+let nameVal = document.getElementById("name").value.trim();
+let phoneVal = document.getElementById("phone").value.trim();
+let emailVal = document.getElementById("emailStudent").value.trim();
+let dept = document.getElementById("department").value;
 
 if(!nameVal || !phoneVal || !dept){
 alert("Fill required fields");
