@@ -111,6 +111,7 @@ border-radius:8px;
 <button onclick="showSection('studentSection')">Student Registration</button>
 <button onclick="showSection('resultSection')">Add Students Results</button>
 <button onclick="showSection('deleteSection')">Delete Student</button>
+<button onclick="showSection('manageSection')">Manage Students</button>
 </div>
 
 <!-- DELETE -->
@@ -122,6 +123,20 @@ border-radius:8px;
 <input id="deleteID" placeholder="Enter Student ID">
 
 <button onclick="deleteStudent()">Delete Student</button>
+</div>
+
+<!-- MANAGE STUDENTS -->
+<div id="manageSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back</div>
+
+<h3>Search & Edit Student</h3>
+
+<input id="searchInput" placeholder="Search by ID, Name, or Level">
+
+<button onclick="searchStudent()">Search</button>
+
+<div id="searchResults"></div>
+
 </div>
   
 <!-- STUDENT -->
@@ -214,7 +229,7 @@ border-radius:8px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, doc, runTransaction,
-query, where, getDocs, deleteDoc
+query, where, getDocs, deleteDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -232,7 +247,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-  
 /* LOGIN */
 window.login = async () => {
 try {
@@ -251,182 +265,146 @@ msg.innerText = e.message;
 };
 
 /* NAV */
-window.showSection = id => {
-document.getElementById("menu").classList.add("hidden");
-document.getElementById("studentSection").classList.add("hidden");
-document.getElementById("resultSection").classList.add("hidden");
-document.getElementById("deleteSection").classList.add("hidden");
+window.showSection = (id) => {
+menu.classList.add("hidden");
+studentSection.classList.add("hidden");
+resultSection.classList.add("hidden");
+deleteSection.classList.add("hidden");
+manageSection.classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 };
 
 window.goHome = () => {
-document.getElementById("menu").classList.remove("hidden");
-document.getElementById("studentSection").classList.add("hidden");
-document.getElementById("resultSection").classList.add("hidden");
-document.getElementById("deleteSection").classList.add("hidden");
+menu.classList.remove("hidden");
+studentSection.classList.add("hidden");
+resultSection.classList.add("hidden");
+deleteSection.classList.add("hidden");
+manageSection.classList.add("hidden");
 };
 
-/* ADD STUDENT (WITH DUPLICATE BLOCK) */
+/* ADD STUDENT */
 window.addStudent = async () => {
-try {
 
-let name = document.getElementById("name").value.trim();
-let phone = document.getElementById("phone").value.trim();
-let email = document.getElementById("emailStudent").value.trim();
-let dept = document.getElementById("department").value;
+let nameVal = name.value.trim();
+let phoneVal = phone.value.trim();
+let emailVal = emailStudent.value.trim();
+let dept = department.value;
 
-if (!name || !phone || !dept) {
+if(!nameVal || !phoneVal || !dept){
 alert("Fill required fields");
 return;
 }
 
-/* BLOCK DUPLICATES */
-let q1 = query(collection(db,"students"), where("phone","==",phone));
-let q2 = query(collection(db,"students"), where("email","==",email));
+/* duplicate check */
+let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
+let q2 = query(collection(db,"students"), where("email","==",emailVal));
 
-if (!(await getDocs(q1)).empty || !(await getDocs(q2)).empty) {
-alert("Student already exists (phone/email duplicate)");
+if(!(await getDocs(q1)).empty || !(await getDocs(q2)).empty){
+alert("Student already exists");
 return;
 }
 
-/* COUNTER */
+/* ID counter */
 let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
 
-let id = await runTransaction(db, async (tx) => {
+let id = await runTransaction(db, async (tx)=>{
 let snap = await tx.get(ref);
-let count = snap.exists()?snap.data().count+1:1;
+let count = snap.exists() ? snap.data().count+1 : 1;
 tx.set(ref,{count});
 
 return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
 });
 
 /* SAVE */
-await addDoc(collection(db,"students"), {
+await addDoc(collection(db,"students"),{
 studentID:id,
-name,
-age:document.getElementById("age").value,
-gender:document.getElementById("gender").value,
-state:document.getElementById("state").value,
-lga:document.getElementById("lga").value,
-address:document.getElementById("address").value,
-phone,
-email,
+name:nameVal,
+age:age.value,
+gender:gender.value,
+state:state.value,
+lga:lga.value,
+address:address.value,
+phone:phoneVal,
+email:emailVal,
 department:dept,
-level:document.getElementById("level").value,
-schoolType:document.getElementById("schoolType").value,
-schoolName:document.getElementById("schoolName").value,
-graduated:document.getElementById("graduated").value,
+level:level.value,
+schoolType:schoolType.value,
+schoolName:schoolName.value,
+graduated:graduated.value,
 createdAt:Date.now()
 });
 
-alert("Student Added ✔ " + id);
+alert("Saved ✔ " + id);
 
-/* CLEAR */
+/* clear */
 document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
 document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
-
-} catch (e) {
-alert(e.message);
-}
 };
 
 /* LOAD STUDENT */
 window.loadStudent = async () => {
 
-let id = document.getElementById("studentID").value.trim();
-
-let box = document.getElementById("studentName");
-let sub = document.getElementById("subjects");
-
-if (!id) return;
+let id = studentID.value.trim();
+if(!id) return;
 
 let q = query(collection(db,"students"), where("studentID","==",id));
 let snap = await getDocs(q);
 
-if (snap.empty) {
-box.innerHTML = "Not found";
-sub.innerHTML = "";
+if(snap.empty){
+studentName.innerHTML = "Not found";
+subjects.innerHTML = "";
 return;
 }
 
 let s = snap.docs[0].data();
 
-box.innerHTML = `<b>${s.name}</b> | ${s.department}`;
+studentName.innerHTML = `<b>${s.name}</b> | ${s.department}`;
 
 let list = [];
 
-/* FRESH CLASS SUBJECTS */
-if (s.level === "Fresh Class") {
-
-list = [
-"General English",
-"Oral English",
-"Grammar",
-"Public Speaking",
-"Novel"
-];
-
+if(s.level === "Fresh Class"){
+list = ["General English","Oral English","Grammar","Public Speaking","Novel"];
+}
+else if(s.department === "Science"){
+list = ["English","Biology","Chemistry","Physics","Mathematics"];
+}
+else{
+list = ["English","Literature","Government","Economics","Islamic Studies"];
 }
 
-/* SCIENCE */
-else if (s.department === "Science") {
+subjects.innerHTML = "";
 
-list = [
-"English",
-"Biology",
-"Chemistry",
-"Physics",
-"Mathematics"
-];
-
-}
-
-/* ARTS */
-else {
-
-list = [
-"English",
-"Literature",
-"Government",
-"Economics",
-"Islamic Studies"
-];
-
-}
-
-sub.innerHTML = "";
-
-list.forEach(x=>{
-sub.innerHTML += `
+list.forEach(sub=>{
+subjects.innerHTML += `
 <div class="subject-box">
-<b>${x}</b><br>
-CA <input class="ca" type="number" placeholder="0-40">
-Exam <input class="exam" type="number" placeholder="0-60">
+<b>${sub}</b><br>
+CA <input class="ca" type="number">
+Exam <input class="exam" type="number">
 </div>`;
 });
 };
 
-/* SAVE RESULT (WITH FULL BLOCK SYSTEM) */
+/* SAVE RESULT */
 window.saveResult = async () => {
 
-let id = document.getElementById("studentID").value;
-let t = document.getElementById("term").value;
-let s = document.getElementById("session").value;
+let id = studentID.value;
+let t = term.value;
+let s = session.value;
 
-/* BLOCK DUPLICATE RESULT */
-let q = query(collection(db,"results"),
+let check = query(collection(db,"results"),
 where("studentID","==",id),
 where("term","==",t),
 where("session","==",s)
 );
 
-if (!(await getDocs(q)).empty) {
-alert("Result already exists for this term/session");
+if(!(await getDocs(check)).empty){
+alert("Already exists");
 return;
 }
 
 let boxes = document.querySelectorAll(".subject-box");
+
 let data = {};
 let total = 0;
 
@@ -442,82 +420,115 @@ data[name] = {ca, exam, total:sum};
 });
 
 let avg = total / boxes.length;
-let grade = avg>=70?"A":avg>=60?"B":avg>=50?"C":"F";
-let status = avg>=50?"PASS":"FAIL";
 
-await addDoc(collection(db,"results"), {
+await addDoc(collection(db,"results"),{
 studentID:id,
 term:t,
 session:s,
 subjects:data,
 total,
 average:avg,
-grade,
-status
+grade:avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
+status:avg>=50?"PASS":"FAIL"
 });
-
-/* SUMMARY */
-resultPreview.innerHTML = `
-<h3>Result Summary</h3>
-Total: ${total}<br>
-Average: ${avg.toFixed(2)}<br>
-Grade: ${grade}<br>
-Status: ${status}
-`;
 
 alert("Saved ✔");
-
-/* CLEAR */
-studentID.value="";
-term.value="";
-session.value="";
-subjects.innerHTML="";
-studentName.innerHTML="";
 };
-
-window.deleteStudent = async () => {
-try {
-
-let id = document.getElementById("deleteID").value.trim();
-
-if (!id) {
-alert("Enter Student ID");
-return;
-}
-
-if (!confirm("Are you sure you want to delete this student?")) return;
 
 /* DELETE STUDENT */
-let sQuery = query(collection(db, "students"), where("studentID", "==", id));
-let sSnap = await getDocs(sQuery);
+window.deleteStudent = async () => {
 
-if (sSnap.empty) {
-alert("Student not found");
+let id = deleteID.value.trim();
+if(!id) return alert("Enter ID");
+
+/* delete student */
+let q = query(collection(db,"students"), where("studentID","==",id));
+let snap = await getDocs(q);
+
+snap.forEach(d=>deleteDoc(d.ref));
+
+/* delete results */
+let rq = query(collection(db,"results"), where("studentID","==",id));
+let rsnap = await getDocs(rq);
+
+rsnap.forEach(d=>deleteDoc(d.ref));
+
+alert("Deleted ✔");
+};
+
+/* SEARCH */
+window.searchStudent = async () => {
+
+let input = searchInput.value.toLowerCase();
+searchResults.innerHTML = "Searching...";
+
+let snap = await getDocs(collection(db,"students"));
+
+let results = [];
+
+snap.forEach(d=>{
+let s = d.data();
+
+if(
+s.studentID.toLowerCase().includes(input) ||
+s.name.toLowerCase().includes(input) ||
+s.level.toLowerCase().includes(input)
+){
+results.push({id:d.id,...s});
+}
+});
+
+if(results.length===0){
+searchResults.innerHTML = "No student found";
 return;
 }
 
-sSnap.forEach(docItem => {
-deleteDoc(docItem.ref);
+searchResults.innerHTML = "";
+
+results.forEach(s=>{
+searchResults.innerHTML += `
+<div class="card">
+<b>${s.name}</b><br>
+${s.studentID}<br>
+${s.level}<br>
+<button onclick="editStudent('${s.id}')">Edit</button>
+</div>`;
 });
-
-/* DELETE RESULTS */
-let rQuery = query(collection(db, "results"), where("studentID", "==", id));
-let rSnap = await getDocs(rQuery);
-
-rSnap.forEach(docItem => {
-deleteDoc(docItem.ref);
-});
-
-alert("Student deleted successfully ✔");
-
-document.getElementById("deleteID").value = "";
-
-} catch (e) {
-alert(e.message);
-console.error(e);
-}
 };
-  
+
+/* EDIT STUDENT */
+window.editStudent = async (id) => {
+
+let ref = doc(db,"students",id);
+
+/* fetch single doc correctly */
+let snap = await getDocs(collection(db,"students"));
+
+let student;
+snap.forEach(d=>{
+if(d.id===id) student = d.data();
+});
+
+if(!student){
+alert("Not found");
+return;
+}
+
+let newName = prompt("Name:", student.name);
+let newPhone = prompt("Phone:", student.phone);
+let newLevel = prompt("Level:", student.level);
+
+if(!newName || !newPhone || !newLevel) return;
+
+await updateDoc(ref,{
+name:newName,
+phone:newPhone,
+level:newLevel
+});
+
+alert("Updated ✔");
+};
+
 </script>
 
 </body>
