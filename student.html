@@ -88,6 +88,8 @@ display:inline-block;
 <h2>STUDENT RESULT CHECK</h2>
 
 <input id="sid" placeholder="Student ID">
+<input id="age" placeholder="Enter Your Age">
+<input id="phone" placeholder="Enter Your Phone Number">
 
 <select id="term">
 <option>First Term</option>
@@ -128,7 +130,10 @@ let id = document.getElementById("sid").value.trim();
 let termVal = document.getElementById("term").value;
 let sessionVal = document.getElementById("session").value;
 
-if(!id || !termVal || !sessionVal){
+let age = document.getElementById("age").value.trim();
+let phone = document.getElementById("phone").value.trim();
+
+if(!id || !age || !phone || !termVal || !sessionVal){
 alert("Fill all fields");
 return;
 }
@@ -161,6 +166,14 @@ return;
 }
 
 const student = sSnap.docs[0].data();
+/* VERIFY STUDENT */
+if(
+String(student.age).trim() !== String(age).trim() ||
+String(student.phone).trim() !== String(phone).trim()
+){
+box.innerHTML = "Verification failed ❌ (Wrong Age or Phone)";
+return;
+}
 
 /* SUBJECTS */
 const subjectsData = r.subjects || {};
@@ -239,13 +252,16 @@ ${r.average>=70
 
 <br><br>
 
-_____________________<br>
-Director Signature
+<div style="margin-top:40px; text-align:center;">
 
-<br><br>
+<img src="Exam_officer_signature.jpg" style="height:70px;"><br>
 
-_____________________<br>
-Exam Officer
+<b>Examination Officer</b><br>
+Sulaiman Sunusi Muhammad<br>
+Star Academy
+
+</div>
+
 
 </div>
 
@@ -268,6 +284,7 @@ const win = window.open("", "", "width=900,height=700");
 win.document.write(`
 <html>
 <head>
+<title>Student Result</title>
 <style>
 body{font-family:Arial;padding:20px;}
 table{width:100%;border-collapse:collapse;}
