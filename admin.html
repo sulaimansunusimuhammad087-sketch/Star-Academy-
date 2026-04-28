@@ -143,6 +143,8 @@ border-radius:8px;
 
 <button onclick="loadResultForEdit()">Load Result</button>
 
+<p id="editStudentName"></p>
+  
 <div id="editSubjects"></div>
 
 <button onclick="updateResult()">Update Result</button>
@@ -753,13 +755,24 @@ if(snap.empty){
   alert("Result not found");
   return;
 }
+  if(snap.size > 1){
+  alert("Multiple results found! Fix duplicates first.");
+  return;
+}
 
 let docData = snap.docs[0];
 window.editDocId = docData.id;
 
 let data = docData.data();
 let subjects = data.subjects;
+ 
+let studentQuery = query(collection(db,"students"), where("studentID","==",id));
+let studentSnap = await getDocs(studentQuery);
 
+if(!studentSnap.empty){
+  let s = studentSnap.docs[0].data();
+  editStudentName.innerHTML = `<b>${s.name}</b> | ${s.department}`;
+}
 editSubjects.innerHTML = "";
 
 Object.keys(subjects).forEach(sub => {
@@ -790,8 +803,17 @@ let total = 0;
 
 boxes.forEach(b => {
   let name = b.querySelector("b").innerText;
-  let ca = Number(b.querySelector(".edit-ca").value || 0);
-  let exam = Number(b.querySelector(".edit-exam").value || 0);
+
+  let caInput = b.querySelector(".edit-ca").value;
+  let examInput = b.querySelector(".edit-exam").value;
+
+  if(caInput === "" || examInput === ""){
+    alert("Fill all scores");
+    return;
+  }
+
+  let ca = Number(caInput);
+  let exam = Number(examInput);
 
   let sum = ca + exam;
   total += sum;
@@ -800,13 +822,19 @@ boxes.forEach(b => {
 });
 
 let avg = total / boxes.length;
+ alert(
+  "New Total: " + total +
+  "\nAverage: " + avg.toFixed(2) +
+  "\nGrade: " + (avg>=70?"A":avg>=60?"B":avg>=50?"C":"F")
+);
 
 await updateDoc(doc(db,"results",window.editDocId),{
   subjects: data,
   total: total,
   average: avg,
   grade: avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
-  status: avg>=50?"PASS":"FAIL"
+  status: avg>=50?"PASS":"FAIL",
+  updatedAt: Date.now()
 });
 
 alert("Updated ✔");
