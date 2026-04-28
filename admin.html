@@ -627,7 +627,7 @@ studentSnap.forEach(doc=>{
 let allSubjects = new Set();
 
 resultSnap.forEach(rDoc=>{
-  let subjects = doc.data().subjects || {};
+let subjects = rDoc.data().subjects || {};
   Object.keys(subjects).forEach(sub => allSubjects.add(sub));
 });
 
