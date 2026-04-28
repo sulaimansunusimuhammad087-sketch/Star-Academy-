@@ -126,6 +126,27 @@ border-radius:8px;
 
 <button onclick="exportFullData()">Download Full Dataset</button>
 </div>
+
+ <div class="card">
+<h3>Edit Student Result</h3>
+
+<input id="editStudentID" placeholder="Enter Student ID">
+
+<select id="editTerm">
+<option value="">Select Term</option>
+<option>First Term</option>
+<option>Second Term</option>
+<option>Third Term</option>
+</select>
+
+<input id="editSession" placeholder="Session e.g 2025/2026">
+
+<button onclick="loadResultForEdit()">Load Result</button>
+
+<div id="editSubjects"></div>
+
+<button onclick="updateResult()">Update Result</button>
+</div> 
   
 <!-- DELETE -->
 <div id="deleteSection" class="card hidden">
@@ -707,7 +728,96 @@ URL.revokeObjectURL(url);
 
 alert("Download started ✔");
 };
+
+ window.loadResultForEdit = async () => {
+
+let id = editStudentID.value.trim();
+let term = editTerm.value;
+let session = editSession.value;
+
+if(!id || !term || !session){
+  alert("Fill all fields");
+  return;
+}
+
+let q = query(
+  collection(db,"results"),
+  where("studentID","==",id),
+  where("term","==",term),
+  where("session","==",session)
+);
+
+let snap = await getDocs(q);
+
+if(snap.empty){
+  alert("Result not found");
+  return;
+}
+
+let docData = snap.docs[0];
+window.editDocId = docData.id;
+
+let data = docData.data();
+let subjects = data.subjects;
+
+editSubjects.innerHTML = "";
+
+Object.keys(subjects).forEach(sub => {
+  let s = subjects[sub];
+
+  editSubjects.innerHTML += `
+  <div class="subject-box">
+    <b>${sub}</b><br>
+    CA <input class="edit-ca" type="number" value="${s.ca}">
+    Exam <input class="edit-exam" type="number" value="${s.exam}">
+  </div>
+  `;
+});
+};
+
   
+ window.updateResult = async () => {
+
+if(!window.editDocId){
+  alert("Load result first");
+  return;
+}
+
+let boxes = document.querySelectorAll("#editSubjects .subject-box");
+
+let data = {};
+let total = 0;
+
+boxes.forEach(b => {
+  let name = b.querySelector("b").innerText;
+  let ca = Number(b.querySelector(".edit-ca").value || 0);
+  let exam = Number(b.querySelector(".edit-exam").value || 0);
+
+  let sum = ca + exam;
+  total += sum;
+
+  data[name] = {ca, exam, total: sum};
+});
+
+let avg = total / boxes.length;
+
+await updateDoc(doc(db,"results",window.editDocId),{
+  subjects: data,
+  total: total,
+  average: avg,
+  grade: avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
+  status: avg>=50?"PASS":"FAIL"
+});
+
+alert("Updated ✔");
+
+/* clear */
+editSubjects.innerHTML = "";
+editStudentID.value = "";
+editTerm.value = "";
+editSession.value = "";
+window.editDocId = null;
+}; 
 </script>
 
 </body>
