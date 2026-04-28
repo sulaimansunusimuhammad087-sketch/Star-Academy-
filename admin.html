@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+><!DOCTYPE html>
 <html>
 <head>
 <title>Star Academy Admin</title>
@@ -801,16 +801,21 @@ let boxes = document.querySelectorAll("#editSubjects .subject-box");
 let data = {};
 let total = 0;
 
-boxes.forEach(b => {
-  let name = b.querySelector("b").innerText;
+let valid = true;
 
+boxes.forEach(b => {
   let caInput = b.querySelector(".edit-ca").value;
   let examInput = b.querySelector(".edit-exam").value;
 
   if(caInput === "" || examInput === ""){
-    alert("Fill all scores");
-    return;
+    valid = false;
   }
+});
+
+if(!valid){
+  alert("Fill all scores");
+  return;
+}
 
   let ca = Number(caInput);
   let exam = Number(examInput);
@@ -828,7 +833,13 @@ let avg = total / boxes.length;
   "\nGrade: " + (avg>=70?"A":avg>=60?"B":avg>=50?"C":"F")
 );
 
+let original = await getDoc(doc(db,"results",window.editDocId));
+
 await updateDoc(doc(db,"results",window.editDocId),{
+  studentID: original.data().studentID,
+  term: original.data().term,
+  session: original.data().session,
+
   subjects: data,
   total: total,
   average: avg,
@@ -836,7 +847,6 @@ await updateDoc(doc(db,"results",window.editDocId),{
   status: avg>=50?"PASS":"FAIL",
   updatedAt: Date.now()
 });
-
 alert("Updated ✔");
 
 /* clear */
