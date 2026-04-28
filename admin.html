@@ -265,7 +265,7 @@ border-radius:8px;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, doc, runTransaction,
-query, where, getDocs, deleteDoc, updateDoc
+query, where, getDocs, deleteDoc, updateDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -801,53 +801,31 @@ let boxes = document.querySelectorAll("#editSubjects .subject-box");
 let data = {};
 let total = 0;
 
-let valid = true;
+for(let b of boxes){
 
-boxes.forEach(b => {
-  let caInput = b.querySelector(".edit-ca").value;
-  let examInput = b.querySelector(".edit-exam").value;
-
-  if(caInput === "" || examInput === ""){
-    valid = false;
-  }
-});
-
-if(!valid){
-  alert("Fill all scores");
-  return;
-}
-
-  let ca = Number(caInput);
-  let exam = Number(examInput);
+  let name = b.querySelector("b").innerText;
+  let ca = Number(b.querySelector(".edit-ca").value || 0);
+  let exam = Number(b.querySelector(".edit-exam").value || 0);
 
   let sum = ca + exam;
   total += sum;
 
   data[name] = {ca, exam, total: sum};
-});
+}
 
 let avg = total / boxes.length;
- alert(
-  "New Total: " + total +
-  "\nAverage: " + avg.toFixed(2) +
-  "\nGrade: " + (avg>=70?"A":avg>=60?"B":avg>=50?"C":"F")
-);
-
-let original = await getDoc(doc(db,"results",window.editDocId));
 
 await updateDoc(doc(db,"results",window.editDocId),{
-  studentID: original.data().studentID,
-  term: original.data().term,
-  session: original.data().session,
-
   subjects: data,
-  total: total,
+  total,
   average: avg,
   grade: avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
   status: avg>=50?"PASS":"FAIL",
   updatedAt: Date.now()
 });
+
 alert("Updated ✔");
+};
 
 /* clear */
 editSubjects.innerHTML = "";
