@@ -626,7 +626,7 @@ studentSnap.forEach(doc=>{
 /* COLLECT SUBJECTS */
 let allSubjects = new Set();
 
-resultSnap.forEach(doc=>{
+resultSnap.forEach(rDoc=>{
   let subjects = doc.data().subjects || {};
   Object.keys(subjects).forEach(sub => allSubjects.add(sub));
 });
@@ -649,9 +649,9 @@ header.push("Total","Average","Grade","Status");
 /* ROWS */
 let rows = [header];
 
-resultSnap.forEach(doc=>{
+resultSnap.forEach(rDoc=>{
 
-  let r = doc.data();
+  let r = rDoc.data();
   let s = studentsMap[r.studentID] || {};
   let subjects = r.subjects || {};
 
@@ -690,7 +690,9 @@ resultSnap.forEach(doc=>{
 });
 
 /* CSV */
-let csv = rows.map(r => r.join(",")).join("\n");
+let csv = rows.map(row => 
+  row.map(value => `"${value}"`).join(",")
+).join("\n");
 
 /* DOWNLOAD */
 let blob = new Blob([csv], { type: "text/csv" });
