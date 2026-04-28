@@ -113,7 +113,20 @@ border-radius:8px;
 <button onclick="showSection('deleteSection')">Delete Student</button>
 <button onclick="showSection('manageSection')">Manage Students</button>
 </div>
+<div class="card">
+<h3>Export Data for Analysis</h3>
 
+<select id="exportTerm">
+<option>First Term</option>
+<option>Second Term</option>
+<option>Third Term</option>
+</select>
+
+<input id="exportSession" placeholder="Session e.g 2025/2026">
+
+<button onclick="exportFullData()">Download Full Dataset</button>
+</div>
+  
 <!-- DELETE -->
 <div id="deleteSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
@@ -576,6 +589,123 @@ age:newAge
 alert("Updated ✔");
 };
 
+/* EXPORT FULL DATASET */
+window.exportFullData = async () => {
+
+let term = document.getElementById("exportTerm").value;
+let session = document.getElementById("exportSession").value;
+
+if(!term || !session){
+  alert("Enter term and session");
+  return;
+}
+
+/* GET RESULTS */
+let q = query(
+  collection(db, "results"),
+  where("term", "==", term),
+  where("session", "==", session)
+);
+
+let resultSnap = await getDocs(q);
+
+if(resultSnap.empty){
+  alert("No data found");
+  return;
+}
+
+/* GET STUDENTS */
+let studentSnap = await getDocs(collection(db,"students"));
+
+let studentsMap = {};
+studentSnap.forEach(doc=>{
+  let s = doc.data();
+  studentsMap[s.studentID] = s;
+});
+
+/* COLLECT SUBJECTS */
+let allSubjects = new Set();
+
+resultSnap.forEach(doc=>{
+  let subjects = doc.data().subjects || {};
+  Object.keys(subjects).forEach(sub => allSubjects.add(sub));
+});
+
+allSubjects = Array.from(allSubjects);
+
+/* HEADER */
+let header = [
+"StudentID","Name","Age","Gender","State","LGA",
+"Department","Level","SchoolType","Graduated",
+"Term","Session"
+];
+
+allSubjects.forEach(sub=>{
+  header.push(`${sub}_CA`, `${sub}_Exam`, `${sub}_Total`);
+});
+
+header.push("Total","Average","Grade","Status");
+
+/* ROWS */
+let rows = [header];
+
+resultSnap.forEach(doc=>{
+
+  let r = doc.data();
+  let s = studentsMap[r.studentID] || {};
+  let subjects = r.subjects || {};
+
+  let row = [
+    r.studentID,
+    s.name || "",
+    s.age || "",
+    s.gender || "",
+    s.state || "",
+    s.lga || "",
+    s.department || "",
+    s.level || "",
+    s.schoolType || "",
+    s.graduated || "",
+    r.term,
+    r.session
+  ];
+
+  allSubjects.forEach(sub=>{
+    let subData = subjects[sub] || {};
+    row.push(
+      subData.ca || 0,
+      subData.exam || 0,
+      subData.total || 0
+    );
+  });
+
+  row.push(
+    r.total,
+    r.average,
+    r.grade,
+    r.status
+  );
+
+  rows.push(row);
+});
+
+/* CSV */
+let csv = rows.map(r => r.join(",")).join("\n");
+
+/* DOWNLOAD */
+let blob = new Blob([csv], { type: "text/csv" });
+let url = URL.createObjectURL(blob);
+
+let a = document.createElement("a");
+a.href = url;
+a.download = `${term}_${session}_FULL_DATASET.csv`;
+a.click();
+
+URL.revokeObjectURL(url);
+
+alert("Download started ✔");
+};
+  
 </script>
 
 </body>
