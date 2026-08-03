@@ -1,126 +1,227 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Star Academy Home</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-color:white;
-background: url("bg.jpg") no-repeat center center fixed;
-background-size:cover;
+/* BASE STYLES */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    background: url("bg.jpg") no-repeat center center fixed;
+    background-size: cover;
 }
 
-/* DARK OVERLAY */
-.overlay{
-background:rgba(0,0,0,0.75);
-min-height:100vh;
-padding-bottom:80px;
+/* DARK OVERLAY WITH GRADIENT */
+.overlay {
+    background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(22,22,31,0.9) 100%);
+    min-height: 100vh;
+    padding-bottom: 80px;
 }
 
-/* NAV */
-nav{
-background:#16161f;
-padding:15px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
+/* MODERN NAV */
+nav {
+    background: rgba(22, 22, 31, 0.95);
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-/* LOGO BIGGER + RESPONSIVE */
-.logo{
-height:70px;
-border-radius:12px;
+.logo {
+    height: 70px;
+    border-radius: 10px;
+    transition: transform 0.3s;
 }
 
-/* NAV LINKS */
-nav a{
-color:#00e5c0;
-margin:10px;
-text-decoration:none;
-font-weight:bold;
-padding:10px 15px;
-border:1px solid #00e5c0;
-border-radius:8px;
-transition:0.3s;
+.logo:hover {
+    transform: scale(1.05);
 }
 
-nav a:hover{
-background:#00e5c0;
-color:black;
+nav div:nth-child(2) {
+    display: flex;
+    gap: 15px;
 }
 
-/* MOBILE FIX */
-@media(max-width:600px){
-.logo{
-height:90px;
-margin-bottom:10px;
-}
-nav{
-flex-direction:column;
-}
-}
-
-/* TITLE */
-.container{
-text-align:center;
-padding:20px;
+nav a {
+    color: #00e5c0;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 1px;
 }
 
-h1{
-margin-top:10px;
-color:#00e5c0;
+nav a:hover {
+    border-color: #00e5c0;
+    background: rgba(0, 229, 192, 0.1);
+    box-shadow: 0 0 10px rgba(0, 229, 192, 0.3);
 }
 
-/* CARDS */
-.card{
-background:#16161f;
-margin:25px auto;
-padding:30px;
-max-width:950px;
-border-radius:12px;
-box-shadow:0 0 15px rgba(0,0,0,0.5);
-text-align:left;
-cursor:default;
-transition:0.3s;
+/* MOBILE RESPONSIVENESS */
+@media(max-width: 768px) {
+    nav { flex-direction: column; padding: 15px; }
+    .logo { height: 80px; margin-bottom: 15px; }
+    nav div:nth-child(2) { flex-wrap: wrap; justify-content: center; }
 }
 
-.card:hover{
-transform:scale(1.02);
+/* HERO SECTION */
+.container {
+    text-align: center;
+    padding: 50px 20px 20px 20px;
 }
 
-/* SECTION CONTENT */
-.section-content{
-display:block;
-margin-top:10px;
-line-height:1.6;
+h1 {
+    margin-top: 10px;
+    color: #00e5c0;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    letter-spacing: 2px;
 }
 
-/* BUTTON */
-button{
-padding:10px;
-background:#00e5c0;
-border:none;
-margin-top:10px;
-cursor:pointer;
-font-weight:bold;
+.container p {
+    font-size: 1.2rem;
+    color: #ccc;
+    font-weight: 300;
 }
 
-/* BACK BUTTON */
-.back-btn{
-display:inline-block;
-margin-bottom:10px;
-color:#00e5c0;
-cursor:pointer;
-font-weight:bold;
+/* MODERN GLASSMORPHISM CARDS */
+.card {
+    background: rgba(22, 22, 31, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 30px auto;
+    padding: 35px;
+    max-width: 900px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+    border: 1px solid rgba(0, 229, 192, 0.3);
+}
+
+.card h2 {
+    color: #00e5c0;
+    border-bottom: 2px solid #00e5c0;
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+.section-content {
+    margin-top: 15px;
+    line-height: 1.8;
+    font-size: 1.1rem;
+    color: #ddd;
+}
+
+/* SLEEK FORM INPUTS */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 15px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #111;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #00e5c0;
+    box-shadow: 0 0 8px rgba(0, 229, 192, 0.4);
+    background: #1a1a24;
+}
+
+/* CALL TO ACTION BUTTON */
+button {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, #00e5c0, #00b396);
+    border: none;
+    margin-top: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    color: black;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(90deg, #00b396, #00e5c0);
+    box-shadow: 0 5px 15px rgba(0, 229, 192, 0.5);
+    transform: scale(1.02);
 }
 
 /* STATS */
-.stats{
-text-align:center;
-font-size:18px;
+.stats {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #00e5c0;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+}
+
+/* FLOATING WIDGETS */
+.floating-btn {
+    position: fixed;
+    bottom: 25px;
+    color: black;
+    padding: 12px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 1000;
+    font-size: 14px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+    transition: transform 0.3s;
+    border: 2px solid transparent;
+}
+
+.floating-btn:hover {
+    transform: scale(1.1);
+}
+
+.help-btn {
+    right: 25px;
+    background: #00e5c0;
+}
+
+.help-btn:hover {
+    background: #16161f;
+    color: #00e5c0;
+    border-color: #00e5c0;
 }
 </style>
 </head>
@@ -131,736 +232,321 @@ font-size:18px;
 
 <!-- NAV -->
 <nav>
-<div>
-<img src="logo.png" class="logo">
-</div>
-
-<div>
-<a href="index.html">Home</a>
-<a href="admin.html">Admin</a>
-<a href="student.html">Student</a>
-</div>
+    <div><img src="logo.png" class="logo" alt="Star Academy Logo"></div>
+    <div>
+        <a href="index.html">Home</a>
+        <a href="admin.html">Admin Portal</a>
+        <a href="student.html">Student Portal</a>
+    </div>
 </nav>
 
 <!-- TITLE -->
 <div class="container">
-<h1>STAR ACADEMY SYSTEM</h1>
-<p>Building future doctors, engineers, lawyers and scientists</p>
+    <h1>STAR ACADEMY SYSTEM</h1>
+    <p>Building future doctors, engineers, lawyers and scientists</p>
 </div>
 
 <!-- ABOUT -->
 <div class="card">
-<h2>About Star Academy</h2>
-<div class="section-content">
-
-Star Academy is a community-based extra lesson program designed to prepare students for university admission.
-
-It runs every Saturday and Sunday from 8:30am to 6:00pm.
-
-Students are trained from Primary, Junior Secondary, and Senior Secondary levels. The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
+    <h2>About Star Academy</h2>
+    <div class="section-content">
+        Star Academy is a premium community-based extra lesson program designed to rigorously prepare students for university admission. It runs every <b>Saturday and Sunday from 8:30 AM to 6:00 PM</b>. We proudly train students from Primary, Junior Secondary, and Senior Secondary levels, focusing intensely on Science and Arts departments to secure successful higher education paths.
+    </div>
 </div>
-</div>
-<!-- STUDENT SELF-REGISTRATION -->
+
+<!-- STUDENT SELF-REGISTRATION (PUBLIC) -->
 <div class="card" id="publicRegisterSection">
-<h2>Register as a New Student</h2>
-<div class="section-content">
-<p>Fill out this form to register yourself into Star Academy. Your unique Student ID will be generated automatically!</p>
+    <h2>Register as a New Student</h2>
+    <div class="section-content">
+        <p style="color:#aaa; font-style:italic;">Fill out this form to instantly enroll in Star Academy. Your secure Student ID will be generated automatically upon submission!</p>
+        
+        <div class="form-grid">
+            <input id="pubName" placeholder="Full Name (Surname First)">
+            <input id="pubAge" type="number" placeholder="Age">
+            
+            <select id="pubGender">
+                <option value="">Select Gender</option>
+                <option>Male</option>
+                <option>Female</option>
+            </select>
+            
+            <input id="pubState" placeholder="State of Origin">
+            <input id="pubLga" placeholder="Local Government Area">
+            <input id="pubPhone" placeholder="Active Phone Number">
+            <input id="pubEmail" type="email" placeholder="Student Email Address">
+            
+            <select id="pubDepartment">
+                <option value="">Select Department</option>
+                <option value="Science">Science</option>
+                <option value="Arts">Arts</option>
+            </select>
+            
+            <select id="pubLevel">
+                <option value="">Select Admission Level</option>
+                <option>Primary</option>
+                <option>Junior Secondary</option>
+                <option>Fresh Class</option>
+                <option>AI Class</option>
+                <option>Level 1</option>
+                <option>Level 2</option>
+                <option>Level 3</option>
+            </select>
+            
+            <select id="pubSchoolType">
+                <option value="">Previous School Type</option>
+                <option>Private</option>
+                <option>Public</option>
+            </select>
+            
+            <input id="pubSchoolName" placeholder="Name of Previous/Current School">
+            
+            <select id="pubGraduated">
+                <option value="">Have you Graduated?</option>
+                <option>Yes</option>
+                <option>No</option>
+            </select>
+        </div>
+        
+        <input id="pubAddress" placeholder="Full Residential Address" style="margin-top:15px;">
 
-<input id="pubName" placeholder="Full Name">
-<input id="pubAge" type="number" placeholder="Age">
-
-<select id="pubGender">
-<option value="">Gender</option>
-<option>Male</option>
-<option>Female</option>
-</select>
-
-<input id="pubState" placeholder="State">
-<input id="pubLga" placeholder="Local Government">
-<input id="pubAddress" placeholder="Address">
-<input id="pubPhone" placeholder="Phone Number">
-<input id="pubEmail" placeholder="Student Email">
-
-<select id="pubDepartment">
-<option value="">Department</option>
-<option value="Science">Science</option>
-<option value="Arts">Arts</option>
-</select>
-
-<select id="pubLevel">
-<option value="">Level</option>
-<option>Primary</option>
-<option>Junior Secondary</option>
-<option>Fresh Class</option>
-<option>AI Class</option>
-<option>Level 1</option>
-<option>Level 2</option>
-<option>Level 3</option>
-</select>
-
-<select id="pubSchoolType">
-<option value="">School Type</option>
-<option>Private</option>
-<option>Public</option>
-</select>
-
-<input id="pubSchoolName" placeholder="School Name">
-
-<select id="pubGraduated">
-<option value="">Graduated</option>
-<option>Yes</option>
-<option>No</option>
-</select>
-
-<button onclick="publicRegisterStudent()">Submit Registration</button>
-<p id="pubMsg" style="margin-top:10px; font-weight:bold;"></p>
-</div>
-</div>
-<!-- MISSION -->
-<div class="card">
-<h2>Mission</h2>
-<div class="section-content">
-
-To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
-</div>
+        <button onclick="publicRegisterStudent()">Submit Registration 🚀</button>
+        <p id="pubMsg" style="margin-top:15px; font-weight:bold; text-align:center; font-size:1.1rem; padding:10px; border-radius:5px;"></p>
+    </div>
 </div>
 
-<!-- VISION -->
-<div class="card">
-<h2>Vision</h2>
-<div class="section-content">
-
-To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
-</div>
+<!-- MISSION & VISION GRID -->
+<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; max-width:970px; margin:auto;">
+    <div class="card" style="flex:1; min-width:300px; margin:10px auto;">
+        <h2>Mission</h2>
+        <div class="section-content">
+            To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
+        </div>
+    </div>
+    <div class="card" style="flex:1; min-width:300px; margin:10px auto;">
+        <h2>Vision</h2>
+        <div class="section-content">
+            To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
+        </div>
+    </div>
 </div>
 
 <!-- MOTTO -->
-<div class="card">
-<h2>Motto</h2>
-<div class="section-content">
-
-Learn Today • Lead Tomorrow
-</div>
+<div class="card" style="text-align:center;">
+    <h2>Motto</h2>
+    <div class="section-content" style="font-size:1.5rem; color:#00e5c0; font-weight:bold;">
+        Learn Today • Lead Tomorrow
+    </div>
 </div>
 
 <!-- DEVELOPER INFO -->
 <div class="card">
-<h2>Developer Info</h2>
-<div class="section-content">
-
-This system was developed by <b>Sulaiman Sunusi Muhammad</b> (Sir Mean).
-
-A student of Statistics at Bayero University Kano Level 200 and a data science enthusiast, former student and current tutor at Star Academy, and currently serving as an Examination Officer.
-
-Purpose of this system:
-
-- To solve the lack of proper student record keeping  
-- To digitally manage student data and academic performance  
-- To automatically generate student IDs  
-- To track results, pass/fail rates, and academic progress  
-- To provide data-driven insights for better decision making  
-
-This project is part of applying data analysis and technology to improve education management in the community.
-</div>
+    <h2>Developer Info</h2>
+    <div class="section-content">
+        This system was engineered by <b style="color:#00e5c0;">Sulaiman Sunusi Muhammad (Sir Mean)</b>.<br><br>
+        Currently a Level 200 Statistics student at Bayero University Kano (BUK), a passionate data science enthusiast, former student, current tutor, and the active Examination Officer at Star Academy.<br><br>
+        <b style="color:#00e5c0;">System Objectives:</b><br>
+        ✓ Eradicate manual student record keeping.<br>
+        ✓ Digitally optimize academic performance tracking.<br>
+        ✓ Automate secure Student ID generation workflows.<br>
+        ✓ Deliver data-driven insights for community education management.
+    </div>
 </div>
 
 <!-- LIVE STATS -->
 <div class="card">
-<h2>Live Statistics</h2>
-<div class="stats" id="stats">Loading...</div>
+    <h2 style="text-align:center; border:none;">Live System Statistics</h2>
+    <div class="stats" id="stats">Connecting to Database...</div>
 </div>
 
+<!-- FOOTER -->
+<div style="text-align:center; margin-top:40px; padding:20px; color:#777; font-size:14px;">
+    Developed by Sulaiman "Sir Mean" | Future Data Scientist © 2026<br>Star Academy Management System
 </div>
 
-<!DOCTYPE html>
-<html>
-<head>
-<title>Star Academy Home</title>
+</div> <!-- END OVERLAY -->
 
-<style>
-body{
-margin:0;
-font-family:Arial;
-color:white;
-background: url("bg.jpg") no-repeat center center fixed;
-background-size:cover;
-}
-
-/* DARK OVERLAY */
-.overlay{
-background:rgba(0,0,0,0.75);
-min-height:100vh;
-padding-bottom:80px;
-}
-
-/* NAV */
-nav{
-background:#16161f;
-padding:15px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-flex-wrap:wrap;
-}
-
-/* LOGO BIGGER + RESPONSIVE */
-.logo{
-height:70px;
-border-radius:12px;
-}
-
-/* NAV LINKS */
-nav a{
-color:#00e5c0;
-margin:10px;
-text-decoration:none;
-font-weight:bold;
-padding:10px 15px;
-border:1px solid #00e5c0;
-border-radius:8px;
-transition:0.3s;
-}
-
-nav a:hover{
-background:#00e5c0;
-color:black;
-}
-
-/* MOBILE FIX */
-@media(max-width:600px){
-.logo{
-height:90px;
-margin-bottom:10px;
-}
-nav{
-flex-direction:column;
-}
-}
-
-/* TITLE */
-.container{
-text-align:center;
-padding:20px;
-}
-
-h1{
-margin-top:10px;
-color:#00e5c0;
-}
-
-/* CARDS */
-.card{
-background:#16161f;
-margin:25px auto;
-padding:30px;
-max-width:950px;
-border-radius:12px;
-box-shadow:0 0 15px rgba(0,0,0,0.5);
-text-align:left;
-cursor:default;
-transition:0.3s;
-}
-
-.card:hover{
-transform:scale(1.02);
-}
-
-/* SECTION CONTENT */
-.section-content{
-display:block;
-margin-top:10px;
-line-height:1.6;
-}
-
-/* INPUTS & SELECTS */
-input,select{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:5px;
-border:1px solid #444;
-background:#222;
-color:white;
-}
-
-/* BUTTON */
-button{
-width:100%;
-padding:10px;
-background:#00e5c0;
-border:none;
-margin-top:10px;
-cursor:pointer;
-font-weight:bold;
-color:black;
-border-radius:5px;
-}
-
-button:hover{
-opacity:0.9;
-}
-
-/* BACK BUTTON */
-.back-btn{
-display:inline-block;
-margin-bottom:10px;
-color:#00e5c0;
-cursor:pointer;
-font-weight:bold;
-}
-
-/* STATS */
-.stats{
-text-align:center;
-font-size:18px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="overlay">
-
-<!-- NAV -->
-<nav>
-<div>
-<img src="logo.png" class="logo">
-</div>
-
-<div>
-<a href="index.html">Home</a>
-<a href="admin.html">Admin</a>
-<a href="student.html">Student</a>
-</div>
-</nav>
-
-<!-- TITLE -->
-<div class="container">
-<h1>STAR ACADEMY SYSTEM</h1>
-<p>Building future doctors, engineers, lawyers and scientists</p>
-</div>
-
-<!-- ABOUT -->
-<div class="card">
-<h2>About Star Academy</h2>
-<div class="section-content">
-Star Academy is a community-based extra lesson program designed to prepare students for university admission.
-It runs every Saturday and Sunday from 8:30am to 6:00pm.
-Students are trained from Primary, Junior Secondary, and Senior Secondary levels. The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
-</div>
-</div>
-
-<!-- STUDENT SELF-REGISTRATION -->
-<div class="card" id="publicRegisterSection">
-<h2>Register as a New Student</h2>
-<div class="section-content">
-<p>Fill out this form to register yourself into Star Academy. Your unique Student ID will be generated automatically!</p>
-
-<input id="pubName" placeholder="Full Name">
-<input id="pubAge" type="number" placeholder="Age">
-
-<select id="pubGender">
-<option value="">Gender</option>
-<option>Male</option>
-<option>Female</option>
-</select>
-
-<input id="pubState" placeholder="State">
-<input id="pubLga" placeholder="Local Government">
-<input id="pubAddress" placeholder="Address">
-<input id="pubPhone" placeholder="Phone Number">
-<input id="pubEmail" placeholder="Student Email">
-
-<select id="pubDepartment">
-<option value="">Department</option>
-<option value="Science">Science</option>
-<option value="Arts">Arts</option>
-</select>
-
-<select id="pubLevel">
-<option value="">Level</option>
-<option>Primary</option>
-<option>Junior Secondary</option>
-<option>Fresh Class</option>
-<option>AI Class</option>
-<option>Level 1</option>
-<option>Level 2</option>
-<option>Level 3</option>
-</select>
-
-<select id="pubSchoolType">
-<option value="">School Type</option>
-<option>Private</option>
-<option>Public</option>
-</select>
-
-<input id="pubSchoolName" placeholder="School Name">
-
-<select id="pubGraduated">
-<option value="">Graduated</option>
-<option>Yes</option>
-<option>No</option>
-</select>
-
-<button onclick="publicRegisterStudent()">Submit Registration</button>
-<p id="pubMsg" style="margin-top:10px; font-weight:bold;"></p>
-</div>
-</div>
-
-<!-- MISSION -->
-<div class="card">
-<h2>Mission</h2>
-<div class="section-content">
-To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
-</div>
-</div>
-
-<!-- VISION -->
-<div class="card">
-<h2>Vision</h2>
-<div class="section-content">
-To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
-</div>
-</div>
-
-<!-- MOTTO -->
-<div class="card">
-<h2>Motto</h2>
-<div class="section-content">
-Learn Today • Lead Tomorrow
-</div>
-</div>
-
-<!-- DEVELOPER INFO -->
-<div class="card">
-<h2>Developer Info</h2>
-<div class="section-content">
-This system was developed by <b>Sulaiman Sunusi Muhammad</b> (Sir Mean).
-A student of Statistics at Bayero University Kano Level 200 and a data science enthusiast, former student and current tutor at Star Academy, and currently serving as an Examination Officer.<br><br>
-Purpose of this system:
-- To solve the lack of proper student record keeping  
-- To digitally manage student data and academic performance  
-- To automatically generate student IDs  
-- To track results, pass/fail rates, and academic progress  
-- To provide data-driven insights for better decision making  
-</div>
-</div>
-
-<!-- LIVE STATS -->
-<div class="card">
-<h2>Live Statistics</h2>
-<div class="stats" id="stats">Loading...</div>
-</div>
-
-</div>
-
-<!-- SCRIPT BLOCK -->
+<!-- 🟢 SCRIPTS & FIREBASE LOGIC -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, onSnapshot, doc, addDoc, runTransaction, query, where, getDocs
+    getFirestore, collection, onSnapshot, doc, addDoc, runTransaction, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain: "star-academy-system.firebaseapp.com",
-projectId: "star-academy-system"
+    apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+    authDomain: "star-academy-system.firebaseapp.com",
+    projectId: "star-academy-system"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* SMARTER AI ASSISTANT */
+/* --- AI ASSISTANT LOGIC --- */
 function addAI(sender, text){
-let box = document.getElementById("aiMessages");
-let align = sender === "user" ? "text-align:right; color:#00e5c0;" : "text-align:left; color:white;";
-let bg = sender === "user" ? "background:#1f1f2e;" : "background:#222;";
-box.innerHTML += `<div style="margin:8px 0; padding:8px; border-radius:6px; ${bg} ${align}">${text}</div>`;
-box.scrollTop = box.scrollHeight;
+    let box = document.getElementById("aiMessages");
+    let align = sender === "user" ? "text-align:right;" : "text-align:left;";
+    let bg = sender === "user" ? "background:#00e5c0; color:black;" : "background:#222; color:white; border:1px solid #444;";
+    box.innerHTML += `<div style="margin:10px 0; padding:12px; border-radius:10px; line-height:1.4; display:inline-block; max-width:85%; ${bg} float:${sender==='user'?'right':'left'}; clear:both;">${text}</div>`;
+    box.scrollTop = box.scrollHeight;
 }
   
 window.sendAI = function(){
-let input = document.getElementById("aiInput"); 
-let msg = input.value.trim();
+    let input = document.getElementById("aiInput"); 
+    let msg = input.value.trim();
+    if(!msg) return;
 
-if(!msg) return;
+    addAI("user", "👤 " + msg);
+    input.value = "";
 
-addAI("user", "👤 " + msg);
-input.value = "";
+    let queryText = msg.toLowerCase();
+    let reply = "";
 
-let queryText = msg.toLowerCase();
-let reply = "";
-
-setTimeout(()=>{
-if(queryText.includes("result") || queryText.includes("score") || queryText.includes("marks")){
-reply = "📊 <b>Checking Results:</b><br>1. Click on the <b>Student</b> link at the top.<br>2. Enter your Student ID, Age, and Phone Number.<br>3. Select your Term and Session, then click View Result!";
-}
-else if(queryText.includes("register") || queryText.includes("signup") || queryText.includes("admission") || queryText.includes("new student")){
-reply = "📝 <b>Student Registration:</b><br>You can fill out the <b>'Register as a New Student'</b> form right here on the home page! Your unique Student ID will be generated instantly.";
-}
-else if(queryText.includes("login") || queryText.includes("admin") || queryText.includes("officer")){
-reply = "🔐 <b>Admin Portal:</b><br>Admin login is strictly restricted to authorized school management and examination officers via the Admin page.";
-}
-else if(queryText.includes("time") || queryText.includes("schedule") || queryText.includes("days") || queryText.includes("when")){
-reply = "⏰ <b>Schedule:</b><br>Star Academy runs every <b>Saturday and Sunday from 8:30 AM to 6:00 PM</b>.";
-}
-else if(queryText.includes("developer") || queryText.includes("creator") || queryText.includes("sulaiman") || queryText.includes("sir mean")){
-reply = "👨‍💻 <b>Developer Info:</b><br>This system was built by <b>Sulaiman Sunusi Muhammad (Sir Mean)</b>, a 200-level Statistics student at Bayero University Kano (BUK) and Examination Officer at Star Academy!";
-}
-else if(queryText.includes("help") || queryText.includes("contact") || queryText.includes("phone") || queryText.includes("whatsapp")){
-reply = "📞 <b>Support Center:</b><br>You can reach out using the <b>Help Including AI Support</b> button at the bottom-left of the screen for direct calls or WhatsApp chats!";
-}
-else if(queryText.includes("hello") || queryText.includes("hi") || queryText.includes("hey")){
-reply = "Hello! 👋 Welcome to Star Academy. How can I assist you today? You can ask me about results, registration, class schedules, or the developer!";
-}
-else{
-reply = "🤖 I understand your question, but for specialized inquiries, please contact my boss <b>Sulaiman (Sir Mean)</b> through the Help Center. Feel free to ask about results, registration, or class schedules!";
-}
-
-addAI("ai", "🤖 " + reply);
-}, 500);
+    setTimeout(()=>{
+        if(queryText.includes("result") || queryText.includes("score") || queryText.includes("marks")){
+            reply = "📊 <b>Checking Results:</b><br>1. Click the <b>Student Portal</b> link.<br>2. Enter your Student ID, Age, and Phone.<br>3. Select Term and Session to View!";
+        }
+        else if(queryText.includes("register") || queryText.includes("signup") || queryText.includes("admission")){
+            reply = "📝 <b>Registration:</b><br>Scroll up to the <b>'Register as a New Student'</b> card on this home page, fill it out, and get your Student ID instantly!";
+        }
+        else if(queryText.includes("admin") || queryText.includes("officer") || queryText.includes("login")){
+            reply = "🔐 <b>Admin Access:</b><br>Admin tools are strictly for authorized staff via the Admin Portal link.";
+        }
+        else if(queryText.includes("developer") || queryText.includes("creator") || queryText.includes("sir mean") || queryText.includes("sulaiman")){
+            reply = "👨‍💻 <b>Developer:</b><br>Built by <b>Sulaiman Sunusi Muhammad (Sir Mean)</b>, BUK Statistics Level 200, and Star Academy Examination Officer!";
+        }
+        else if(queryText.includes("help") || queryText.includes("contact")){
+            reply = "📞 <b>Support:</b><br>Close this chat and click <b>Help Including AI Support</b> to Call, Email, or WhatsApp admin directly.";
+        }
+        else{
+            reply = "🤖 I am still learning! For complex inquiries, please contact my boss <b>Sulaiman (Sir Mean)</b> via the Help menu. Try asking me about results or registration!";
+        }
+        addAI("ai", reply);
+    }, 600);
 };
 
-/* PUBLIC STUDENT SELF-REGISTRATION */
+/* --- PUBLIC REGISTRATION LOGIC --- */
 window.publicRegisterStudent = async () => {
-let nameVal = document.getElementById("pubName").value.trim();
-let phoneVal = document.getElementById("pubPhone").value.trim();
-let emailVal = document.getElementById("pubEmail").value.trim();
-let dept = document.getElementById("pubDepartment").value;
-let msgBox = document.getElementById("pubMsg");
+    let nameVal = document.getElementById("pubName").value.trim();
+    let phoneVal = document.getElementById("pubPhone").value.trim();
+    let emailVal = document.getElementById("pubEmail").value.trim();
+    let dept = document.getElementById("pubDepartment").value;
+    let msgBox = document.getElementById("pubMsg");
 
-if(!nameVal || !phoneVal || !dept){
-alert("Please fill in required fields (Name, Phone, Department)");
-return;
-}
+    if(!nameVal || !phoneVal || !dept){
+        msgBox.style.background = "#ff4d4d";
+        msgBox.style.color = "white";
+        msgBox.innerText = "❌ Please fill in the required fields (Name, Phone, Department).";
+        return;
+    }
 
-msgBox.innerText = "Processing registration...";
+    msgBox.style.background = "#333";
+    msgBox.style.color = "#00e5c0";
+    msgBox.innerText = "⏳ Processing registration... Please wait.";
 
-try {
-/* duplicate check */
-let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
-let q2 = query(collection(db,"students"), where("email","==",emailVal));
+    try {
+        let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
+        let q2 = query(collection(db,"students"), where("email","==",emailVal));
+        let [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
 
-let [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+        if(!snap1.empty || (!snap2.empty && emailVal !== "")){
+            msgBox.style.background = "#ff4d4d";
+            msgBox.style.color = "white";
+            msgBox.innerText = "❌ Registration Failed: A student with this Phone Number or Email already exists!";
+            return;
+        }
 
-if(!snap1.empty || !snap2.empty){
-msgBox.innerText = "❌ Student with this phone number or email already exists!";
-return;
-}
+        let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
+        let id = await runTransaction(db, async (tx)=>{
+            let snap = await tx.get(ref);
+            let count = snap.exists() ? snap.data().count+1 : 1;
+            tx.set(ref,{count});
+            return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
+        });
 
-/* ID counter transaction matching admin logic */
-let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
+        await addDoc(collection(db,"students"),{
+            studentID: id,
+            name: nameVal,
+            age: document.getElementById("pubAge").value,
+            gender: document.getElementById("pubGender").value,
+            state: document.getElementById("pubState").value,
+            lga: document.getElementById("pubLga").value,
+            address: document.getElementById("pubAddress").value,
+            phone: phoneVal,
+            email: emailVal,
+            department: dept,
+            level: document.getElementById("pubLevel").value,
+            schoolType: document.getElementById("pubSchoolType").value,
+            schoolName: document.getElementById("pubSchoolName").value,
+            graduated: document.getElementById("pubGraduated").value,
+            createdAt: Date.now()
+        });
 
-let id = await runTransaction(db, async (tx)=>{
-let snap = await tx.get(ref);
-let count = snap.exists() ? snap.data().count+1 : 1;
-tx.set(ref,{count});
+        msgBox.style.background = "rgba(0, 229, 192, 0.2)";
+        msgBox.style.color = "#00e5c0";
+        msgBox.style.border = "1px solid #00e5c0";
+        msgBox.innerHTML = `✅ Registration Successful! Welcome to Star Academy.<br>Your Official Student ID is: <b style="font-size:1.3rem; color:white; background:#000; padding:5px; border-radius:5px; display:inline-block; margin-top:5px;">${id}</b><br><span style="font-size:0.9rem; color:#ccc;">Please write this ID down safely, you will need it to check results.</span>`;
 
-return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
-});
+        document.querySelectorAll("#publicRegisterSection input").forEach(i=>i.value="");
+        document.querySelectorAll("#publicRegisterSection select").forEach(s=>s.value="");
 
-/* SAVE TO FIRESTORE */
-await addDoc(collection(db,"students"),{
-studentID: id,
-name: nameVal,
-age: document.getElementById("pubAge").value,
-gender: document.getElementById("pubGender").value,
-state: document.getElementById("pubState").value,
-lga: document.getElementById("pubLga").value,
-address: document.getElementById("pubAddress").value,
-phone: phoneVal,
-email: emailVal,
-department: dept,
-level: document.getElementById("pubLevel").value,
-schoolType: document.getElementById("pubSchoolType").value,
-schoolName: document.getElementById("pubSchoolName").value,
-graduated: document.getElementById("pubGraduated").value,
-createdAt: Date.now()
-});
-
-msgBox.innerHTML = `✅ Registration Successful! Your Student ID is: <b style="color:#00e5c0">${id}</b>. Please save it to check your results.`;
-
-/* clear fields */
-document.querySelectorAll("#publicRegisterSection input").forEach(i=>i.value="");
-document.querySelectorAll("#publicRegisterSection select").forEach(s=>s.value="");
-
-} catch (e) {
-msgBox.innerText = "❌ Error: " + e.message;
-}
+    } catch (e) {
+        msgBox.style.background = "#ff4d4d";
+        msgBox.style.color = "white";
+        msgBox.innerText = "❌ Database Error: " + e.message;
+    }
 };
 
-/* LIVE STATS */
-onSnapshot(collection(db,"students"),snap=>{
-document.getElementById("stats").innerHTML = `
-<b>Total Students:</b> ${snap.size}
-`;
+/* --- LIVE STATS --- */
+onSnapshot(collection(db,"students"), snap => {
+    document.getElementById("stats").innerHTML = `<b>Total Registered Students:</b> <span style="color:white; font-size:28px;">${snap.size}</span>`;
 });
-
 </script>
 
-<!-- AI CHAT BOX -->
-<div id="aiBox" style="
-display:none;
-position:fixed;
-bottom:20px;
-right:20px;
-width:320px;
-height:420px;
-background:#16161f;
-border-radius:15px;
-box-shadow:0 0 15px rgba(0,0,0,0.6);
-z-index:1000;
-overflow:hidden;
-">
-  
-<!-- BACK BUTTON -->
-<div onclick="document.getElementById('aiBox').style.display='none'" 
-style="padding:10px; cursor:pointer; background:#111; color:#00e5c0; font-weight:bold;">
-← Close
-</div>
-
-<!-- HEADER -->
-<div style="
-background:#00e5c0;
-color:black;
-padding:10px;
-font-weight:bold;
-">
-🤖 Star AI Assistant
-</div>
-
-<!-- MESSAGES -->
-<div id="aiMessages" style="
-height:68%;
-overflow:auto;
-padding:10px;
-font-size:14px;
-">
-</div>
-
-<!-- INPUT -->
-<div style="position:absolute; bottom:0; width:100%; display:flex;">
-<input id="aiInput" placeholder="Ask question..." style="
-flex:1;
-padding:10px;
-border:none;
-outline:none;
-background:#222;
-color:white;
-">
-<button onclick="sendAI()" style="
-background:#00e5c0;
-border:none;
-padding:10px;
-cursor:pointer;
-font-weight:bold;
-width:80px;
-margin-top:0;
-">
-Send
-</button>
-</div>
-
-</div>
-  
+<!-- 🟢 WIDGETS (HELP & AI) -->
 <!-- HELP BUTTON -->
-<div onclick="openHelp()" style="
-position:fixed;
-bottom:20px;
-right:360px;
-background:#00e5c0;
-color:black;
-padding:10px 14px;
-border-radius:25px;
-cursor:pointer;
-font-weight:bold;
-z-index:1000;
-font-size:13px; 
-">
-💬 Help Including AI Support
+<div onclick="openHelp()" class="floating-btn help-btn">
+    💬 Support & AI
 </div>
 
-<!-- HELP BOX -->
-<div id="helpBox" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#16161f;
-padding:20px;
-z-index:999;
-overflow:auto;
-">
-
-<!-- BACK BUTTON -->
-<div onclick="closeHelp()" style="
-margin-bottom:10px;
-cursor:pointer;
-color:#00e5c0;
-font-weight:bold;
-">
-← Back
+<!-- HELP MODAL -->
+<div id="helpBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,10,15,0.95); z-index:9999; backdrop-filter:blur(10px);">
+    <div class="card" style="margin-top:10vh; max-width:400px; text-align:center; box-shadow:0 0 50px rgba(0, 229, 192, 0.2);">
+        <h2 style="border:none;">Support Center</h2>
+        <p style="color:#aaa; margin-bottom:20px;">How would you like to contact us?</p>
+        
+        <a href="tel:07087672424" style="display:block; padding:15px; background:#222; border-radius:8px; color:white; text-decoration:none; margin-bottom:10px; border:1px solid #444;">📞 Call Admin</a>
+        <a href="https://wa.me/2347087672424" target="_blank" style="display:block; padding:15px; background:#222; border-radius:8px; color:white; text-decoration:none; margin-bottom:10px; border:1px solid #444;">💬 WhatsApp Support</a>
+        <a href="mailto:sulaimansunusi783@gmail.com" style="display:block; padding:15px; background:#222; border-radius:8px; color:white; text-decoration:none; margin-bottom:20px; border:1px solid #444;">📧 Send Email</a>
+        
+        <button onclick="closeHelp(); openAI();" style="margin-top:0;">🤖 Ask AI Assistant</button>
+        <button onclick="closeHelp()" style="background:#ff4d4d; color:white; margin-top:10px;">Close Window</button>
+    </div>
 </div>
 
-<h3 style="color:#00e5c0">Help Center</h3>
-<p>Choose option:</p>
-
-<a href="tel:07087672424" style="color:white;display:block;margin:12px 0;text-decoration:none;">📞 Call Admin</a>
-<a href="mailto:sulaimansunusi783@gmail.com" style="color:white;display:block;margin:12px 0;text-decoration:none;">📧 Send Email</a>
-<a href="https://wa.me/2347087672424" target="_blank" style="color:white;display:block;margin:12px 0;text-decoration:none;">💬 WhatsApp</a>
-
-<button onclick="closeHelp(); openAI();" style="
-width:100%;
-margin-top:10px;
-background:#00e5c0;
-border:none;
-padding:10px;
-font-weight:bold;
-cursor:pointer;
-color:black;
-">
-🤖 Ask AI Assistant
-</button>
-
-<button onclick="closeHelp()" style="
-width:100%;
-margin-top:10px;
-background:#ff4d4d;
-border:none;
-padding:10px;
-color:white;
-font-weight:bold;
-">
-Close
-</button>
-
+<!-- AI CHAT WINDOW -->
+<div id="aiBox" style="display:none; position:fixed; bottom:20px; right:20px; width:350px; height:500px; background:#16161f; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.8); z-index:10000; border:1px solid #00e5c0; overflow:hidden; display:flex; flex-direction:column;">
+    <!-- HEADER -->
+    <div style="background:linear-gradient(90deg, #00e5c0, #00b396); color:black; padding:15px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+        <span>🤖 Star AI Assistant</span>
+        <span onclick="closeAI()" style="cursor:pointer; font-size:20px; font-weight:bold;">×</span>
+    </div>
+    <!-- MESSAGES AREA -->
+    <div id="aiMessages" style="flex:1; overflow-y:auto; padding:15px; font-size:14px; background:#111;">
+        <div style="text-align:center; color:#666; margin-bottom:10px; font-size:12px;">Start chatting with Star AI</div>
+    </div>
+    <!-- INPUT AREA -->
+    <div style="display:flex; padding:10px; background:#1a1a24; border-top:1px solid #333;">
+        <input id="aiInput" placeholder="Type your question..." style="flex:1; padding:12px; border:none; outline:none; background:#222; color:white; border-radius:8px 0 0 8px; margin:0;">
+        <button onclick="sendAI()" style="width:80px; margin:0; border-radius:0 8px 8px 0; padding:12px;">Send</button>
+    </div>
 </div>
 
 <script>
-window.openHelp = function(){
-document.getElementById("helpBox").style.display = "block";
-};
-
-window.closeHelp = function(){
-document.getElementById("helpBox").style.display = "none";
-};
-
-window.openAI = function(){
-document.getElementById("aiBox").style.display = "block";
-}; 
+window.openHelp = function(){ document.getElementById("helpBox").style.display = "block"; };
+window.closeHelp = function(){ document.getElementById("helpBox").style.display = "none"; };
+window.openAI = function(){ document.getElementById("aiBox").style.display = "flex"; }; 
+window.closeAI = function(){ document.getElementById("aiBox").style.display = "none"; }; 
 </script>
-
-<div style="
-text-align:center;
-margin-top:40px;
-padding:20px;
-color:#aaa;
-">
-Sulaiman "Sir Mean" Future Data Scientist © 2026 / Star Academy System
-</div>
 
 </body>
 </html>
