@@ -160,7 +160,62 @@ It runs every Saturday and Sunday from 8:30am to 6:00pm.
 Students are trained from Primary, Junior Secondary, and Senior Secondary levels. The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
 </div>
 </div>
+<!-- STUDENT SELF-REGISTRATION -->
+<div class="card" id="publicRegisterSection">
+<h2>Register as a New Student</h2>
+<div class="section-content">
+<p>Fill out this form to register yourself into Star Academy. Your unique Student ID will be generated automatically!</p>
 
+<input id="pubName" placeholder="Full Name">
+<input id="pubAge" type="number" placeholder="Age">
+
+<select id="pubGender">
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<input id="pubState" placeholder="State">
+<input id="pubLga" placeholder="Local Government">
+<input id="pubAddress" placeholder="Address">
+<input id="pubPhone" placeholder="Phone Number">
+<input id="pubEmail" placeholder="Student Email">
+
+<select id="pubDepartment">
+<option value="">Department</option>
+<option value="Science">Science</option>
+<option value="Arts">Arts</option>
+</select>
+
+<select id="pubLevel">
+<option value="">Level</option>
+<option>Primary</option>
+<option>Junior Secondary</option>
+<option>Fresh Class</option>
+<option>AI Class</option>
+<option>Level 1</option>
+<option>Level 2</option>
+<option>Level 3</option>
+</select>
+
+<select id="pubSchoolType">
+<option value="">School Type</option>
+<option>Private</option>
+<option>Public</option>
+</select>
+
+<input id="pubSchoolName" placeholder="School Name">
+
+<select id="pubGraduated">
+<option value="">Graduated</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+
+<button onclick="publicRegisterStudent()">Submit Registration</button>
+<p id="pubMsg" style="margin-top:10px; font-weight:bold;"></p>
+</div>
+</div>
 <!-- MISSION -->
 <div class="card">
 <h2>Mission</h2>
@@ -217,11 +272,294 @@ This project is part of applying data analysis and technology to improve educati
 
 </div>
 
+<!DOCTYPE html>
+<html>
+<head>
+<title>Star Academy Home</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+color:white;
+background: url("bg.jpg") no-repeat center center fixed;
+background-size:cover;
+}
+
+/* DARK OVERLAY */
+.overlay{
+background:rgba(0,0,0,0.75);
+min-height:100vh;
+padding-bottom:80px;
+}
+
+/* NAV */
+nav{
+background:#16161f;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+/* LOGO BIGGER + RESPONSIVE */
+.logo{
+height:70px;
+border-radius:12px;
+}
+
+/* NAV LINKS */
+nav a{
+color:#00e5c0;
+margin:10px;
+text-decoration:none;
+font-weight:bold;
+padding:10px 15px;
+border:1px solid #00e5c0;
+border-radius:8px;
+transition:0.3s;
+}
+
+nav a:hover{
+background:#00e5c0;
+color:black;
+}
+
+/* MOBILE FIX */
+@media(max-width:600px){
+.logo{
+height:90px;
+margin-bottom:10px;
+}
+nav{
+flex-direction:column;
+}
+}
+
+/* TITLE */
+.container{
+text-align:center;
+padding:20px;
+}
+
+h1{
+margin-top:10px;
+color:#00e5c0;
+}
+
+/* CARDS */
+.card{
+background:#16161f;
+margin:25px auto;
+padding:30px;
+max-width:950px;
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,0.5);
+text-align:left;
+cursor:default;
+transition:0.3s;
+}
+
+.card:hover{
+transform:scale(1.02);
+}
+
+/* SECTION CONTENT */
+.section-content{
+display:block;
+margin-top:10px;
+line-height:1.6;
+}
+
+/* INPUTS & SELECTS */
+input,select{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+border:1px solid #444;
+background:#222;
+color:white;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:10px;
+background:#00e5c0;
+border:none;
+margin-top:10px;
+cursor:pointer;
+font-weight:bold;
+color:black;
+border-radius:5px;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+/* BACK BUTTON */
+.back-btn{
+display:inline-block;
+margin-bottom:10px;
+color:#00e5c0;
+cursor:pointer;
+font-weight:bold;
+}
+
+/* STATS */
+.stats{
+text-align:center;
+font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+<!-- NAV -->
+<nav>
+<div>
+<img src="logo.png" class="logo">
+</div>
+
+<div>
+<a href="index.html">Home</a>
+<a href="admin.html">Admin</a>
+<a href="student.html">Student</a>
+</div>
+</nav>
+
+<!-- TITLE -->
+<div class="container">
+<h1>STAR ACADEMY SYSTEM</h1>
+<p>Building future doctors, engineers, lawyers and scientists</p>
+</div>
+
+<!-- ABOUT -->
+<div class="card">
+<h2>About Star Academy</h2>
+<div class="section-content">
+Star Academy is a community-based extra lesson program designed to prepare students for university admission.
+It runs every Saturday and Sunday from 8:30am to 6:00pm.
+Students are trained from Primary, Junior Secondary, and Senior Secondary levels. The academy focuses on Science and Arts departments to prepare students for higher education and professional careers.
+</div>
+</div>
+
+<!-- STUDENT SELF-REGISTRATION -->
+<div class="card" id="publicRegisterSection">
+<h2>Register as a New Student</h2>
+<div class="section-content">
+<p>Fill out this form to register yourself into Star Academy. Your unique Student ID will be generated automatically!</p>
+
+<input id="pubName" placeholder="Full Name">
+<input id="pubAge" type="number" placeholder="Age">
+
+<select id="pubGender">
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+
+<input id="pubState" placeholder="State">
+<input id="pubLga" placeholder="Local Government">
+<input id="pubAddress" placeholder="Address">
+<input id="pubPhone" placeholder="Phone Number">
+<input id="pubEmail" placeholder="Student Email">
+
+<select id="pubDepartment">
+<option value="">Department</option>
+<option value="Science">Science</option>
+<option value="Arts">Arts</option>
+</select>
+
+<select id="pubLevel">
+<option value="">Level</option>
+<option>Primary</option>
+<option>Junior Secondary</option>
+<option>Fresh Class</option>
+<option>AI Class</option>
+<option>Level 1</option>
+<option>Level 2</option>
+<option>Level 3</option>
+</select>
+
+<select id="pubSchoolType">
+<option value="">School Type</option>
+<option>Private</option>
+<option>Public</option>
+</select>
+
+<input id="pubSchoolName" placeholder="School Name">
+
+<select id="pubGraduated">
+<option value="">Graduated</option>
+<option>Yes</option>
+<option>No</option>
+</select>
+
+<button onclick="publicRegisterStudent()">Submit Registration</button>
+<p id="pubMsg" style="margin-top:10px; font-weight:bold;"></p>
+</div>
+</div>
+
+<!-- MISSION -->
+<div class="card">
+<h2>Mission</h2>
+<div class="section-content">
+To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
+</div>
+</div>
+
+<!-- VISION -->
+<div class="card">
+<h2>Vision</h2>
+<div class="section-content">
+To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
+</div>
+</div>
+
+<!-- MOTTO -->
+<div class="card">
+<h2>Motto</h2>
+<div class="section-content">
+Learn Today • Lead Tomorrow
+</div>
+</div>
+
+<!-- DEVELOPER INFO -->
+<div class="card">
+<h2>Developer Info</h2>
+<div class="section-content">
+This system was developed by <b>Sulaiman Sunusi Muhammad</b> (Sir Mean).
+A student of Statistics at Bayero University Kano Level 200 and a data science enthusiast, former student and current tutor at Star Academy, and currently serving as an Examination Officer.<br><br>
+Purpose of this system:
+- To solve the lack of proper student record keeping  
+- To digitally manage student data and academic performance  
+- To automatically generate student IDs  
+- To track results, pass/fail rates, and academic progress  
+- To provide data-driven insights for better decision making  
+</div>
+</div>
+
+<!-- LIVE STATS -->
+<div class="card">
+<h2>Live Statistics</h2>
+<div class="stats" id="stats">Loading...</div>
+</div>
+
+</div>
+
+<!-- SCRIPT BLOCK -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-getFirestore, collection, onSnapshot
+getFirestore, collection, onSnapshot, doc, addDoc, runTransaction, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -233,75 +571,124 @@ projectId: "star-academy-system"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function addAI(text){
+/* SMARTER AI ASSISTANT */
+function addAI(sender, text){
 let box = document.getElementById("aiMessages");
-box.innerHTML += "<div style='margin:5px 0;'>" + text + "</div>";
+let align = sender === "user" ? "text-align:right; color:#00e5c0;" : "text-align:left; color:white;";
+let bg = sender === "user" ? "background:#1f1f2e;" : "background:#222;";
+box.innerHTML += `<div style="margin:8px 0; padding:8px; border-radius:6px; ${bg} ${align}">${text}</div>`;
 box.scrollTop = box.scrollHeight;
 }
   
 window.sendAI = function(){
 let input = document.getElementById("aiInput"); 
-let msg = input.value;
+let msg = input.value.trim();
 
-if(!msg || msg.trim() === "") return;
+if(!msg) return;
 
-addAI("👤 " + msg);
+addAI("user", "👤 " + msg);
+input.value = "";
 
-msg = msg.toLowerCase();
-
+let queryText = msg.toLowerCase();
 let reply = "";
 
-/* RESULT PATTERNS */
-if(
-msg.includes("how can i check result") ||
-msg.includes("check result") ||
-msg.includes("my score") ||
-msg.includes("my marks")
-){
-reply = "To check your result:\n1. Go to Student page\n2. Enter your Student ID\n3. Enter Term and Session\n4. Click Search";
-}
-
-/* LOGIN */
-else if(
-msg.includes("login") ||
-msg.includes("admin") ||
-msg.includes("sign in")
-){
-reply = "Admin login is protected 🔐\nOnly authorized staff can access it.\nUse Help Center to contact support.";
-}
-
-/* GREETING */
-else if(
-msg.includes("hello") ||
-msg.includes("hi") ||
-msg.includes("hey")
-){
-reply = "Hello 👋 Welcome to Star Academy AI Assistant Ask me anything.";
-}
-
-/* HELP */
-else if(
-msg.includes("help") ||
-msg.includes("support")
-){
-reply = "You can use Help Center:\n📞 Call\n💬 WhatsApp\n📧 Email";
-}
-
-/* DEFAULT */
-else{
-reply = "I understand your question, but I am still learning from my boss Sulaiman Sir Mean contact Him instead He will help you thank you have a nice day.\nif you have another question Try asking about result, login, or help.";
-}
-
 setTimeout(()=>{
-addAI("🤖 " + reply);
-}, 400);
+if(queryText.includes("result") || queryText.includes("score") || queryText.includes("marks")){
+reply = "📊 <b>Checking Results:</b><br>1. Click on the <b>Student</b> link at the top.<br>2. Enter your Student ID, Age, and Phone Number.<br>3. Select your Term and Session, then click View Result!";
+}
+else if(queryText.includes("register") || queryText.includes("signup") || queryText.includes("admission") || queryText.includes("new student")){
+reply = "📝 <b>Student Registration:</b><br>You can fill out the <b>'Register as a New Student'</b> form right here on the home page! Your unique Student ID will be generated instantly.";
+}
+else if(queryText.includes("login") || queryText.includes("admin") || queryText.includes("officer")){
+reply = "🔐 <b>Admin Portal:</b><br>Admin login is strictly restricted to authorized school management and examination officers via the Admin page.";
+}
+else if(queryText.includes("time") || queryText.includes("schedule") || queryText.includes("days") || queryText.includes("when")){
+reply = "⏰ <b>Schedule:</b><br>Star Academy runs every <b>Saturday and Sunday from 8:30 AM to 6:00 PM</b>.";
+}
+else if(queryText.includes("developer") || queryText.includes("creator") || queryText.includes("sulaiman") || queryText.includes("sir mean")){
+reply = "👨‍💻 <b>Developer Info:</b><br>This system was built by <b>Sulaiman Sunusi Muhammad (Sir Mean)</b>, a 200-level Statistics student at Bayero University Kano (BUK) and Examination Officer at Star Academy!";
+}
+else if(queryText.includes("help") || queryText.includes("contact") || queryText.includes("phone") || queryText.includes("whatsapp")){
+reply = "📞 <b>Support Center:</b><br>You can reach out using the <b>Help Including AI Support</b> button at the bottom-left of the screen for direct calls or WhatsApp chats!";
+}
+else if(queryText.includes("hello") || queryText.includes("hi") || queryText.includes("hey")){
+reply = "Hello! 👋 Welcome to Star Academy. How can I assist you today? You can ask me about results, registration, class schedules, or the developer!";
+}
+else{
+reply = "🤖 I understand your question, but for specialized inquiries, please contact my boss <b>Sulaiman (Sir Mean)</b> through the Help Center. Feel free to ask about results, registration, or class schedules!";
+}
 
-input.value = "";
+addAI("ai", "🤖 " + reply);
+}, 500);
 };
 
-/* TOGGLE */
+/* PUBLIC STUDENT SELF-REGISTRATION */
+window.publicRegisterStudent = async () => {
+let nameVal = document.getElementById("pubName").value.trim();
+let phoneVal = document.getElementById("pubPhone").value.trim();
+let emailVal = document.getElementById("pubEmail").value.trim();
+let dept = document.getElementById("pubDepartment").value;
+let msgBox = document.getElementById("pubMsg");
 
-/* CLOSE WITH BACK BUTTON */
+if(!nameVal || !phoneVal || !dept){
+alert("Please fill in required fields (Name, Phone, Department)");
+return;
+}
+
+msgBox.innerText = "Processing registration...";
+
+try {
+/* duplicate check */
+let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
+let q2 = query(collection(db,"students"), where("email","==",emailVal));
+
+let [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+if(!snap1.empty || !snap2.empty){
+msgBox.innerText = "❌ Student with this phone number or email already exists!";
+return;
+}
+
+/* ID counter transaction matching admin logic */
+let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
+
+let id = await runTransaction(db, async (tx)=>{
+let snap = await tx.get(ref);
+let count = snap.exists() ? snap.data().count+1 : 1;
+tx.set(ref,{count});
+
+return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
+});
+
+/* SAVE TO FIRESTORE */
+await addDoc(collection(db,"students"),{
+studentID: id,
+name: nameVal,
+age: document.getElementById("pubAge").value,
+gender: document.getElementById("pubGender").value,
+state: document.getElementById("pubState").value,
+lga: document.getElementById("pubLga").value,
+address: document.getElementById("pubAddress").value,
+phone: phoneVal,
+email: emailVal,
+department: dept,
+level: document.getElementById("pubLevel").value,
+schoolType: document.getElementById("pubSchoolType").value,
+schoolName: document.getElementById("pubSchoolName").value,
+graduated: document.getElementById("pubGraduated").value,
+createdAt: Date.now()
+});
+
+msgBox.innerHTML = `✅ Registration Successful! Your Student ID is: <b style="color:#00e5c0">${id}</b>. Please save it to check your results.`;
+
+/* clear fields */
+document.querySelectorAll("#publicRegisterSection input").forEach(i=>i.value="");
+document.querySelectorAll("#publicRegisterSection select").forEach(s=>s.value="");
+
+} catch (e) {
+msgBox.innerText = "❌ Error: " + e.message;
+}
+};
 
 /* LIVE STATS */
 onSnapshot(collection(db,"students"),snap=>{
@@ -329,8 +716,8 @@ overflow:hidden;
   
 <!-- BACK BUTTON -->
 <div onclick="document.getElementById('aiBox').style.display='none'" 
-style="padding:10px; cursor:pointer;">
-← Back
+style="padding:10px; cursor:pointer; background:#111; color:#00e5c0; font-weight:bold;">
+← Close
 </div>
 
 <!-- HEADER -->
@@ -345,7 +732,7 @@ font-weight:bold;
 
 <!-- MESSAGES -->
 <div id="aiMessages" style="
-height:80%;
+height:68%;
 overflow:auto;
 padding:10px;
 font-size:14px;
@@ -359,12 +746,17 @@ flex:1;
 padding:10px;
 border:none;
 outline:none;
+background:#222;
+color:white;
 ">
 <button onclick="sendAI()" style="
 background:#00e5c0;
 border:none;
 padding:10px;
 cursor:pointer;
+font-weight:bold;
+width:80px;
+margin-top:0;
 ">
 Send
 </button>
@@ -389,7 +781,6 @@ font-size:13px;
 💬 Help Including AI Support
 </div>
 
-
 <!-- HELP BOX -->
 <div id="helpBox" style="
 display:none;
@@ -408,19 +799,18 @@ overflow:auto;
 <div onclick="closeHelp()" style="
 margin-bottom:10px;
 cursor:pointer;
+color:#00e5c0;
+font-weight:bold;
 ">
 ← Back
 </div>
 
 <h3 style="color:#00e5c0">Help Center</h3>
-
 <p>Choose option:</p>
 
-<a href="tel:07087672424" style="color:white;display:block;margin:8px 0;">📞 Call Admin</a>
-
-<a href="mailto:sulaimansunusi783@gmail.com" style="color:white;display:block;margin:8px 0;">📧 Send Email</a>
-
-<a href="https://wa.me/2347087672424" target="_blank" style="color:white;display:block;margin:8px 0;">💬 WhatsApp</a>
+<a href="tel:07087672424" style="color:white;display:block;margin:12px 0;text-decoration:none;">📞 Call Admin</a>
+<a href="mailto:sulaimansunusi783@gmail.com" style="color:white;display:block;margin:12px 0;text-decoration:none;">📧 Send Email</a>
+<a href="https://wa.me/2347087672424" target="_blank" style="color:white;display:block;margin:12px 0;text-decoration:none;">💬 WhatsApp</a>
 
 <button onclick="closeHelp(); openAI();" style="
 width:100%;
@@ -430,24 +820,24 @@ border:none;
 padding:10px;
 font-weight:bold;
 cursor:pointer;
+color:black;
 ">
 🤖 Ask AI Assistant
 </button>
 
-<!-- CLOSE BUTTON -->
 <button onclick="closeHelp()" style="
 width:100%;
 margin-top:10px;
-background:red;
+background:#ff4d4d;
 border:none;
 padding:10px;
 color:white;
+font-weight:bold;
 ">
 Close
 </button>
 
-</div> <!-- END OF helpBox -->
-
+</div>
 
 <script>
 window.openHelp = function(){
@@ -457,19 +847,20 @@ document.getElementById("helpBox").style.display = "block";
 window.closeHelp = function(){
 document.getElementById("helpBox").style.display = "none";
 };
- window.openAI = function(){
+
+window.openAI = function(){
 document.getElementById("aiBox").style.display = "block";
 }; 
 </script>
+
 <div style="
 text-align:center;
 margin-top:40px;
 padding:20px;
 color:#aaa;
 ">
-Sulaiman "Sir Mean"  Future Data Scientist © 2026 / Star Academy System
-
-</div>  <!-- this is overlay closing -->
+Sulaiman "Sir Mean" Future Data Scientist © 2026 / Star Academy System
+</div>
 
 </body>
 </html>
