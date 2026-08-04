@@ -350,6 +350,42 @@ button:disabled {
     flex-shrink: 0;
     box-shadow: var(--shadow-sm);
 }
+
+/* --- PRINT STYLES FOR EXAM CARDS --- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #examCardPreviewContainer, #examCardPreviewContainer * {
+        visibility: visible;
+    }
+    #examCardPreviewContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .exam-card-print-wrap {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+
+.exam-card-print-wrap {
+    background: #FFFFFF;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}    
+    
 </style>
 
 
@@ -517,6 +553,7 @@ button:disabled {
 <button onclick="showSection('promotionHistorySection')" style="background-color: #0284C7;">Promotion History</button>
 <button onclick="showSection('graduationSection')" style="background-color: #7C3AED;">Graduation Processing</button>
 <button onclick="showSection('settingsSection')" style="background-color: #475569;">School Settings & Branding</button>
+<button onclick="showSection('examCardSection')" style="background-color: var(--primary);">Examination Card Generator</button>
 <button onclick="showSection('deleteSection')" class="btn-danger">Delete Student</button>
 </div>
 </div>
@@ -799,6 +836,63 @@ button:disabled {
 </div>
 
 <button onclick="saveSchoolSettings()" style="background-color: var(--success); margin-top: 20px;">Save Institutional Settings</button>
+</div>
+
+<!-- EXAMINATION CARD SECTION -->
+<div id="examCardSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Examination Card Generator & Management</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Generate official examination photo-cards for single students or batch classes with assigned seat numbers, venues, and registered subjects.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Academic Session</label>
+        <input id="examCardSession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Term Assessment</label>
+        <select id="examCardTerm">
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option selected>Third Term</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Target Class Level</label>
+        <select id="examCardClass" onchange="loadClassStudentsForExamCard()">
+            <option value="">Select Class Level</option>
+            <option>Primary</option>
+            <option>Junior Secondary</option>
+            <option>Fresh Class</option>
+            <option>AI Class</option>
+            <option>Level 1</option>
+            <option>Level 2</option>
+            <option>Level 3</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Examination Venue</label>
+        <input id="examCardVenue" placeholder="e.g. Main Hall A">
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Examination Date</label>
+        <input id="examCardDate" type="date">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Single Student ID (Optional)</label>
+        <input id="examCardSingleID" placeholder="e.g. STA/2026/SCI/00001">
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:20px;">
+    <button onclick="generateExamCardsPreview()" style="background-color: var(--primary);">Preview / Generate Exam Cards</button>
+    <button onclick="printExamCards()" style="background-color: var(--success);" id="printExamCardBtn" disabled>Print / Download Cards (A4)</button>
+</div>
+
+<div id="examCardPreviewContainer" style="margin-top:25px;"></div>
 </div>
     
 <!-- STUDENT -->
@@ -1249,6 +1343,7 @@ document.getElementById("promotionSection").classList.add("hidden");
 document.getElementById("promotionHistorySection").classList.add("hidden");
 document.getElementById("graduationSection").classList.add("hidden");
 document.getElementById("settingsSection").classList.add("hidden");
+document.getElementById("examCardSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
@@ -1277,6 +1372,7 @@ document.getElementById("promotionSection").classList.add("hidden");
 document.getElementById("promotionHistorySection").classList.add("hidden");
 document.getElementById("graduationSection").classList.add("hidden");
 document.getElementById("settingsSection").classList.add("hidden");
+document.getElementById("examCardSection").classList.add("hidden");
 updateDashboardTotals();
 };
      
@@ -2680,6 +2776,165 @@ window.getSchoolConfig = async () => {
         signUrl: "",
         stampUrl: ""
     };
+};
+
+/* --- PHASE 5: EXAMINATION CARD GENERATOR SYSTEM --- */
+
+window.loadClassStudentsForExamCard = async () => {
+    let selectedClass = document.getElementById("examCardClass").value;
+    if (!selectedClass) return;
+    showToast(`Loaded class parameters for ${selectedClass}`, "info");
+};
+
+window.generateExamCardsPreview = async () => {
+    let session = document.getElementById("examCardSession").value.trim();
+    let term = document.getElementById("examCardTerm").value;
+    let targetClass = document.getElementById("examCardClass").value;
+    let venue = document.getElementById("examCardVenue").value.trim() || "Main Exam Hall";
+    let examDate = document.getElementById("examCardDate").value || "TBA";
+    let singleID = document.getElementById("examCardSingleID").value.trim();
+    let container = document.getElementById("examCardPreviewContainer");
+    let printBtn = document.getElementById("printExamCardBtn");
+
+    if (!session || !targetClass) {
+        showToast("Please provide an Academic Session and Target Class Level.", "error");
+        return;
+    }
+
+    try {
+        showToast("Generating examination cards...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Compiling candidate registration and subjects...</p>`;
+        printBtn.disabled = true;
+
+        let config = await getSchoolConfig();
+
+        let studentsQuery;
+        if (singleID) {
+            studentsQuery = query(collection(db, "students"), where("studentID", "==", singleID));
+        } else {
+            studentsQuery = query(collection(db, "students"), where("level", "==", targetClass));
+        }
+
+        let studentSnap = await getDocs(studentsQuery);
+        if (studentSnap.empty) {
+            container.innerHTML = `<div class="empty-state"><h4>No students found matching criteria.</h4></div>`;
+            return;
+        }
+
+        let cardsHtml = "";
+        let seatCounter = 101;
+        let generatedRecords = [];
+
+        studentSnap.forEach(docSnap => {
+            let s = docSnap.data();
+            let seatNo = `SEAT-${String(seatCounter++).padStart(3, '0')}`;
+            let docNumber = `EXAM-CARD-${Math.floor(100000 + Math.random() * 900000)}`;
+
+            // Determine subjects based on level/department
+            let subjectsList = [];
+            if (s.level === "Fresh Class") {
+                subjectsList = ["General English", "Oral English", "Grammar", "Public Speaking", "Novel"];
+            } else if (s.department === "Science") {
+                subjectsList = ["Mathematics", "English", "Biology", "Chemistry", "Physics"];
+            } else {
+                subjectsList = ["Literature", "Government", "Economics", "Islamic Studies", "English"];
+            }
+
+            let subjectsRows = subjectsList.map(sub => `<tr><td style="padding:4px 8px; border:1px solid #CBD5E1; font-size:0.85rem;">${sub}</td><td style="padding:4px 8px; border:1px solid #CBD5E1; text-align:center; font-size:0.85rem;">[ &nbsp; ]</td></tr>`).join("");
+
+            let initial = s.name ? s.name.charAt(0).toUpperCase() : "S";
+            let passportHtml = s.photoUrl ? 
+                `<img src="${s.photoUrl}" style="width:75px; height:85px; object-fit:cover; border:1px solid var(--border-color); border-radius:4px;" alt="Passport">` :
+                `<div style="width:75px; height:85px; background:var(--primary); color:#fff; font-size:1.8rem; font-weight:800; display:flex; align-items:center; justify-content:center; border-radius:4px;">${initial}</div>`;
+
+            cardsHtml += `
+            <div class="exam-card-print-wrap">
+                <!-- Header -->
+                <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid var(--primary); padding-bottom:12px; margin-bottom:15px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <img src="${config.logoUrl || 'logo.png'}" style="height:45px; width:auto;" alt="Logo">
+                        <div>
+                            <h3 style="margin:0; font-size:1.1rem; color:var(--text-main);">${config.schoolName || 'Star Academy'}</h3>
+                            <p style="margin:0; font-size:0.75rem; color:var(--text-muted);">${config.address || ''} | Tel: ${config.phone || ''}</p>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="background:var(--primary); color:#fff; padding:3px 8px; font-size:0.75rem; font-weight:700; border-radius:4px;">OFFICIAL EXAM CARD</span>
+                        <div style="font-size:0.7rem; color:var(--text-muted); margin-top:3px;">ID: ${docNumber}</div>
+                    </div>
+                </div>
+
+                <!-- Body Details -->
+                <div style="display:grid; grid-template-columns: 85px 1fr auto; gap:15px; align-items:start;">
+                    <div>${passportHtml}</div>
+                    <div>
+                        <h4 style="margin:0 0 4px 0; font-size:1.05rem; color:var(--text-main);">${s.name}</h4>
+                        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:4px 15px; font-size:0.85rem; color:var(--text-muted);">
+                            <div><b>Admission No:</b> ${s.studentID}</div>
+                            <div><b>Class Level:</b> ${s.level}</div>
+                            <div><b>Department:</b> ${s.department || 'N/A'}</div>
+                            <div><b>Gender:</b> ${s.gender || 'N/A'}</div>
+                            <div><b>Session:</b> ${session}</div>
+                            <div><b>Term:</b> ${term}</div>
+                            <div><b>Venue:</b> <span style="color:var(--primary); font-weight:600;">${venue}</span></div>
+                            <div><b>Exam Date:</b> <span style="color:var(--success); font-weight:600;">${examDate}</span></div>
+                        </div>
+                    </div>
+                    <div style="text-align:center; background:var(--bg-main); padding:8px; border:1px dashed var(--border-color); border-radius:4px;">
+                        <div style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">SEAT NUMBER</div>
+                        <div style="font-size:1.1rem; font-weight:800; color:var(--primary); margin-top:2px;">${seatNo}</div>
+                        <div style="font-size:0.65rem; color:#64748B; margin-top:4px;">[ QR VERIFY ]</div>
+                    </div>
+                </div>
+
+                <!-- Registered Subjects Table -->
+                <div style="margin-top:15px;">
+                    <div style="font-size:0.8rem; font-weight:700; margin-bottom:5px; color:var(--text-main);">Registered Examination Subjects & Attendance Signatures:</div>
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:var(--bg-main);">
+                                <th style="padding:4px 8px; border:1px solid #CBD5E1; text-align:left; font-size:0.8rem;">Subject Name</th>
+                                <th style="padding:4px 8px; border:1px solid #CBD5E1; text-align:center; font-size:0.8rem; width:120px;">Invigilator Sign</th>
+                            </tr>
+                        </thead>
+                        <tbody>${subjectsRows}</tbody>
+                    </table>
+                </div>
+
+                <!-- Footer Instructions -->
+                <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:flex-end; font-size:0.75rem; color:var(--text-muted); border-top:1px solid var(--border-color); pt:8px;">
+                    <div>
+                        <b>Instructions:</b> Candidate must present this card at the entrance of every exam hall. No mobile phones allowed.
+                    </div>
+                    <div style="text-align:center;">
+                        ${config.signUrl ? `<img src="${config.signUrl}" style="height:30px; display:block; margin:0 auto;" alt="Sign">` : '<div style="height:25px;"></div>'}
+                        <div style="border-top:1px solid #000; width:110px; font-size:0.7rem; margin-top:2px;">Principal Signature</div>
+                    </div>
+                </div>
+            </div>`;
+
+            generatedRecords.push({
+                studentID: s.studentID,
+                documentNumber: docNumber,
+                session: session,
+                term: term,
+                type: "Examination Card",
+                createdAt: Date.now()
+            });
+        });
+
+        container.innerHTML = cardsHtml;
+        printBtn.disabled = false;
+        showToast("Examination cards generated successfully!", "success");
+
+    } catch (e) {
+        showToast("Error generating cards: " + e.message, "error");
+        container.innerHTML = "";
+    }
+};
+
+window.printExamCards = () => {
+    window.print();
 };
      
 </script>
