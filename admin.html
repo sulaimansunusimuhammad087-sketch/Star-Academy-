@@ -385,6 +385,44 @@ button:disabled {
     box-shadow: var(--shadow-sm);
     position: relative;
 }    
+
+/* --- PRINT STYLES FOR CERTIFICATES --- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #certificatePreviewContainer, #certificatePreviewContainer * {
+        visibility: visible;
+    }
+    #certificatePreviewContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .certificate-print-wrap {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 8px double #1E293B !important;
+        margin: 0 auto;
+    }
+}
+
+.certificate-print-wrap {
+    background: #FFFDF9;
+    border: 8px double #1E293B;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 850px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    text-align: center;
+    font-family: 'Plus Jakarta Sans', serif;
+}    
     
 </style>
 
@@ -554,6 +592,7 @@ button:disabled {
 <button onclick="showSection('graduationSection')" style="background-color: #7C3AED;">Graduation Processing</button>
 <button onclick="showSection('settingsSection')" style="background-color: #475569;">School Settings & Branding</button>
 <button onclick="showSection('examCardSection')" style="background-color: var(--primary);">Examination Card Generator</button>
+ <button onclick="showSection('certificateSection')" style="background-color: #D97706;">Certificate Generator & Management</button>   
 <button onclick="showSection('deleteSection')" class="btn-danger">Delete Student</button>
 </div>
 </div>
@@ -893,6 +932,51 @@ button:disabled {
 </div>
 
 <div id="examCardPreviewContainer" style="margin-top:25px;"></div>
+</div>
+
+<!-- CERTIFICATE MANAGEMENT SECTION -->
+<div id="certificateSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Certificate Generator & Management</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Generate official institutional certificates for graduation, excellence, awards, and participation with dynamic school branding and signatures.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Certificate Type</label>
+        <select id="certType">
+            <option>Graduation Certificate</option>
+            <option>Certificate of Completion</option>
+            <option>Certificate of Excellence</option>
+            <option>Best Student Award</option>
+            <option>Outstanding Performance Certificate</option>
+            <option>Participation Certificate</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Student ID</label>
+        <input id="certStudentID" placeholder="e.g. STA/2026/SCI/00001">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Academic Session</label>
+        <input id="certSession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Term (Optional)</label>
+        <select id="certTerm">
+            <option value="">N/A (Annual / General)</option>
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option>Third Term</option>
+        </select>
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:20px;">
+    <button onclick="generateCertificatePreview()" style="background-color: var(--primary);">Preview Certificate</button>
+    <button onclick="printCertificate()" style="background-color: var(--success);" id="printCertBtn" disabled>Print / Download Certificate (A4)</button>
+</div>
+
+<div id="certificatePreviewContainer" style="margin-top:25px; overflow-x:auto;"></div>
 </div>
     
 <!-- STUDENT -->
@@ -1344,6 +1428,7 @@ document.getElementById("promotionHistorySection").classList.add("hidden");
 document.getElementById("graduationSection").classList.add("hidden");
 document.getElementById("settingsSection").classList.add("hidden");
 document.getElementById("examCardSection").classList.add("hidden");
+document.getElementById("certificateSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
@@ -1373,6 +1458,7 @@ document.getElementById("promotionHistorySection").classList.add("hidden");
 document.getElementById("graduationSection").classList.add("hidden");
 document.getElementById("settingsSection").classList.add("hidden");
 document.getElementById("examCardSection").classList.add("hidden");
+document.getElementById("certificateSection").classList.add("hidden");
 updateDashboardTotals();
 };
      
@@ -2934,6 +3020,123 @@ window.generateExamCardsPreview = async () => {
 };
 
 window.printExamCards = () => {
+    window.print();
+};
+
+/* --- PHASE 5: CERTIFICATE MANAGEMENT SYSTEM --- */
+
+window.generateCertificatePreview = async () => {
+    let certType = document.getElementById("certType").value;
+    let studentID = document.getElementById("certStudentID").value.trim();
+    let session = document.getElementById("certSession").value.trim();
+    let term = document.getElementById("certTerm").value;
+    let container = document.getElementById("certificatePreviewContainer");
+    let printBtn = document.getElementById("printCertBtn");
+
+    if (!studentID || !session) {
+        showToast("Please enter a Student ID and Academic Session.", "error");
+        return;
+    }
+
+    try {
+        showToast("Generating certificate preview...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Retrieving candidate records and school assets...</p>`;
+        printBtn.disabled = true;
+
+        let config = await getSchoolConfig();
+
+        let studentQuery = query(collection(db, "students"), where("studentID", "==", studentID));
+        let studentSnap = await getDocs(studentQuery);
+
+        if (studentSnap.empty) {
+            container.innerHTML = `<div class="empty-state"><h4>Student ID not found in database.</h4></div>`;
+            return;
+        }
+
+        let s = studentSnap.docs[0].data();
+        let certNumber = `CERT-${Math.floor(100000 + Math.random() * 900000)}`;
+        let issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        let initial = s.name ? s.name.charAt(0).toUpperCase() : "S";
+        let passportHtml = s.photoUrl ? 
+            `<img src="${s.photoUrl}" style="width:90px; height:100px; object-fit:cover; border:3px solid #1E293B; border-radius:6px; box-shadow:var(--shadow-sm);" alt="Student Photo">` :
+            `<div style="width:90px; height:100px; background:var(--primary); color:#fff; font-size:2.2rem; font-weight:800; display:flex; align-items:center; justify-content:center; border-radius:6px; margin:0 auto;">${initial}</div>`;
+
+        let subtitleText = "";
+        if (certType === "Graduation Certificate") {
+            subtitleText = "This is proudly presented to";
+        } else if (certType.includes("Excellence") || certType.includes("Award")) {
+            subtitleText = "In recognition of outstanding academic distinction and merit, this is awarded to";
+        } else {
+            subtitleText = "This certificate of recognition is awarded to";
+        }
+
+        let certHtml = `
+        <div class="certificate-print-wrap">
+            <!-- Decorative Inner Border / Watermark background feel -->
+            <div style="position:absolute; top:15px; left:15px; right:15px; bottom:15px; border:1px solid #94A3B8; pointer-events:none; border-radius:8px;"></div>
+
+            <!-- Header Branding -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <img src="${config.logoUrl || 'logo.png'}" style="height:65px; width:auto;" alt="Logo">
+                <div style="text-align:center; flex-grow:1;">
+                    <h2 style="margin:0; font-size:1.6rem; color:#0F172A; font-weight:800; letter-spacing:0.05em;">${config.schoolName || 'STAR ACADEMY'}</h2>
+                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; font-style:italic;">${config.schoolMotto || ''}</p>
+                    <p style="margin:2px 0 0 0; font-size:0.75rem; color:#64748B;">${config.address || ''}</p>
+                </div>
+                <div style="width:65px;"></div>
+            </div>
+
+            <!-- Title -->
+            <div style="margin:25px 0 15px 0;">
+                <h1 style="font-family:'Plus Jakarta Sans', sans-serif; font-size:2.2rem; color:#1E3A8A; margin:0; text-transform:uppercase; letter-spacing:0.08em;">${certType}</h1>
+                <div style="width:120px; height:3px; background:#D97706; margin:8px auto 0 auto;"></div>
+            </div>
+
+            <!-- Subtitle & Name -->
+            <p style="font-size:1.05rem; color:#334155; margin:20px 0 10px 0; font-style:italic;">${subtitleText}</p>
+            
+            <div style="margin:15px 0;">
+                <h2 style="font-size:2.4rem; color:#0F172A; font-weight:800; border-bottom:2px solid #CBD5E1; display:inline-block; padding:0 30px 4px 30px; margin:0; font-family:'Plus Jakarta Sans', sans-serif;">${s.name}</h2>
+            </div>
+
+            <div style="margin:15px auto; width:90px;">
+                ${passportHtml}
+            </div>
+
+            <!-- Details Description -->
+            <p style="font-size:1rem; color:#334155; max-width:650px; margin:15px auto; line-height:1.6;">
+                Admission Number <b>${s.studentID}</b> of class <b>${s.level} (${s.department || 'General'})</b>, having successfully completed the prescribed coursework, assessments, and met all academic requirements for the <b>${session}</b> academic session ${term ? '('+term+')' : ''}.
+            </p>
+
+            <!-- Signatures & Stamps Footer -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:40px; padding:0 30px;">
+                <div style="text-align:center;">
+                    <div style="font-size:0.8rem; font-weight:700; color:#64748B;">CERTIFICATE NO</div>
+                    <div style="font-size:0.9rem; font-weight:800; color:#0F172A; margin-top:2px;">${certNumber}</div>
+                    <div style="font-size:0.75rem; color:#64748B; margin-top:4px;">Issued: ${issueDate}</div>
+                </div>
+
+                <div style="text-align:center; position:relative;">
+                    ${config.stampUrl ? `<img src="${config.stampUrl}" style="width:75px; height:75px; object-fit:contain; position:absolute; bottom:20px; left:-40px; opacity:0.85;" alt="Stamp">` : ''}
+                    ${config.signUrl ? `<img src="${config.signUrl}" style="height:45px; display:block; margin:0 auto;" alt="Signature">` : '<div style="height:35px;"></div>'}
+                    <div style="border-top:2px solid #1E293B; width:160px; font-size:0.85rem; font-weight:700; margin-top:4px; color:#0F172A;">${config.principalName || 'Principal'}</div>
+                    <div style="font-size:0.75rem; color:#64748B;">Principal / Director</div>
+                </div>
+            </div>
+        </div>`;
+
+        container.innerHTML = certHtml;
+        printBtn.disabled = false;
+        showToast("Certificate preview generated successfully!", "success");
+
+    } catch (e) {
+        showToast("Error generating certificate: " + e.message, "error");
+        container.innerHTML = "";
+    }
+};
+
+window.printCertificate = () => {
     window.print();
 };
      
