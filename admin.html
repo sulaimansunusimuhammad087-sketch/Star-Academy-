@@ -516,6 +516,7 @@ button:disabled {
 <button onclick="showSection('promotionSection')" style="background-color: #059669;">Batch Student Promotion</button>
 <button onclick="showSection('promotionHistorySection')" style="background-color: #0284C7;">Promotion History</button>
 <button onclick="showSection('graduationSection')" style="background-color: #7C3AED;">Graduation Processing</button>
+<button onclick="showSection('settingsSection')" style="background-color: #475569;">School Settings & Branding</button>
 <button onclick="showSection('deleteSection')" class="btn-danger">Delete Student</button>
 </div>
 </div>
@@ -722,6 +723,62 @@ button:disabled {
 <button onclick="loadGraduationCandidates()" style="background-color: var(--secondary); margin-top: 15px;">Load Level 3 Graduation Candidates</button>
 
 <div id="graduationCandidatesContainer" style="margin-top: 20px;"></div>
+</div>
+
+<!-- SCHOOL SETTINGS SECTION -->
+<div id="settingsSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>School Settings & Branding Configuration</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Configure global institutional parameters, school headers, contact details, and digital authorization assets used across all academic documents.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">School Name</label>
+        <input id="setSchoolName" placeholder="e.g. Star Academy">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">School Motto</label>
+        <input id="setSchoolMotto" placeholder="e.g. Excellence & Integrity">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Phone Number</label>
+        <input id="setPhone" placeholder="e.g. 08012345678">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Email Address</label>
+        <input id="setEmail" type="email" placeholder="info@staracademy.edu">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Official Website</label>
+        <input id="setWebsite" placeholder="www.staracademy.edu">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Principal Name</label>
+        <input id="setPrincipalName" placeholder="Dr. Administrator">
+    </div>
+</div>
+
+<div style="margin-top: 15px;">
+    <label style="font-size:0.85rem; font-weight:600;">School Physical Address</label>
+    <input id="setAddress" placeholder="Full institutional address...">
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Logo Image URL</label>
+        <input id="setLogoUrl" placeholder="logo.png or image URL">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Principal Signature Image URL</label>
+        <input id="setSignUrl" placeholder="signature.png or image URL">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">School Stamp Image URL</label>
+        <input id="setStampUrl" placeholder="stamp.png or image URL">
+    </div>
+</div>
+
+<button onclick="saveSchoolSettings()" style="background-color: var(--success); margin-top: 20px;">Save Institutional Settings</button>
 </div>
     
 <!-- STUDENT -->
@@ -1171,6 +1228,7 @@ document.getElementById("manageSection").classList.add("hidden");
 document.getElementById("promotionSection").classList.add("hidden");
 document.getElementById("promotionHistorySection").classList.add("hidden");
 document.getElementById("graduationSection").classList.add("hidden");
+document.getElementById("settingsSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
@@ -1179,6 +1237,9 @@ if(id === 'manageSection') {
 }
 if(id === 'promotionHistorySection') {
     loadPromotionHistory();
+}
+if(id === 'settingsSection') {
+    loadSchoolSettings();
 }
 if(id === 'dashboard' || id === 'menu') {
     updateDashboardTotals();
@@ -1195,6 +1256,7 @@ document.getElementById("manageSection").classList.add("hidden");
 document.getElementById("promotionSection").classList.add("hidden");
 document.getElementById("promotionHistorySection").classList.add("hidden");
 document.getElementById("graduationSection").classList.add("hidden");
+document.getElementById("settingsSection").classList.add("hidden");
 updateDashboardTotals();
 };
      
@@ -2462,6 +2524,80 @@ window.processStudentGraduation = async (docId, studentID, studentName, session,
     } catch (e) {
         showToast("Error processing graduation: " + e.message, "error");
     }
+};
+
+/* --- PHASE 5: SCHOOL SETTINGS & GLOBAL CONFIGURATION --- */
+
+// Load Settings on Startup / Section View
+window.loadSchoolSettings = async () => {
+    try {
+        let docRef = doc(db, "schoolSettings", "globalConfig");
+        let docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            let s = docSnap.data();
+            document.getElementById("setSchoolName").value = s.schoolName || "";
+            document.getElementById("setSchoolMotto").value = s.schoolMotto || "";
+            document.getElementById("setPhone").value = s.phone || "";
+            document.getElementById("setEmail").value = s.email || "";
+            document.getElementById("setWebsite").value = s.website || "";
+            document.getElementById("setPrincipalName").value = s.principalName || "";
+            document.getElementById("setAddress").value = s.address || "";
+            document.getElementById("setLogoUrl").value = s.logoUrl || "logo.png";
+            document.getElementById("setSignUrl").value = s.signUrl || "";
+            document.getElementById("setStampUrl").value = s.stampUrl || "";
+        }
+    } catch (e) {
+        console.error("Error loading school settings:", e);
+    }
+};
+
+// Save Settings to Firestore
+window.saveSchoolSettings = async () => {
+    try {
+        showToast("Saving institutional configuration...", "info");
+        let docRef = doc(db, "schoolSettings", "globalConfig");
+
+        let settingsData = {
+            schoolName: document.getElementById("setSchoolName").value.trim(),
+            schoolMotto: document.getElementById("setSchoolMotto").value.trim(),
+            phone: document.getElementById("setPhone").value.trim(),
+            email: document.getElementById("setEmail").value.trim(),
+            website: document.getElementById("setWebsite").value.trim(),
+            principalName: document.getElementById("setPrincipalName").value.trim(),
+            address: document.getElementById("setAddress").value.trim(),
+            logoUrl: document.getElementById("setLogoUrl").value.trim() || "logo.png",
+            signUrl: document.getElementById("setSignUrl").value.trim(),
+            stampUrl: document.getElementById("setStampUrl").value.trim(),
+            updatedAt: Date.now()
+        };
+
+        await updateDoc(docRef, settingsData).catch(async () => {
+            // If document doesn't exist yet, create it via setDoc/addDoc equivalent
+            await addDoc(collection(db, "schoolSettings"), settingsData);
+        });
+
+        showToast("School settings saved successfully ✔", "success");
+    } catch (e) {
+        showToast("Error saving settings: " + e.message, "error");
+    }
+};
+
+// Helper to retrieve cached config for all future document generators
+window.getSchoolConfig = async () => {
+    try {
+        let docRef = doc(db, "schoolSettings", "globalConfig");
+        let docSnap = await getDoc(docRef);
+        if (docSnap.exists()) return docSnap.data();
+    } catch (e) {}
+    return {
+        schoolName: "Star Academy",
+        schoolMotto: "Excellence & Integrity",
+        logoUrl: "logo.png",
+        address: "Main Campus, Academic Zone",
+        phone: "08000000000",
+        principalName: "Dr. Administrator"
+    };
 };
      
 </script>
