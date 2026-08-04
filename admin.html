@@ -283,7 +283,59 @@ button:disabled {
     max-width: 420px;
     margin: 80px auto;
 }
+
+/* --- TOAST NOTIFICATIONS --- */
+#toastContainer {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: #0F172A;
+    color: #FFFFFF;
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideInRight 0.3s ease forwards;
+    border-left: 4px solid var(--primary);
+}
+
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--error); }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* --- EMPTY STATE & PAGINATION --- */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+.empty-state h4 { color: var(--text-main); margin-bottom: 8px; }
+
+.pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
 </style>
+
 </head>
 
 <body>
@@ -401,14 +453,39 @@ button:disabled {
 <div id="manageSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
 
-<h3>Search & Edit Student</h3>
+<h3>Search & Manage Students</h3>
 
-<input id="searchInput" placeholder="Search by ID, Name, or Level">
+<div class="stats-grid" style="margin-bottom: 20px;">
+    <div class="stat-card">
+        <h4>Total Database Students</h4>
+        <div class="stat-value" id="statTotalStudents">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--success);">
+        <h4>Search Results Match</h4>
+        <div class="stat-value" id="statSearchResults">0</div>
+    </div>
+</div>
 
-<button id="searchBtn" onclick="searchStudent()">Search</button>
+<div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+    <input id="searchInput" placeholder="Type to search by ID, Name, Phone, Email, Dept, Level, School, State..." oninput="handleLiveSearch()">
+    <select id="sortSelect" onchange="handleLiveSearch()" style="margin: 0; width: 180px;">
+        <option value="newest">Sort: Newest First</option>
+        <option value="oldest">Sort: Oldest First</option>
+        <option value="az">Sort: Name (A-Z)</option>
+        <option value="za">Sort: Name (Z-A)</option>
+        <option value="id">Sort: Student ID</option>
+    </select>
+</div>
+
+<button id="searchBtn" onclick="searchStudent()" style="margin-top: 10px;">Search Database</button>
 
 <div id="searchResults"></div>
 
+<div class="pagination-bar" id="paginationBar" style="display: none;">
+    <button id="prevPageBtn" onclick="changePage(-1)" class="btn-secondary" style="width: auto; padding: 8px 16px; margin: 0;">Previous</button>
+    <span id="pageIndicator" style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Page 1 of 1</span>
+    <button id="nextPageBtn" onclick="changePage(1)" class="btn-secondary" style="width: auto; padding: 8px 16px; margin: 0;">Next</button>
+</div>
 </div>
   
 <!-- STUDENT -->
@@ -418,9 +495,9 @@ button:disabled {
 <h3>Student Registration</h3>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px;">
-    <div><label style="font-size:0.85rem; font-weight:600;">Full Name</label><input id="name" placeholder="Full Name"></div>
-    <div><label style="font-size:0.85rem; font-weight:600;">Age</label><input id="age" type="number" placeholder="Age"></div>
-    <div><label style="font-size:0.85rem; font-weight:600;">Gender</label>
+    <div><label style="font-size:0.85rem; font-weight:600;">Full Name *</label><input id="name" placeholder="Full Name (Min 3 characters)"></div>
+    <div><label style="font-size:0.85rem; font-weight:600;">Age * (5 - 80)</label><input id="age" type="number" min="5" max="80" placeholder="Age"></div>
+    <div><label style="font-size:0.85rem; font-weight:600;">Gender *</label>
         <select id="gender">
         <option value="">Select Gender</option>
         <option>Male</option>
@@ -429,16 +506,16 @@ button:disabled {
     </div>
     <div><label style="font-size:0.85rem; font-weight:600;">State of Origin</label><input id="state" placeholder="State"></div>
     <div><label style="font-size:0.85rem; font-weight:600;">Local Government</label><input id="lga" placeholder="Local Government"></div>
-    <div><label style="font-size:0.85rem; font-weight:600;">Phone Number</label><input id="phone" placeholder="Phone Number"></div>
-    <div><label style="font-size:0.85rem; font-weight:600;">Student Email</label><input id="emailStudent" placeholder="Student Email" type="email"></div>
-    <div><label style="font-size:0.85rem; font-weight:600;">Department</label>
+    <div><label style="font-size:0.85rem; font-weight:600;">Phone Number * (11 Digits)</label><input id="phone" placeholder="e.g. 08012345678" maxlength="11"></div>
+    <div><label style="font-size:0.85rem; font-weight:600;">Student Email (Optional)</label><input id="emailStudent" placeholder="student@email.com" type="email"></div>
+    <div><label style="font-size:0.85rem; font-weight:600;">Department *</label>
         <select id="department">
         <option value="">Select Department</option>
         <option value="Science">Science</option>
         <option value="Arts">Arts</option>
         </select>
     </div>
-    <div><label style="font-size:0.85rem; font-weight:600;">Level</label>
+    <div><label style="font-size:0.85rem; font-weight:600;">Level *</label>
         <select id="level">
         <option value="">Select Level</option>
         <option>Primary</option>
@@ -470,6 +547,7 @@ button:disabled {
 
 <button id="saveStudentBtn" onclick="addStudent()">Save Student</button>
 </div>
+
 
 <!-- RESULT -->
 <div id="resultSection" class="card hidden">
@@ -560,6 +638,8 @@ button:disabled {
     </div>
 </div>
 
+<div id="toastContainer"></div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -583,6 +663,37 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+/* --- TOAST NOTIFICATIONS HELPER --- */
+window.showToast = (message, type = "success") => {
+    let container = document.getElementById("toastContainer");
+    let toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+};
+
+/* --- GLOBAL STATE FOR SEARCH & PAGINATION --- */
+let cachedStudents = [];
+let filteredStudents = [];
+let currentPage = 1;
+const pageSize = 20;
+
+async function updateDashboardTotals() {
+    try {
+        let snap = await getDocs(collection(db, "students"));
+        cachedStudents = [];
+        snap.forEach(d => cachedStudents.push({ id: d.id, ...d.data() }));
+        let statTotal = document.getElementById("statTotalStudents");
+        if(statTotal) statTotal.innerText = cachedStudents.length;
+    } catch(e) {
+        console.error("Error fetching totals:", e);
+    }
+}
+
 /* LOGIN */
 window.login = async () => {
 let btn = document.getElementById("loginBtn");
@@ -596,19 +707,19 @@ if (!email || !password) {
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Logging in...";
+    if(btn) { btn.disabled = true; btn.innerText = "Logging in..."; }
     msg.innerText = "";
 
     await signInWithEmailAndPassword(auth, email, password);
 
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("dashboard").classList.remove("hidden");
+    updateDashboardTotals();
+    showToast("Logged in successfully!", "success");
 } catch (e) {
     msg.innerText = "Authentication Error: " + e.message;
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Login to Dashboard";
+    if(btn) { btn.disabled = false; btn.innerText = "Login to Dashboard"; }
 }
 };
 
@@ -622,6 +733,10 @@ document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById("manageSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
+if(id === 'manageSection') {
+    updateDashboardTotals();
+    searchStudent();
+}
 };
 
 window.goHome = () => {
@@ -631,32 +746,70 @@ document.getElementById("resultSection").classList.add("hidden");
 document.getElementById("editResultSection").classList.add("hidden");
 document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById("manageSection").classList.add("hidden");
+updateDashboardTotals();
 };
 
-/* ADD STUDENT */
+/* ADD STUDENT WITH STRONG VALIDATION */
 window.addStudent = async () => {
 let btn = document.getElementById("saveStudentBtn");
 let nameVal = document.getElementById("name").value.trim();
+let ageVal = Number(document.getElementById("age").value);
 let phoneVal = document.getElementById("phone").value.trim();
 let emailVal = document.getElementById("emailStudent").value.trim();
 let dept = document.getElementById("department").value;
+let levelVal = document.getElementById("level").value;
 
-if(!nameVal || !phoneVal || !dept){
-    alert("Please fill in the required fields (Name, Phone Number, Department).");
+/* --- REGISTRATION VALIDATION RULES --- */
+if(!nameVal || nameVal.length < 3) {
+    showToast("Full name must be at least 3 characters long.", "error");
+    document.getElementById("name").focus();
+    return;
+}
+if(isNaN(ageVal) || ageVal < 5 || ageVal > 80) {
+    showToast("Age must be a valid number between 5 and 80.", "error");
+    document.getElementById("age").focus();
+    return;
+}
+let phoneRegex = /^\d{11}$/;
+if(!phoneVal || !phoneRegex.test(phoneVal)) {
+    showToast("Phone number must be exactly 11 digits (Nigerian format).", "error");
+    document.getElementById("phone").focus();
+    return;
+}
+if(emailVal !== "") {
+    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(emailVal)) {
+        showToast("Please enter a valid email address format.", "error");
+        document.getElementById("emailStudent").focus();
+        return;
+    }
+}
+if(!dept) {
+    showToast("Please select a department.", "error");
+    document.getElementById("department").focus();
+    return;
+}
+if(!levelVal) {
+    showToast("Please select an academic level.", "error");
+    document.getElementById("level").focus();
     return;
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Saving Student...";
+    if(btn) { btn.disabled = true; btn.innerText = "Saving Student..."; }
+    showToast("Checking records...", "info");
 
     /* duplicate check */
     let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
     let q2 = query(collection(db,"students"), where("email","==",emailVal));
 
     let [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    if(!snap1.empty || (!snap2.empty && emailVal !== "")){
-        alert("A student with this phone number or email already exists in the database.");
+    if(!snap1.empty){
+        showToast("Duplicate Phone Number found in database!", "error");
+        return;
+    }
+    if(!snap2.empty && emailVal !== ""){
+        showToast("Duplicate Email Address found in database!", "error");
         return;
     }
 
@@ -675,7 +828,7 @@ try {
     await addDoc(collection(db,"students"),{
     studentID: id,
     name: nameVal,
-    age: document.getElementById("age").value,
+    age: ageVal,
     gender: document.getElementById("gender").value,
     state: document.getElementById("state").value.trim(),
     lga: document.getElementById("lga").value.trim(),
@@ -683,23 +836,23 @@ try {
     phone: phoneVal,
     email: emailVal,
     department: dept,
-    level: document.getElementById("level").value,
+    level: levelVal,
     schoolType: document.getElementById("schoolType").value,
     schoolName: document.getElementById("schoolName").value.trim(),
     graduated: document.getElementById("graduated").value,
     createdAt: Date.now()
     });
 
-    alert("Student Registered Successfully ✔ Student ID: " + id);
+    showToast(`Student Registered Successfully! ID: ${id}`, "success");
 
     /* clear */
     document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
     document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
+    updateDashboardTotals();
 } catch (e) {
-    alert("Error saving student: " + e.message);
+    showToast("Error saving student: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Save Student";
+    if(btn) { btn.disabled = false; btn.innerText = "Save Student"; }
 }
 };
 
@@ -722,11 +875,9 @@ return;
 }
 
 let s = snap.docs[0].data();
-
 studentName.innerHTML = `<b>${s.name}</b> | Department: ${s.department} | Level: ${s.level}`;
 
 let list = [];
-
 if(s.level === "Fresh Class"){
 list = ["General English","Oral English","Grammar","Public Speaking","Novel"];
 }
@@ -738,7 +889,6 @@ list = ["Literature","Government","Economics","Islamic Studies","English"];
 }
 
 subjects.innerHTML = "";
-
 list.forEach(sub=>{
 subjects.innerHTML += `
 <div class="subject-box">
@@ -764,8 +914,7 @@ if(!id || !t || !s){
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Saving Result...";
+    if(btn) { btn.disabled = true; btn.innerText = "Saving Result..."; }
 
     let check = query(collection(db,"results"),
     where("studentID","==",id),
@@ -774,7 +923,7 @@ try {
     );
 
     if(!(await getDocs(check)).empty){
-        alert("Result for this student, term, and session already exists!");
+        showToast("Result for this term and session already exists!", "error");
         return;
     }
 
@@ -797,13 +946,13 @@ try {
         let exam = Number(examInput.value);
 
         if(isNaN(ca) || ca < 0 || ca > 40) {
-            alert(`Invalid CA score for ${name}. Must be between 0 and 40.`);
+            showToast(`Invalid CA score for ${name}. Must be between 0 and 40.`, "error");
             caInput.focus();
             hasError = true;
             return;
         }
         if(isNaN(exam) || exam < 0 || exam > 60) {
-            alert(`Invalid Exam score for ${name}. Must be between 0 and 60.`);
+            showToast(`Invalid Exam score for ${name}. Must be between 0 and 60.`, "error");
             examInput.focus();
             hasError = true;
             return;
@@ -822,7 +971,7 @@ try {
     let snapStudent = await getDocs(qStudent);
 
     if(snapStudent.empty){
-        alert("Student not found in database.");
+        showToast("Student not found in database.", "error");
         return;
     }
 
@@ -851,7 +1000,7 @@ try {
     createdAt: Date.now()
     });
 
-    alert("Result Saved Successfully ✔");
+    showToast("Result Saved Successfully ✔", "success");
 
     studentID.value = "";
     term.value = "";
@@ -859,10 +1008,9 @@ try {
     subjects.innerHTML = "";
     studentName.innerHTML = "";
 } catch(e) {
-    alert("Error saving result: " + e.message);
+    showToast("Error saving result: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Save Result";
+    if(btn) { btn.disabled = false; btn.innerText = "Save Result"; }
 }
 };
 
@@ -871,7 +1019,7 @@ window.deleteStudent = async () => {
 let btn = document.getElementById("deleteBtn");
 let id = deleteID.value.trim();
 if(!id) {
-    alert("Please enter a Student ID.");
+    showToast("Please enter a Student ID.", "error");
     return;
 }
 
@@ -880,14 +1028,13 @@ if(!confirm(`Are you absolutely sure you want to permanently delete student ${id
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Deleting...";
+    if(btn) { btn.disabled = true; btn.innerText = "Deleting..."; }
 
     let q = query(collection(db,"students"), where("studentID","==",id));
     let snap = await getDocs(q);
 
     if(snap.empty) {
-        alert("Student ID not found.");
+        showToast("Student ID not found.", "error");
         return;
     }
 
@@ -900,71 +1047,168 @@ try {
 
     await Promise.all(deletePromises);
 
-    alert("Student Record and Results Deleted Successfully ✔");
+    showToast("Student Record and Results Deleted Successfully ✔", "success");
     deleteID.value = "";
+    updateDashboardTotals();
 } catch(e) {
-    alert("Error deleting student: " + e.message);
+    showToast("Error deleting student: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Delete Student";
+    if(btn) { btn.disabled = false; btn.innerText = "Delete Student"; }
 }
 };
 
-/* SEARCH */
+/* --- LIVE DEBOUNCE SEARCH & SORTING --- */
+let searchTimer = null;
+window.handleLiveSearch = () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        searchStudent();
+    }, 250);
+};
+
 window.searchStudent = async () => {
 let btn = document.getElementById("searchBtn");
 let input = searchInput.value.toLowerCase().trim();
+let sortVal = document.getElementById("sortSelect").value;
 let resultsContainer = searchResults;
 
-if(!input) {
-    resultsContainer.innerHTML = "<p style='color:var(--text-muted); margin-top:15px;'>Please enter a search term.</p>";
-    return;
-}
-
 try {
-    btn.disabled = true;
-    btn.innerText = "Searching...";
-    resultsContainer.innerHTML = "<p style='color:var(--text-muted); margin-top:15px;'>Searching database...</p>";
-
-    let snap = await getDocs(collection(db,"students"));
-    let results = [];
-
-    snap.forEach(d=>{
-    let s = d.data();
-    if(
-    (s.studentID && s.studentID.toLowerCase().includes(input)) ||
-    (s.name && s.name.toLowerCase().includes(input)) ||
-    (s.level && s.level.toLowerCase().includes(input)) ||
-    (s.phone && s.phone.toLowerCase().includes(input))
-    ){
-    results.push({id: d.id, ...s});
+    if(btn) { btn.disabled = true; btn.innerText = "Searching..."; }
+    
+    if(cachedStudents.length === 0) {
+        await updateDashboardTotals();
     }
+
+    let results = cachedStudents.filter(s => {
+        if(!input) return true;
+        return (
+            (s.studentID && s.studentID.toLowerCase().includes(input)) ||
+            (s.name && s.name.toLowerCase().includes(input)) ||
+            (s.phone && s.phone.toLowerCase().includes(input)) ||
+            (s.email && s.email.toLowerCase().includes(input)) ||
+            (s.department && s.department.toLowerCase().includes(input)) ||
+            (s.level && s.level.toLowerCase().includes(input)) ||
+            (s.schoolName && s.schoolName.toLowerCase().includes(input)) ||
+            (s.state && s.state.toLowerCase().includes(input)) ||
+            (s.lga && s.lga.toLowerCase().includes(input)) ||
+            (s.gender && s.gender.toLowerCase().includes(input))
+        );
     });
 
-    if(results.length === 0){
-        resultsContainer.innerHTML = "<p style='color:var(--text-muted); margin-top:15px;'>No matching students found.</p>";
+    /* --- SORTING ALGORITHMS --- */
+    results.sort((a, b) => {
+        if(sortVal === 'newest') return (b.createdAt || 0) - (a.createdAt || 0);
+        if(sortVal === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0);
+        if(sortVal === 'az') return (a.name || "").localeCompare(b.name || "");
+        if(sortVal === 'za') return (b.name || "").localeCompare(a.name || "");
+        if(sortVal === 'id') return (a.studentID || "").localeCompare(b.studentID || "");
+        return 0;
+    });
+
+    filteredStudents = results;
+    currentPage = 1;
+    renderPaginationTable();
+
+    let statRes = document.getElementById("statSearchResults");
+    if(statRes) statRes.innerText = filteredStudents.length;
+
+} catch(e) {
+    showToast("Search error: " + e.message, "error");
+} finally {
+    if(btn) { btn.disabled = false; btn.innerText = "Search Database"; }
+}
+};
+
+/* --- PAGINATION CONTROLS --- */
+window.renderPaginationTable = () => {
+    let resultsContainer = searchResults;
+    let paginationBar = document.getElementById("paginationBar");
+
+    if(filteredStudents.length === 0){
+        resultsContainer.innerHTML = `
+        <div class="empty-state">
+            <h4>🔍 No matching student found.</h4>
+            <p>Try searching by:</p>
+            <p style="font-size: 0.85rem; line-height: 1.5;">• Student ID &nbsp;• Name &nbsp;• Phone &nbsp;• Department &nbsp;• Level &nbsp;• School</p>
+        </div>`;
+        paginationBar.style.display = "none";
+        let statRes = document.getElementById("statSearchResults");
+        if(statRes) statRes.innerText = 0;
         return;
     }
 
+    let totalPages = Math.ceil(filteredStudents.length / pageSize);
+    if(currentPage > totalPages) currentPage = totalPages;
+    if(currentPage < 1) currentPage = 1;
+
+    let startIdx = (currentPage - 1) * pageSize;
+    let paginatedData = filteredStudents.slice(startIdx, startIdx + pageSize);
+
     resultsContainer.innerHTML = "";
-    results.forEach(s=>{
-    resultsContainer.innerHTML += `
-    <div class="card" style="margin-top: 15px; border-left: 4px solid var(--primary);">
-        <b>Name:</b> ${s.name}<br>
-        <b>ID:</b> ${s.studentID}<br>
-        <b>Level:</b> ${s.level} | <b>Department:</b> ${s.department}<br>
-        <b>Phone:</b> ${s.phone || 'N/A'} | <b>Email:</b> ${s.email || 'N/A'}<br>
-        <b>Age:</b> ${s.age || 'N/A'} | <b>State:</b> ${s.state || 'N/A'} | <b>LGA:</b> ${s.lga || 'N/A'}<br>
-        <b>Address:</b> ${s.address || 'N/A'}<br>
-        <button onclick="openEditModal('${s.id}')" style="width: auto; padding: 8px 16px; margin-top: 10px;">Edit Details</button>
-    </div>`;
+    paginatedData.forEach(s=>{
+        let regDate = s.createdAt ? new Date(s.createdAt).toLocaleDateString() : 'N/A';
+        resultsContainer.innerHTML += `
+        <div class="card" style="margin-top: 15px; border-left: 4px solid var(--primary);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h3 style="margin-bottom: 4px; font-size: 1.2rem;">${s.name}</h3>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); background: rgba(37,99,235,0.1); padding: 3px 8px; border-radius: 4px;">ID: ${s.studentID}</span>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">Registered: ${regDate}</div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-top: 15px; font-size: 0.9rem;">
+                <div><b>Department:</b> ${s.department || 'N/A'}</div>
+                <div><b>Level:</b> ${s.level || 'N/A'}</div>
+                <div><b>Gender:</b> ${s.gender || 'N/A'}</div>
+                <div><b>Phone:</b> ${s.phone || 'N/A'}</div>
+                <div><b>Email:</b> ${s.email || 'N/A'}</div>
+                <div><b>School:</b> ${s.schoolName || 'N/A'}</div>
+                <div><b>State:</b> ${s.state || 'N/A'}</div>
+                <div><b>LGA:</b> ${s.lga || 'N/A'}</div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:15px; border-top:1px solid var(--border-color); padding-top:15px;">
+                <button onclick="openEditModal('${s.id}')" style="width: auto; padding: 8px 16px; margin: 0;">Edit Details</button>
+                <button onclick="deleteStudentDirect('${s.studentID}')" class="btn-danger" style="width: auto; padding: 8px 16px; margin: 0;">Delete</button>
+            </div>
+        </div>`;
     });
-} catch(e) {
-    alert("Search error: " + e.message);
-} finally {
-    btn.disabled = false;
-    btn.innerText = "Search";
-}
+
+    if(totalPages > 1) {
+        paginationBar.style.display = "flex";
+        document.getElementById("pageIndicator").innerText = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById("prevPageBtn").disabled = currentPage === 1;
+        document.getElementById("nextPageBtn").disabled = currentPage === totalPages;
+    } else {
+        paginationBar.style.display = "none";
+    }
+};
+
+window.changePage = (direction) => {
+    currentPage += direction;
+    renderPaginationTable();
+};
+
+window.deleteStudentDirect = async (studentID) => {
+    if(!confirm(`Are you sure you want to delete student ID ${studentID}?`)) return;
+    try {
+        let q = query(collection(db,"students"), where("studentID","==",studentID));
+        let snap = await getDocs(q);
+        let promises = [];
+        snap.forEach(d => promises.push(deleteDoc(d.ref)));
+
+        let rq = query(collection(db,"results"), where("studentID","==",studentID));
+        let rsnap = await getDocs(rq);
+        rsnap.forEach(d => promises.push(deleteDoc(d.ref)));
+
+        await Promise.all(promises);
+        showToast("Student deleted successfully ✔", "success");
+        await updateDashboardTotals();
+        searchStudent();
+    } catch(e) {
+        showToast("Error deleting student: " + e.message, "error");
+    }
 };
 
 /* OPEN EDIT STUDENT MODAL */
@@ -974,7 +1218,7 @@ try {
     let docSnap = await getDoc(docRef);
 
     if(!docSnap.exists()) {
-        alert("Student record not found.");
+        showToast("Student record not found.", "error");
         return;
     }
 
@@ -996,7 +1240,7 @@ try {
 
     document.getElementById("editModal").classList.remove("hidden");
 } catch(e) {
-    alert("Error loading student details: " + e.message);
+    showToast("Error loading student details: " + e.message, "error");
 }
 };
 
@@ -1004,25 +1248,50 @@ window.closeEditModal = () => {
     document.getElementById("editModal").classList.add("hidden");
 };
 
-/* SAVE STUDENT EDITS FROM MODAL */
+/* SAVE STUDENT EDITS WITH DUPLICATE VALIDATION */
 window.saveStudentEdits = async () => {
 let btn = document.getElementById("saveModalBtn");
 let docId = document.getElementById("modalDocId").value;
+let newPhone = document.getElementById("modalPhone").value.trim();
+let newEmail = document.getElementById("modalEmail").value.trim();
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Saving...";
+    if(btn) { btn.disabled = true; btn.innerText = "Checking Duplicates..."; }
 
+    /* Check duplicate phone or email, ignoring current student document */
+    let qPhone = query(collection(db, "students"), where("phone", "==", newPhone));
+    let qEmail = query(collection(db, "students"), where("email", "==", newEmail));
+    
+    let [snapP, snapE] = await Promise.all([getDocs(qPhone), getDocs(qEmail)]);
+
+    let phoneDuplicate = false;
+    snapP.forEach(d => { if(d.id !== docId) phoneDuplicate = true; });
+
+    let emailDuplicate = false;
+    if(newEmail !== "") {
+        snapE.forEach(d => { if(d.id !== docId) emailDuplicate = true; });
+    }
+
+    if(phoneDuplicate) {
+        showToast("Duplicate Phone Number! Another student is already using this phone.", "error");
+        return;
+    }
+    if(emailDuplicate) {
+        showToast("Duplicate Email! Another student is already using this email.", "error");
+        return;
+    }
+
+    if(btn) btn.innerText = "Saving Changes...";
     let ref = doc(db, "students", docId);
     await updateDoc(ref, {
         name: document.getElementById("modalName").value.trim(),
-        age: document.getElementById("modalAge").value,
+        age: Number(document.getElementById("modalAge").value),
         gender: document.getElementById("modalGender").value,
         state: document.getElementById("modalState").value.trim(),
         lga: document.getElementById("modalLga").value.trim(),
         address: document.getElementById("modalAddress").value.trim(),
-        phone: document.getElementById("modalPhone").value.trim(),
-        email: document.getElementById("modalEmail").value.trim(),
+        phone: newPhone,
+        email: newEmail,
         department: document.getElementById("modalDept").value,
         level: document.getElementById("modalLevel").value,
         schoolType: document.getElementById("modalSchoolType").value,
@@ -1031,14 +1300,14 @@ try {
         updatedAt: Date.now()
     });
 
-    alert("Student Record Updated Successfully ✔");
+    showToast("Student Updated Successfully ✔", "success");
     closeEditModal();
+    updateDashboardTotals();
     searchStudent();
 } catch(e) {
-    alert("Error updating student: " + e.message);
+    showToast("Error updating student: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Save Changes";
+    if(btn) { btn.disabled = false; btn.innerText = "Save Changes"; }
 }
 };
 
@@ -1049,13 +1318,12 @@ let term = document.getElementById("exportTerm").value;
 let session = document.getElementById("exportSession").value.trim();
 
 if(!term || !session){
-  alert("Please select a term and enter session.");
+  showToast("Please select a term and enter session.", "error");
   return;
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Exporting Dataset...";
+    if(btn) { btn.disabled = true; btn.innerText = "Exporting Dataset..."; }
 
     let q = query(
       collection(db, "results"),
@@ -1066,7 +1334,7 @@ try {
     let resultSnap = await getDocs(q);
 
     if(resultSnap.empty){
-      alert("No result data found for the specified term and session.");
+      showToast("No result data found for the specified term and session.", "error");
       return;
     }
 
@@ -1141,12 +1409,11 @@ try {
     a.click();
     URL.revokeObjectURL(url);
 
-    alert("Dataset Download Started ✔");
+    showToast("Dataset Download Started ✔", "success");
 } catch(e) {
-    alert("Export error: " + e.message);
+    showToast("Export error: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Download Full Dataset";
+    if(btn) { btn.disabled = false; btn.innerText = "Download Full Dataset"; }
 }
 };
 
@@ -1158,13 +1425,12 @@ let term = editTerm.value;
 let session = editSession.value.trim();
 
 if(!id || !term || !session){
-  alert("Please fill in Student ID, Term, and Session.");
+  showToast("Please fill in Student ID, Term, and Session.", "error");
   return;
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Loading Result...";
+    if(btn) { btn.disabled = true; btn.innerText = "Loading Result..."; }
 
     let q = query(
       collection(db,"results"),
@@ -1176,11 +1442,11 @@ try {
     let snap = await getDocs(q);
 
     if(snap.empty){
-      alert("Result record not found.");
+      showToast("Result record not found.", "error");
       return;
     }
     if(snap.size > 1){
-      alert("Multiple result records found! Please resolve duplicates first.");
+      showToast("Multiple result records found! Please resolve duplicates first.", "error");
       return;
     }
 
@@ -1212,10 +1478,9 @@ try {
       `;
     });
 } catch(e) {
-    alert("Error loading result: " + e.message);
+    showToast("Error loading result: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Load Result";
+    if(btn) { btn.disabled = false; btn.innerText = "Load Result"; }
 }
 };
 
@@ -1223,13 +1488,12 @@ try {
 window.updateResult = async () => {
 let btn = document.getElementById("updateResultBtn");
 if(!window.editDocId){
-  alert("Please load a result first.");
+  showToast("Please load a result first.", "error");
   return;
 }
 
 try {
-    btn.disabled = true;
-    btn.innerText = "Updating Result...";
+    if(btn) { btn.disabled = true; btn.innerText = "Updating Result..."; }
 
     let boxes = document.querySelectorAll("#editSubjects .subject-box");
     let data = {};
@@ -1245,13 +1509,13 @@ try {
       let exam = Number(examInput.value);
 
       if(isNaN(ca) || ca < 0 || ca > 40) {
-          alert(`Invalid CA score for ${name}. Must be between 0 and 40.`);
+          showToast(`Invalid CA score for ${name}. Must be between 0 and 40.`, "error");
           caInput.focus();
           hasError = true;
           break;
       }
       if(isNaN(exam) || exam < 0 || exam > 60) {
-          alert(`Invalid Exam score for ${name}. Must be between 0 and 60.`);
+          showToast(`Invalid Exam score for ${name}. Must be between 0 and 60.`, "error");
           examInput.focus();
           hasError = true;
           break;
@@ -1275,16 +1539,16 @@ try {
       updatedAt: Date.now()
     });
 
-    alert("Result Updated Successfully ✔");
+    showToast("Result Updated Successfully ✔", "success");
 } catch(e) {
-    alert("Error updating result: " + e.message);
+    showToast("Error updating result: " + e.message, "error");
 } finally {
-    btn.disabled = false;
-    btn.innerText = "Update Result";
+    if(btn) { btn.disabled = false; btn.innerText = "Update Result"; }
 }
 };
 
 </script>
 
+    
 </body>
 </html>
