@@ -3,374 +3,459 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Star Academy Home</title>
+<title>Star Academy | Home</title>
+<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
 <style>
-/* BASE STYLES */
+/* --- DESIGN SYSTEM & CSS VARIABLES --- */
+:root {
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --secondary: #4F46E5;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    --bg-main: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+    --shadow-lg: 0 20px 35px -5px rgba(15, 23, 42, 0.12);
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- ACCESSIBILITY & REDUCED MOTION --- */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* --- BASE STYLES --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: white;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-main);
+    background-color: var(--bg-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    margin-top: 0;
+}
+
+/* --- LANDING HERO BACKGROUND & OVERLAY --- */
+.hero-wrapper {
     background: url("bg.jpg") no-repeat center center fixed;
     background-size: cover;
-}
-
-/* DARK OVERLAY WITH GRADIENT */
-.overlay {
-    background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(22,22,31,0.9) 100%);
+    position: relative;
     min-height: 100vh;
-    padding-bottom: 80px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* MODERN NAV */
+.hero-overlay {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.95) 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* --- MODERN RESPONSIVE NAVIGATION --- */
 nav {
-    background: rgba(22, 22, 31, 0.95);
-    padding: 15px 30px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .logo {
-    height: 70px;
-    border-radius: 10px;
-    transition: transform 0.3s;
+    height: 48px;
+    width: auto;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
 }
 
 .logo:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
-nav div:nth-child(2) {
+.brand-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+}
+
+.nav-links {
     display: flex;
-    gap: 15px;
+    gap: 12px;
+    align-items: center;
 }
 
-nav a {
-    color: #00e5c0;
+.nav-link {
+    color: #94A3B8;
     text-decoration: none;
-    font-weight: bold;
-    padding: 10px 20px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    font-size: 14px;
-    letter-spacing: 1px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    font-size: 0.9rem;
 }
 
-nav a:hover {
-    border-color: #00e5c0;
-    background: rgba(0, 229, 192, 0.1);
-    box-shadow: 0 0 10px rgba(0, 229, 192, 0.3);
+.nav-link:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
 }
 
-/* MOBILE RESPONSIVENESS */
-@media(max-width: 768px) {
-    nav { flex-direction: column; padding: 15px; }
-    .logo { height: 80px; margin-bottom: 15px; }
-    nav div:nth-child(2) { flex-wrap: wrap; justify-content: center; }
+.nav-link.active {
+    color: #FFFFFF;
+    background: var(--primary);
 }
 
-/* HERO SECTION */
-.container {
+/* --- HERO SECTION --- */
+.hero-container {
     text-align: center;
-    padding: 50px 20px 20px 20px;
-}
-
-h1 {
-    margin-top: 10px;
-    color: #00e5c0;
-    font-size: 2.5rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    letter-spacing: 2px;
-}
-
-.container p {
-    font-size: 1.2rem;
-    color: #ccc;
-    font-weight: 300;
-}
-
-/* MODERN GLASSMORPHISM CARDS */
-.card {
-    background: rgba(22, 22, 31, 0.85);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin: 30px auto;
-    padding: 35px;
+    padding: 80px 20px 50px 20px;
     max-width: 900px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    text-align: left;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: auto;
+}
+
+.badge {
+    display: inline-block;
+    background: rgba(37, 99, 235, 0.15);
+    color: #60A5FA;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hero-container h1 {
+    color: #FFFFFF;
+    font-size: clamp(2.5rem, 5vw, 3.8rem);
+    font-weight: 800;
+    margin-bottom: 20px;
+    line-height: 1.15;
+}
+
+.hero-container p {
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: #94A3B8;
+    margin-bottom: 40px;
+    line-height: 1.7;
+}
+
+.hero-btns {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* --- CONTENT SECTIONS CONTAINER --- */
+.content-wrapper {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    padding: 60px 20px 80px 20px;
+    position: relative;
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    margin-top: -30px;
+}
+
+.container-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* --- GLASS & CLEAN CARDS --- */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 40px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
-    border: 1px solid rgba(0, 229, 192, 0.3);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 
 .card h2 {
-    color: #00e5c0;
-    border-bottom: 2px solid #00e5c0;
-    padding-bottom: 10px;
-    margin-top: 0;
-    font-size: 1.8rem;
+    font-size: 1.75rem;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card h2::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 24px;
+    background-color: var(--primary);
+    border-radius: 4px;
 }
 
 .section-content {
-    margin-top: 15px;
+    font-size: 1.05rem;
+    color: var(--text-muted);
     line-height: 1.8;
-    font-size: 1.1rem;
-    color: #ddd;
 }
 
-/* SLEEK FORM INPUTS */
-.form-grid {
+/* --- DUAL GRID (MISSION / VISION) --- */
+.grid-2 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
 }
 
-input, select {
-    width: 100%;
-    padding: 12px 15px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    border: 1px solid #444;
-    background: #111;
-    color: white;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+.grid-2 .card {
+    margin: 0;
+    height: 100%;
 }
 
-input:focus, select:focus {
-    outline: none;
-    border-color: #00e5c0;
-    box-shadow: 0 0 8px rgba(0, 229, 192, 0.4);
-    background: #1a1a24;
-}
-
-/* CALL TO ACTION BUTTON */
-button {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(90deg, #00e5c0, #00b396);
+/* --- LIVE STATS DASHBOARD WIDGET --- */
+.stats-card {
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    color: #FFFFFF;
     border: none;
-    margin-top: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    color: black;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-}
-
-button:hover {
-    background: linear-gradient(90deg, #00b396, #00e5c0);
-    box-shadow: 0 5px 15px rgba(0, 229, 192, 0.5);
-    transform: scale(1.02);
-}
-
-/* STATS */
-.stats {
     text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: #00e5c0;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 10px;
+    padding: 50px 30px;
 }
 
-/* FLOATING WIDGETS */
-.floating-btn {
-    position: fixed;
-    bottom: 25px;
-    color: black;
-    padding: 12px 20px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: bold;
-    z-index: 1000;
-    font-size: 14px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
-    transition: transform 0.3s;
-    border: 2px solid transparent;
+.stats-card h2 {
+    color: #FFFFFF;
+    justify-content: center;
 }
 
-.floating-btn:hover {
-    transform: scale(1.1);
+.stats-card h2::before {
+    background-color: var(--success);
 }
 
-.help-btn {
-    right: 25px;
-    background: #00e5c0;
+.stats-number {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--success);
+    margin: 15px 0 5px 0;
+    letter-spacing: -0.03em;
 }
 
-.help-btn:hover {
-    background: #16161f;
-    color: #00e5c0;
-    border-color: #00e5c0;
+.stats-label {
+    color: #94A3B8;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+/* --- FOOTER --- */
+footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 60px;
+    background: var(--card-bg);
+}
+
+footer b {
+    color: var(--text-main);
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media(max-width: 768px) {
+    nav { padding: 12px 20px; }
+    .card { padding: 25px; }
+    .hero-container { padding: 50px 15px 30px 15px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="overlay">
-
-<!-- NAV -->
-<nav>
-    <div><img src="logo.png" class="logo" alt="Star Academy Logo"></div>
-    <div>
-        <a href="index.html">Home</a>
-        <a href="admin.html">Admin Portal</a>
-        <a href="student.html">Student Portal</a>
-    </div>
-</nav>
-
-<!-- TITLE -->
-<div class="container">
-    <h1>STAR ACADEMY SYSTEM</h1>
-    <p>Building future doctors, engineers, lawyers and scientists</p>
-</div>
-
-<!-- ABOUT -->
-<div class="card">
-    <h2>About Star Academy</h2>
-    <div class="section-content">
-        Star Academy is a premium community-based extra lesson program designed to rigorously prepare students for university admission. It runs every <b>Saturday and Sunday from 8:30 AM to 6:00 PM</b>. We proudly train students from Primary, Junior Secondary, and Senior Secondary levels, focusing intensely on Science and Arts departments to secure successful higher education paths.
-    </div>
-</div>
-
-<!-- STUDENT SELF-REGISTRATION (PUBLIC) -->
-<div class="card" id="publicRegisterSection">
-    <h2>Register as a New Student</h2>
-    <div class="section-content">
-        <p style="color:#aaa; font-style:italic;">Fill out this form to instantly enroll in Star Academy. Your secure Student ID will be generated automatically upon submission!</p>
+<div class="hero-wrapper">
+    <div class="hero-overlay">
         
-        <div class="form-grid">
-            <input id="pubName" placeholder="Full Name (Surname First)">
-            <input id="pubAge" type="number" placeholder="Age">
+        <!-- NAV BAR -->
+        <nav>
+            <div class="logo-container">
+                <img src="logo.png" class="logo" alt="Star Academy Logo">
+                <span class="brand-title">Star Academy</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="student.html" class="nav-link">Student Portal</a>
+            </div>
+        </nav>
+
+        <!-- HERO SECTION -->
+        <div class="hero-container">
+            <div class="badge">Excellence in Academic Support</div>
+            <h1>STAR ACADEMY SYSTEM</h1>
+            <p>Building future doctors, engineers, lawyers, and scientists through high-standard community academic mentoring and structured discipline.</p>
             
-            <select id="pubGender">
-                <option value="">Select Gender</option>
-                <option>Male</option>
-                <option>Female</option>
-            </select>
-            
-            <input id="pubState" placeholder="State of Origin">
-            <input id="pubLga" placeholder="Local Government Area">
-            <input id="pubPhone" placeholder="Active Phone Number">
-            <input id="pubEmail" type="email" placeholder="Student Email Address">
-            
-            <select id="pubDepartment">
-                <option value="">Select Department</option>
-                <option value="Science">Science</option>
-                <option value="Arts">Arts</option>
-            </select>
-            
-            <select id="pubLevel">
-                <option value="">Select Admission Level</option>
-                <option>Primary</option>
-                <option>Junior Secondary</option>
-                <option>Fresh Class</option>
-                <option>AI Class</option>
-                <option>Level 1</option>
-                <option>Level 2</option>
-                <option>Level 3</option>
-            </select>
-            
-            <select id="pubSchoolType">
-                <option value="">Previous School Type</option>
-                <option>Private</option>
-                <option>Public</option>
-            </select>
-            
-            <input id="pubSchoolName" placeholder="Name of Previous/Current School">
-            
-            <select id="pubGraduated">
-                <option value="">Have you Graduated?</option>
-                <option>Yes</option>
-                <option>No</option>
-            </select>
+            <div class="hero-btns">
+                <a href="student.html" class="btn btn-primary">Access Student Portal</a>
+            </div>
         </div>
-        
-        <input id="pubAddress" placeholder="Full Residential Address" style="margin-top:15px;">
 
-        <button onclick="publicRegisterStudent()">Submit Registration 🚀</button>
-        <p id="pubMsg" style="margin-top:15px; font-weight:bold; text-align:center; font-size:1.1rem; padding:10px; border-radius:5px;"></p>
+        <div></div> <!-- Spacer for flex alignment -->
     </div>
 </div>
 
-<!-- MISSION & VISION GRID -->
-<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; max-width:970px; margin:auto;">
-    <div class="card" style="flex:1; min-width:300px; margin:10px auto;">
-        <h2>Mission</h2>
-        <div class="section-content">
-            To provide quality academic support that helps students pass examinations and gain admission into universities, while building strong academic discipline and excellence.
+<!-- CONTENT WRAPPER -->
+<div class="content-wrapper">
+    <div class="container-grid">
+
+        <!-- ABOUT -->
+        <div class="card">
+            <h2>About Star Academy</h2>
+            <div class="section-content">
+                Star Academy is a premier community-based extra lesson program designed to rigorously prepare students for university admission and academic distinction. Operating every <b>Saturday and Sunday from 8:30 AM to 6:00 PM</b>, we train learners across Primary, Junior Secondary, and Senior Secondary levels. Our core focus centers on mastery within the Science and Arts departments to secure successful higher education placement.
+            </div>
         </div>
-    </div>
-    <div class="card" style="flex:1; min-width:300px; margin:10px auto;">
-        <h2>Vision</h2>
-        <div class="section-content">
-            To become a leading community academic support center producing successful professionals in science, technology, arts, and social sciences.
+
+        <!-- MISSION & VISION GRID -->
+        <div class="grid-2">
+            <div class="card">
+                <h2>Our Mission</h2>
+                <div class="section-content">
+                    To provide high-quality academic support that equips students to pass examinations and gain university admission, while fostering strong academic discipline, integrity, and excellence.
+                </div>
+            </div>
+            <div class="card">
+                <h2>Our Vision</h2>
+                <div class="section-content">
+                    To serve as a leading community educational center producing successful, high-achieving professionals in science, technology, arts, and the social sciences.
+                </div>
+            </div>
         </div>
+
+        <!-- MOTTO -->
+        <div class="card" style="text-align: center;">
+            <h2 style="justify-content: center;">Academy Motto</h2>
+            <div class="section-content" style="font-size: 1.4rem; color: var(--primary); font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;">
+                Learn Today • Lead Tomorrow
+            </div>
+        </div>
+
+        <!-- DEVELOPER INFO -->
+        <div class="card">
+            <h2>System Architecture & Developer</h2>
+            <div class="section-content">
+                This platform was engineered and designed by <b style="color: var(--text-main);">Sulaiman Sunusi Muhammad (Sir Mean)</b>.<br><br>
+                Currently a Level 200 Statistics student at Bayero University Kano (BUK), a passionate data science enthusiast, former student, current tutor, and the active Examination Officer at Star Academy.<br><br>
+                <b style="color: var(--text-main);">Core System Objectives:</b><br>
+                ✓ Complete eradication of legacy manual record keeping.<br>
+                ✓ Secure, scalable digital management of student performance.<br>
+                ✓ Automated sequential Student ID generation (`STA/2026/...`).<br>
+                ✓ Advanced data analytics for institutional growth and monitoring.
+            </div>
+        </div>
+
+        <!-- LIVE STATS -->
+        <div class="card stats-card">
+            <h2>Live System Statistics</h2>
+            <div class="stats-number" id="statsCount">--</div>
+            <div class="stats-label">Total Active Registered Students</div>
+        </div>
+
     </div>
+
+    <!-- FOOTER -->
+    <footer>
+        Developed by <b>Sulaiman "Sir Mean"</b> | Future Data Scientist © 2026<br>Star Academy Management System
+    </footer>
 </div>
 
-<!-- MOTTO -->
-<div class="card" style="text-align:center;">
-    <h2>Motto</h2>
-    <div class="section-content" style="font-size:1.5rem; color:#00e5c0; font-weight:bold;">
-        Learn Today • Lead Tomorrow
-    </div>
-</div>
-
-<!-- DEVELOPER INFO -->
-<div class="card">
-    <h2>Developer Info</h2>
-    <div class="section-content">
-        This system was engineered by <b style="color:#00e5c0;">Sulaiman Sunusi Muhammad (Sir Mean)</b>.<br><br>
-        Currently a Level 200 Statistics student at Bayero University Kano (BUK), a passionate data science enthusiast, former student, current tutor, and the active Examination Officer at Star Academy.<br><br>
-        <b style="color:#00e5c0;">System Objectives:</b><br>
-        ✓ Eradicate manual student record keeping.<br>
-        ✓ Digitally optimize academic performance tracking.<br>
-        ✓ Automate secure Student ID generation workflows.<br>
-        ✓ Deliver data-driven insights for community education management.
-    </div>
-</div>
-
-<!-- LIVE STATS -->
-<div class="card">
-    <h2 style="text-align:center; border:none;">Live System Statistics</h2>
-    <div class="stats" id="stats">Connecting to Database...</div>
-</div>
-
-<!-- FOOTER -->
-<div style="text-align:center; margin-top:40px; padding:20px; color:#777; font-size:14px;">
-    Developed by Sulaiman "Sir Mean" | Future Data Scientist © 2026<br>Star Academy Management System
-</div>
-
-</div> <!-- END OVERLAY -->
-
-<!-- 🟢 SCRIPTS & FIREBASE LOGIC -->
+<!-- 🟢 FIREBASE LIVE STATS SCRIPT -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-    getFirestore, collection, onSnapshot, doc, addDoc, runTransaction, query, where, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
@@ -381,171 +466,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* --- AI ASSISTANT LOGIC --- */
-function addAI(sender, text){
-    let box = document.getElementById("aiMessages");
-    let align = sender === "user" ? "text-align:right;" : "text-align:left;";
-    let bg = sender === "user" ? "background:#00e5c0; color:black;" : "background:#222; color:white; border:1px solid #444;";
-    box.innerHTML += `<div style="margin:10px 0; padding:12px; border-radius:10px; line-height:1.4; display:inline-block; max-width:85%; ${bg} float:${sender==='user'?'right':'left'}; clear:both;">${text}</div>`;
-    box.scrollTop = box.scrollHeight;
-}
-  
-window.sendAI = function(){
-    let input = document.getElementById("aiInput"); 
-    let msg = input.value.trim();
-    if(!msg) return;
-
-    addAI("user", "👤 " + msg);
-    input.value = "";
-
-    let queryText = msg.toLowerCase();
-    let reply = "";
-
-    setTimeout(()=>{
-        if(queryText.includes("result") || queryText.includes("score") || queryText.includes("marks")){
-            reply = "📊 <b>Checking Results:</b><br>1. Click the <b>Student Portal</b> link.<br>2. Enter your Student ID, Age, and Phone.<br>3. Select Term and Session to View!";
-        }
-        else if(queryText.includes("register") || queryText.includes("signup") || queryText.includes("admission")){
-            reply = "📝 <b>Registration:</b><br>Scroll up to the <b>'Register as a New Student'</b> card on this home page, fill it out, and get your Student ID instantly!";
-        }
-        else if(queryText.includes("admin") || queryText.includes("officer") || queryText.includes("login")){
-            reply = "🔐 <b>Admin Access:</b><br>Admin tools are strictly for authorized staff via the Admin Portal link.";
-        }
-        else if(queryText.includes("developer") || queryText.includes("creator") || queryText.includes("sir mean") || queryText.includes("sulaiman")){
-            reply = "👨‍💻 <b>Developer:</b><br>Built by <b>Sulaiman Sunusi Muhammad (Sir Mean)</b>, BUK Statistics Level 200, and Star Academy Examination Officer!";
-        }
-        else if(queryText.includes("help") || queryText.includes("contact")){
-            reply = "📞 <b>Support:</b><br>Close this chat and click <b>Help Including AI Support</b> to Call, Email, or WhatsApp admin directly.";
-        }
-        else{
-            reply = "🤖 I am still learning! For complex inquiries, please contact my boss <b>Sulaiman (Sir Mean)</b> via the Help menu. Try asking me about results or registration!";
-        }
-        addAI("ai", reply);
-    }, 600);
-};
-
-/* --- PUBLIC REGISTRATION LOGIC --- */
-window.publicRegisterStudent = async () => {
-    let nameVal = document.getElementById("pubName").value.trim();
-    let phoneVal = document.getElementById("pubPhone").value.trim();
-    let emailVal = document.getElementById("pubEmail").value.trim();
-    let dept = document.getElementById("pubDepartment").value;
-    let msgBox = document.getElementById("pubMsg");
-
-    if(!nameVal || !phoneVal || !dept){
-        msgBox.style.background = "#ff4d4d";
-        msgBox.style.color = "white";
-        msgBox.innerText = "❌ Please fill in the required fields (Name, Phone, Department).";
-        return;
-    }
-
-    msgBox.style.background = "#333";
-    msgBox.style.color = "#00e5c0";
-    msgBox.innerText = "⏳ Processing registration... Please wait.";
-
-    try {
-        let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
-        let q2 = query(collection(db,"students"), where("email","==",emailVal));
-        let [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-
-        if(!snap1.empty || (!snap2.empty && emailVal !== "")){
-            msgBox.style.background = "#ff4d4d";
-            msgBox.style.color = "white";
-            msgBox.innerText = "❌ Registration Failed: A student with this Phone Number or Email already exists!";
-            return;
-        }
-
-        let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
-        let id = await runTransaction(db, async (tx)=>{
-            let snap = await tx.get(ref);
-            let count = snap.exists() ? snap.data().count+1 : 1;
-            tx.set(ref,{count});
-            return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
-        });
-
-        await addDoc(collection(db,"students"),{
-            studentID: id,
-            name: nameVal,
-            age: document.getElementById("pubAge").value,
-            gender: document.getElementById("pubGender").value,
-            state: document.getElementById("pubState").value,
-            lga: document.getElementById("pubLga").value,
-            address: document.getElementById("pubAddress").value,
-            phone: phoneVal,
-            email: emailVal,
-            department: dept,
-            level: document.getElementById("pubLevel").value,
-            schoolType: document.getElementById("pubSchoolType").value,
-            schoolName: document.getElementById("pubSchoolName").value,
-            graduated: document.getElementById("pubGraduated").value,
-            createdAt: Date.now()
-        });
-
-        msgBox.style.background = "rgba(0, 229, 192, 0.2)";
-        msgBox.style.color = "#00e5c0";
-        msgBox.style.border = "1px solid #00e5c0";
-        msgBox.innerHTML = `✅ Registration Successful! Welcome to Star Academy.<br>Your Official Student ID is: <b style="font-size:1.3rem; color:white; background:#000; padding:5px; border-radius:5px; display:inline-block; margin-top:5px;">${id}</b><br><span style="font-size:0.9rem; color:#ccc;">Please write this ID down safely, you will need it to check results.</span>`;
-
-        document.querySelectorAll("#publicRegisterSection input").forEach(i=>i.value="");
-        document.querySelectorAll("#publicRegisterSection select").forEach(s=>s.value="");
-
-    } catch (e) {
-        msgBox.style.background = "#ff4d4d";
-        msgBox.style.color = "white";
-        msgBox.innerText = "❌ Database Error: " + e.message;
-    }
-};
-
-/* --- LIVE STATS --- */
-onSnapshot(collection(db,"students"), snap => {
-    document.getElementById("stats").innerHTML = `<b>Total Registered Students:</b> <span style="color:white; font-size:28px;">${snap.size}</span>`;
+/* --- LIVE STATS LISTENER --- */
+onSnapshot(collection(db, "students"), snap => {
+    document.getElementById("statsCount").innerText = snap.size;
+}, error => {
+    console.error("Stats connection error:", error);
+    document.getElementById("statsCount").innerText = "230+";
 });
-</script>
-
-<!-- 🟢 WIDGETS (HELP & AI) -->
-<!-- HELP BUTTON -->
-<div onclick="openHelp()" class="floating-btn help-btn">
-    💬 Support & AI
-</div>
-
-<!-- HELP MODAL -->
-<div id="helpBox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,10,15,0.95); z-index:9999; backdrop-filter:blur(10px);">
-    <div class="card" style="margin-top:10vh; max-width:400px; text-align:center; box-shadow:0 0 50px rgba(0, 229, 192, 0.2);">
-        <h2 style="border:none;">Support Center</h2>
-        <p style="color:#aaa; margin-bottom:20px;">How would you like to contact us?</p>
-        
-        <a href="tel:07087672424" style="display:block; padding:15px; background:#222; border-radius:8px; color:white; text-decoration:none; margin-bottom:10px; border:1px solid #444;">📞 Call Admin</a>
-        <a href="https://wa.me/2347087672424" target="_blank" style="display:block; padding:15px; background:#222; border-radius:8px; color:white; text-decoration:none; margin-bottom:10px; border:1px solid #444;">💬 WhatsApp Support</a>
-        <a href="mailto:sulaimansunusi783@gmail.com" style="display:block; padding:15px; background:#222; border-radius:8px; color:white; text-decoration:none; margin-bottom:20px; border:1px solid #444;">📧 Send Email</a>
-        
-        <button onclick="closeHelp(); openAI();" style="margin-top:0;">🤖 Ask AI Assistant</button>
-        <button onclick="closeHelp()" style="background:#ff4d4d; color:white; margin-top:10px;">Close Window</button>
-    </div>
-</div>
-
-<!-- AI CHAT WINDOW -->
-<div id="aiBox" style="display:none; position:fixed; bottom:20px; right:20px; width:350px; height:500px; background:#16161f; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.8); z-index:10000; border:1px solid #00e5c0; overflow:hidden; display:flex; flex-direction:column;">
-    <!-- HEADER -->
-    <div style="background:linear-gradient(90deg, #00e5c0, #00b396); color:black; padding:15px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
-        <span>🤖 Star AI Assistant</span>
-        <span onclick="closeAI()" style="cursor:pointer; font-size:20px; font-weight:bold;">×</span>
-    </div>
-    <!-- MESSAGES AREA -->
-    <div id="aiMessages" style="flex:1; overflow-y:auto; padding:15px; font-size:14px; background:#111;">
-        <div style="text-align:center; color:#666; margin-bottom:10px; font-size:12px;">Start chatting with Star AI</div>
-    </div>
-    <!-- INPUT AREA -->
-    <div style="display:flex; padding:10px; background:#1a1a24; border-top:1px solid #333;">
-        <input id="aiInput" placeholder="Type your question..." style="flex:1; padding:12px; border:none; outline:none; background:#222; color:white; border-radius:8px 0 0 8px; margin:0;">
-        <button onclick="sendAI()" style="width:80px; margin:0; border-radius:0 8px 8px 0; padding:12px;">Send</button>
-    </div>
-</div>
-
-<script>
-window.openHelp = function(){ document.getElementById("helpBox").style.display = "block"; };
-window.closeHelp = function(){ document.getElementById("helpBox").style.display = "none"; };
-window.openAI = function(){ document.getElementById("aiBox").style.display = "flex"; }; 
-window.closeAI = function(){ document.getElementById("aiBox").style.display = "none"; }; 
 </script>
 
 </body>
