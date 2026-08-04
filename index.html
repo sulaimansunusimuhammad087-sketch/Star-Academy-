@@ -99,7 +99,7 @@ nav {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 16px 32px;
+    padding: 14px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -111,11 +111,12 @@ nav {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    text-decoration: none;
 }
 
 .logo {
-    height: 48px;
+    height: 40px;
     width: auto;
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm);
@@ -130,25 +131,24 @@ nav {
     font-family: 'Plus Jakarta Sans', sans-serif;
     color: #FFFFFF;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     letter-spacing: -0.01em;
 }
 
 .nav-links {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
-    flex-wrap: wrap;
 }
 
 .nav-link {
     color: #94A3B8;
     text-decoration: none;
     font-weight: 600;
-    padding: 8px 14px;
+    padding: 8px 12px;
     border-radius: var(--radius-sm);
     transition: var(--transition);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .nav-link:hover {
@@ -159,6 +159,56 @@ nav {
 .nav-link.active {
     color: #FFFFFF;
     background: var(--primary);
+}
+
+/* MOBILE MENU TOGGLE BUTTON */
+.mobile-menu-btn {
+    display: none;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.mobile-menu-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+@media(max-width: 900px) {
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(16px);
+        flex-direction: column;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 8px;
+        box-shadow: var(--shadow-lg);
+    }
+    .nav-links.open {
+        display: flex;
+    }
+    .nav-link {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        font-size: 1rem;
+    }
 }
 
 /* --- HERO SECTION --- */
@@ -435,6 +485,21 @@ nav {
     text-align: center;
 }
 
+.journey-step.graduation {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border-color: rgba(16, 185, 129, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.journey-step.graduation svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
 .journey-arrow {
     color: var(--text-muted);
     font-weight: bold;
@@ -512,6 +577,16 @@ nav {
     gap: 8px;
 }
 
+.dept-box h3 svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 .dept-box ul {
     margin: 0;
     padding-left: 20px;
@@ -587,8 +662,14 @@ nav {
     gap: 8px;
 }
 
-.portal-feature-pill span {
-    color: var(--success);
+.portal-feature-pill svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--success);
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 /* --- CONTACT INFO BOX --- */
@@ -604,11 +685,29 @@ nav {
     border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.contact-card h4 {
+.contact-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: var(--primary);
-    margin-bottom: 8px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
+}
+
+.contact-card-header svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .contact-card p {
@@ -800,7 +899,7 @@ footer {
 
 /* --- RESPONSIVE ADJUSTMENTS --- */
 @media(max-width: 768px) {
-    nav { padding: 12px 20px; }
+    nav { padding: 12px 16px; }
     .card { padding: 25px; }
     .hero-container { padding: 40px 15px 30px 15px; }
     .trust-stats-grid { margin-top: -20px; }
@@ -815,17 +914,22 @@ footer {
         
         <!-- NAV BAR -->
         <nav>
-            <div class="logo-container">
+            <a href="#home" class="logo-container">
                 <img src="logo.png" class="logo" alt="Star Academy Logo">
                 <span class="brand-title">Star Academy</span>
-            </div>
-            <div class="nav-links">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#about" class="nav-link">About</a>
-                <a href="#departments" class="nav-link">Departments</a>
-                <a href="#journey" class="nav-link">Academic Journey</a>
-                <a href="student.html" class="nav-link">Student Portal</a>
-                <a href="#contact" class="nav-link">Contact</a>
+            </a>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu">
+                <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+
+            <div class="nav-links" id="navLinks">
+                <a href="#home" class="nav-link active" onclick="closeMobileMenu()">Home</a>
+                <a href="#about" class="nav-link" onclick="closeMobileMenu()">About</a>
+                <a href="#departments" class="nav-link" onclick="closeMobileMenu()">Departments</a>
+                <a href="#journey" class="nav-link" onclick="closeMobileMenu()">Academic Journey</a>
+                <a href="student.html" class="nav-link" onclick="closeMobileMenu()">Student Portal</a>
+                <a href="#contact" class="nav-link" onclick="closeMobileMenu()">Contact</a>
             </div>
         </nav>
 
@@ -986,7 +1090,10 @@ footer {
                 <div class="journey-arrow">→</div>
                 <div class="journey-step">Level 3</div>
                 <div class="journey-arrow">→</div>
-                <div class="journey-step" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">Graduation 🎓</div>
+                <div class="journey-step graduation">
+                    <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+                    Graduation
+                </div>
             </div>
         </div>
 
@@ -998,23 +1105,29 @@ footer {
             </div>
             <div class="dept-grid">
                 <div class="dept-box">
-                    <h3>🔬 Science Department</h3>
+                    <h3>
+                        <svg viewBox="0 0 24 24"><path d="M9 3h6v3H9z"/><path d="M10 9h4v12h-4z"/><path d="M5 21h14"/></svg>
+                        Science Department
+                    </h3>
                     <ul>
+                        <li>Mathematics</li>
+                        <li>English</li>
                         <li>Biology</li>
                         <li>Chemistry</li>
                         <li>Physics</li>
-                        <li>Mathematics & Further Maths</li>
-                        <li>Data Science & Computing Basics</li>
                     </ul>
                 </div>
                 <div class="dept-box">
-                    <h3>📚 Arts Department</h3>
+                    <h3>
+                        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                        Arts Department
+                    </h3>
                     <ul>
-                        <li>Literature-in-English</li>
-                        <li>Government & Civics</li>
+                        <li>Literature</li>
+                        <li>Government</li>
                         <li>Economics</li>
-                        <li>Islamic Studies / CRS</li>
-                        <li>Commerce & Accounting</li>
+                        <li>Islamic Studies</li>
+                        <li>English</li>
                     </ul>
                 </div>
             </div>
@@ -1051,14 +1164,32 @@ footer {
                 The Star Academy Management System brings academic records directly to students through our secure, fast, and responsive student portal.
             </div>
             <div class="portal-features">
-                <div class="portal-feature-pill"><span>✓</span> View Termly Results</div>
-                <div class="portal-feature-pill"><span>✓</span> Print Official Report Cards</div>
-                <div class="portal-feature-pill"><span>✓</span> Download Certificates</div>
-                <div class="portal-feature-pill"><span>✓</span> Update Profile & Phone</div>
-                <div class="portal-feature-pill"><span>✓</span> Track Academic History</div>
-                <div class="portal-feature-pill"><span>✓</span> Secure ID Authentication</div>
+                <div class="portal-feature-pill">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    View Termly Results
+                </div>
+                <div class="portal-feature-pill">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Print Official Report Cards
+                </div>
+                <div class="portal-feature-pill">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Download Certificates
+                </div>
+                <div class="portal-feature-pill">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Update Profile & Phone
+                </div>
+                <div class="portal-feature-pill">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Track Academic History
+                </div>
+                <div class="portal-feature-pill">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Secure ID Authentication
+                </div>
             </div>
-            <a href="student.html" class="btn btn-primary" style="display: inline-flex;">Go to Student Portal 🚀</a>
+            <a href="student.html" class="btn btn-primary" style="display: inline-flex;">Go to Student Portal</a>
         </div>
 
         <!-- CONTACT INFORMATION SECTION -->
@@ -1069,23 +1200,38 @@ footer {
             </div>
             <div class="contact-info-grid">
                 <div class="contact-card">
-                    <h4>📞 Phone Support</h4>
+                    <div class="contact-card-header">
+                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                        Phone Support
+                    </div>
                     <p><a href="tel:09026869909">09026869909</a></p>
                 </div>
                 <div class="contact-card">
-                    <h4>💬 WhatsApp</h4>
+                    <div class="contact-card-header">
+                        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+                        WhatsApp
+                    </div>
                     <p><a href="https://wa.me/2349026869909" target="_blank">Chat with Admin</a></p>
                 </div>
                 <div class="contact-card">
-                    <h4>📧 Email Address</h4>
+                    <div class="contact-card-header">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        Email Address
+                    </div>
                     <p><a href="mailto:sulaimansunusi783@gmail.com">sulaimansunusi783@gmail.com</a></p>
                 </div>
                 <div class="contact-card">
-                    <h4>📍 Study Center Address</h4>
-                    <p>Star Academy Study Center, Kano, Nigeria</p>
+                    <div class="contact-card-header">
+                        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Study Center Address
+                    </div>
+                    <p>Along Emir Palace Road, S.A.S, Kano, Nigeria</p>
                 </div>
                 <div class="contact-card">
-                    <h4>⏰ Class Schedule</h4>
+                    <div class="contact-card-header">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Class Schedule
+                    </div>
                     <p>Saturday & Sunday<br>8:30 AM – 6:00 PM</p>
                 </div>
             </div>
@@ -1151,7 +1297,7 @@ footer {
                     <li>Phone: 09026869909</li>
                     <li>WhatsApp: <a href="https://wa.me/2349026869909" target="_blank">09026869909</a></li>
                     <li>Email: sulaimansunusi783@gmail.com</li>
-                    <li>Location: Kano, Nigeria</li>
+                    <li>Location: Along Emir Palace Road, S.A.S, Kano, Nigeria</li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -1187,13 +1333,13 @@ footer {
             <b>Purpose:</b><br>
             To provide a secure, reliable, and modern digital platform for managing Star Academy's academic operations while preserving student records and improving administrative efficiency.<br><br>
             <b>Contact Developer:</b><br>
-            📞 Phone: 09026869909<br>
-            📧 Email: sulaimansunusi783@gmail.com
+            Phone: 09026869909<br>
+            Email: sulaimansunusi783@gmail.com
         </div>
     </div>
 </div>
 
-<!-- 🟢 SCRIPTS (FADE-IN INTERSECTION OBSERVER & FIREBASE) -->
+<!-- 🟢 SCRIPTS (MOBILE NAV TOGGLE, OBSERVER & FIREBASE) -->
 <script>
 window.openDevModal = function() {
     document.getElementById("devModal").style.display = "flex";
@@ -1208,6 +1354,17 @@ window.onclick = function(event) {
     if (event.target == modal) {
         modal.style.display = "none";
     }
+};
+
+/* --- MOBILE MENU TOGGLE --- */
+window.toggleMobileMenu = function() {
+    const navLinks = document.getElementById("navLinks");
+    navLinks.classList.toggle("open");
+};
+
+window.closeMobileMenu = function() {
+    const navLinks = document.getElementById("navLinks");
+    navLinks.classList.remove("open");
 };
 
 /* --- SUBTLE FADE-IN ON SCROLL OBSERVER --- */
