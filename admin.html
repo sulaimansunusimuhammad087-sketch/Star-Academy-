@@ -334,7 +334,24 @@ button:disabled {
     padding-top: 15px;
     border-top: 1px solid var(--border-color);
 }
+
+/* --- STUDENT AVATAR & METRICS BADGES --- */
+.student-avatar {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #FFFFFF;
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
 </style>
+
 
 </head>
 
@@ -361,7 +378,7 @@ button:disabled {
 <p id="msg"></p>
 </div>
 
-<!-- DASHBOARD -->
+ <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
 <!-- WELCOME BANNER -->
@@ -380,8 +397,60 @@ button:disabled {
 </div>
 </div>
 
+<!-- RESULT PERFORMANCE ANALYTICS CARD -->
+<div class="card">
+<h3>Result Performance & Academic Analytics</h3>
+<div class="stats-grid" style="margin-top: 15px;">
+    <div class="stat-card">
+        <h4>Total Results Logged</h4>
+        <div class="stat-value" id="anaTotalResults">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--success);">
+        <h4>Total Passed Students</h4>
+        <div class="stat-value" id="anaTotalPass">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--error);">
+        <h4>Total Failed Students</h4>
+        <div class="stat-value" id="anaTotalFail">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--warning);">
+        <h4>Overall Average Score</h4>
+        <div class="stat-value" id="anaOverallAvg">0.00</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--secondary);">
+        <h4>Highest Score</h4>
+        <div class="stat-value" id="anaHighestScore">0</div>
+    </div>
+    <div class="stat-card" style="border-left-card: var(--text-muted);">
+        <h4>Lowest Score</h4>
+        <div class="stat-value" id="anaLowestScore">0</div>
+    </div>
+</div>
+
+<!-- DEPARTMENT & CLASS DEMOGRAPHICS -->
+<h4 style="margin-top: 20px; color: var(--text-main);">Demographics Breakdown</h4>
+<div class="stats-grid" style="margin-top: 10px;">
+    <div class="stat-card">
+        <h4>Science Students</h4>
+        <div class="stat-value" id="anaDeptScience">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--secondary);">
+        <h4>Arts Students</h4>
+        <div class="stat-value" id="anaDeptArts">0</div>
+    </div>
+    <div class="stat-card" style="border-left-color: var(--success);">
+        <h4>Class Enrollment Summary</h4>
+        <div class="stat-value" id="anaClassBreakdown" style="font-size: 0.85rem; font-weight:600; color: var(--text-muted);">
+            Fresh: 0 | AI: 0 | L1: 0 | L2: 0 | L3: 0
+        </div>
+    </div>
+</div>
+</div>
+
 <!-- MENU -->
 <div class="card" id="menu">
+   
+
 <h2>ADMIN DASHBOARD</h2>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
 <button onclick="showSection('studentSection')">Student Registration</button>
@@ -640,7 +709,8 @@ button:disabled {
 
 <div id="toastContainer"></div>
 
-<script type="module">
+    
+ <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -676,7 +746,7 @@ window.showToast = (message, type = "success") => {
     }, 3500);
 };
 
-/* --- GLOBAL STATE FOR SEARCH & PAGINATION --- */
+/* --- GLOBAL STATE FOR SEARCH, PAGINATION & ANALYTICS --- */
 let cachedStudents = [];
 let filteredStudents = [];
 let currentPage = 1;
@@ -684,13 +754,73 @@ const pageSize = 20;
 
 async function updateDashboardTotals() {
     try {
-        let snap = await getDocs(collection(db, "students"));
+        let [studentSnap, resultSnap] = await Promise.all([
+            getDocs(collection(db, "students")),
+            getDocs(collection(db, "results"))
+        ]);
+
         cachedStudents = [];
-        snap.forEach(d => cachedStudents.push({ id: d.id, ...d.data() }));
+        let deptScience = 0;
+        let deptArts = 0;
+        let levels = { "Fresh Class": 0, "AI Class": 0, "Level 1": 0, "Level 2": 0, "Level 3": 0 };
+
+        studentSnap.forEach(d => {
+            let s = d.data();
+            cachedStudents.push({ id: d.id, ...s });
+            if(s.department === "Science") deptScience++;
+            if(s.department === "Arts") deptArts++;
+            if(levels[s.level] !== undefined) levels[s.level]++;
+        });
+
         let statTotal = document.getElementById("statTotalStudents");
         if(statTotal) statTotal.innerText = cachedStudents.length;
+
+        /* Demographics Updates */
+        let elSci = document.getElementById("anaDeptScience");
+        let elArt = document.getElementById("anaDeptArts");
+        let elClass = document.getElementById("anaClassBreakdown");
+        if(elSci) elSci.innerText = deptScience;
+        if(elArt) elArt.innerText = deptArts;
+        if(elClass) elClass.innerText = `Fresh: ${levels["Fresh Class"]} | AI: ${levels["AI Class"]} | L1: ${levels["Level 1"]} | L2: ${levels["Level 2"]} | L3: ${levels["Level 3"]}`;
+
+        /* --- RESULT ANALYTICS CALCULATIONS --- */
+        let totalRes = resultSnap.size;
+        let passCount = 0;
+        let failCount = 0;
+        let scoreSum = 0;
+        let highest = 0;
+        let lowest = totalRes > 0 ? 999 : 0;
+
+        resultSnap.forEach(d => {
+            let r = d.data();
+            if(r.status === "PASS") passCount++;
+            else failCount++;
+
+            let avg = Number(r.average || 0);
+            scoreSum += avg;
+            if(avg > highest) highest = avg;
+            if(avg < lowest) lowest = avg;
+        });
+
+        let overallAvg = totalRes > 0 ? (scoreSum / totalRes).toFixed(2) : "0.00";
+        if(totalRes === 0) lowest = 0;
+
+        let anaTot = document.getElementById("anaTotalResults");
+        let anaPass = document.getElementById("anaTotalPass");
+        let anaFail = document.getElementById("anaTotalFail");
+        let anaAvg = document.getElementById("anaOverallAvg");
+        let anaHigh = document.getElementById("anaHighestScore");
+        let anaLow = document.getElementById("anaLowestScore");
+
+        if(anaTot) anaTot.innerText = totalRes;
+        if(anaPass) anaPass.innerText = passCount;
+        if(anaFail) anaFail.innerText = failCount;
+        if(anaAvg) anaAvg.innerText = overallAvg;
+        if(anaHigh) anaHigh.innerText = highest.toFixed(1);
+        if(anaLow) anaLow.innerText = lowest.toFixed(1);
+
     } catch(e) {
-        console.error("Error fetching totals:", e);
+        console.error("Error fetching dashboard analytics:", e);
     }
 }
 
@@ -737,6 +867,9 @@ if(id === 'manageSection') {
     updateDashboardTotals();
     searchStudent();
 }
+if(id === 'dashboard' || id === 'menu') {
+    updateDashboardTotals();
+}
 };
 
 window.goHome = () => {
@@ -759,7 +892,6 @@ let emailVal = document.getElementById("emailStudent").value.trim();
 let dept = document.getElementById("department").value;
 let levelVal = document.getElementById("level").value;
 
-/* --- REGISTRATION VALIDATION RULES --- */
 if(!nameVal || nameVal.length < 3) {
     showToast("Full name must be at least 3 characters long.", "error");
     document.getElementById("name").focus();
@@ -799,7 +931,6 @@ try {
     if(btn) { btn.disabled = true; btn.innerText = "Saving Student..."; }
     showToast("Checking records...", "info");
 
-    /* duplicate check */
     let q1 = query(collection(db,"students"), where("phone","==",phoneVal));
     let q2 = query(collection(db,"students"), where("email","==",emailVal));
 
@@ -813,7 +944,6 @@ try {
         return;
     }
 
-    /* ID counter */
     let ref = doc(db,"meta", dept==="Science"?"scienceCounter":"artsCounter");
 
     let id = await runTransaction(db, async (tx)=>{
@@ -824,7 +954,6 @@ try {
     return `STA/2026/${dept==="Science"?"SCI":"ART"}/${String(count).padStart(5,"0")}`;
     });
 
-    /* SAVE */
     await addDoc(collection(db,"students"),{
     studentID: id,
     name: nameVal,
@@ -845,7 +974,6 @@ try {
 
     showToast(`Student Registered Successfully! ID: ${id}`, "success");
 
-    /* clear */
     document.querySelectorAll("#studentSection input").forEach(i=>i.value="");
     document.querySelectorAll("#studentSection select").forEach(s=>s.value="");
     updateDashboardTotals();
@@ -856,12 +984,13 @@ try {
 }
 };
 
-/* LOAD STUDENT */
+/* LOAD STUDENT & PREVIOUS RESULT COUNT & AVATAR */
 window.loadStudent = async () => {
 let id = studentID.value.trim();
 if(!id) {
     studentName.innerHTML = "";
     subjects.innerHTML = "";
+    document.getElementById("resultPreview").innerHTML = "";
     return;
 }
 
@@ -869,13 +998,39 @@ let q = query(collection(db,"students"), where("studentID","==",id));
 let snap = await getDocs(q);
 
 if(snap.empty){
-studentName.innerHTML = "<span style='color:var(--error);'>Student not found</span>";
+studentName.innerHTML = "<span style='color:var(--error); font-weight:600;'>Student not found in database.</span>";
 subjects.innerHTML = "";
+document.getElementById("resultPreview").innerHTML = "";
 return;
 }
 
 let s = snap.docs[0].data();
-studentName.innerHTML = `<b>${s.name}</b> | Department: ${s.department} | Level: ${s.level}`;
+
+/* Previous Result Count Query */
+let resQuery = query(collection(db,"results"), where("studentID","==",id));
+let resSnap = await getDocs(resQuery);
+let prevResultCount = resSnap.size;
+
+let initial = s.name ? s.name.charAt(0).toUpperCase() : "S";
+
+/* Photo element future-ready avatar layout */
+let photoHTML = s.photoUrl ? 
+    `<img src="${s.photoUrl}" class="student-avatar" style="object-fit:cover;" alt="Photo">` : 
+    `<div class="student-avatar">${initial}</div>`;
+
+studentName.innerHTML = `
+<div class="card" style="margin: 15px 0; background: var(--bg-main); display:flex; align-items:center; gap:16px; padding: 20px;">
+    ${photoHTML}
+    <div>
+        <h3 style="margin-bottom: 4px; font-size: 1.15rem;">${s.name}</h3>
+        <p style="margin:0; font-size:0.88rem; color:var(--text-muted);">
+            <b>ID:</b> ${s.studentID} &nbsp;|&nbsp; <b>Dept:</b> ${s.department} &nbsp;|&nbsp; <b>Level:</b> ${s.level}
+        </p>
+        <p style="margin:4px 0 0 0; font-size:0.82rem; color:var(--primary);">
+            <b>School:</b> ${s.schoolName || 'N/A'} &nbsp;|&nbsp; <b>Previous Results Logged:</b> ${prevResultCount}
+        </p>
+    </div>
+</div>`;
 
 let list = [];
 if(s.level === "Fresh Class"){
@@ -893,15 +1048,49 @@ list.forEach(sub=>{
 subjects.innerHTML += `
 <div class="subject-box">
 <b>${sub}</b><br>
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
-    <div>CA (0-40) <input class="ca" type="number" min="0" max="40" placeholder="0-40"></div>
-    <div>Exam (0-60) <input class="exam" type="number" min="0" max="60" placeholder="0-60"></div>
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 5px; align-items: center;">
+    <div>CA (0-40) <input class="ca" type="number" min="0" max="40" placeholder="0-40" oninput="calculateLiveScores()"></div>
+    <div>Exam (0-60) <input class="exam" type="number" min="0" max="60" placeholder="0-60" oninput="calculateLiveScores()"></div>
+    <div>Total: <span class="sub-total" style="font-weight:750; color:var(--primary);">0</span></div>
 </div>
 </div>`;
 });
+calculateLiveScores();
 };
 
-/* SAVE RESULT */
+/* LIVE SCORE CALCULATION WHILE ENTERING */
+window.calculateLiveScores = () => {
+    let boxes = document.querySelectorAll("#subjects .subject-box");
+    if(boxes.length === 0) return;
+
+    let totalScore = 0;
+    let count = 0;
+
+    boxes.forEach(b => {
+        let ca = Number(b.querySelector(".ca").value || 0);
+        let exam = Number(b.querySelector(".exam").value || 0);
+        let subSum = ca + exam;
+        b.querySelector(".sub-total").innerText = subSum;
+        totalScore += subSum;
+        count++;
+    });
+
+    let avg = count > 0 ? (totalScore / count) : 0;
+    let grade = avg >= 70 ? "A" : avg >= 60 ? "B" : avg >= 50 ? "C" : "F";
+    let status = avg >= 50 ? "PASS" : "FAIL";
+
+    let preview = document.getElementById("resultPreview");
+    if(preview) {
+        preview.innerHTML = `
+        <div class="card" style="margin-top: 20px; background: var(--bg-main); border-left: 4px solid var(--secondary);">
+            <h4 style="margin-bottom:8px; color:var(--secondary);">Live Assessment Score Calculation</h4>
+            <b>Total Score:</b> ${totalScore} &nbsp;|&nbsp; <b>Average:</b> ${avg.toFixed(2)}<br>
+            <b>Grade:</b> ${grade} &nbsp;|&nbsp; <b>Status:</b> <span style="color: ${avg>=50?'var(--success)':'var(--error)'}; font-weight:750;">${status}</span>
+        </div>`;
+    }
+};
+
+/* SAVE RESULT WITH DUPLICATE WORKFLOW & SUBJECT ANALYSIS & METADATA */
 window.saveResult = async () => {
 let btn = document.getElementById("saveResultBtn");
 let id = studentID.value.trim();
@@ -909,7 +1098,7 @@ let t = term.value;
 let s = session.value.trim();
 
 if(!id || !t || !s){
-    alert("Please fill in Student ID, Term, and Session.");
+    showToast("Please fill in Student ID, Term, and Session.", "error");
     return;
 }
 
@@ -922,20 +1111,32 @@ try {
     where("session","==",s)
     );
 
-    if(!(await getDocs(check)).empty){
+    let checkSnap = await getDocs(check);
+    if(!checkSnap.empty){
         showToast("Result for this term and session already exists!", "error");
+        
+        let preview = document.getElementById("resultPreview");
+        if(preview) {
+            preview.innerHTML = `
+            <div class="card" style="background:#FEF2F2; border-left:4px solid var(--error); margin-top:20px;">
+                <h4 style="color:var(--error);">Duplicate Result Record</h4>
+                <p style="font-size:0.9rem; color:var(--text-main);">A result for Student ID <b>${id}</b> in <b>${t} (${s})</b> is already saved in Firestore.</p>
+                <button onclick="jumpToEditResult('${id}', '${t}', '${s}')" style="width:auto; padding:8px 16px; background:var(--primary);">Open Existing Result for Editing</button>
+            </div>`;
+        }
         return;
     }
 
     let boxes = document.querySelectorAll(".subject-box");
     if(boxes.length === 0){
-        alert("No subjects loaded for assessment.");
+        showToast("No subjects loaded for assessment.", "error");
         return;
     }
 
     let data = {};
     let total = 0;
     let hasError = false;
+    let subTotals = {};
 
     boxes.forEach(b=>{
         let name = b.querySelector("b").innerText;
@@ -960,12 +1161,18 @@ try {
 
         let sum = ca + exam;
         total += sum;
+        subTotals[name] = sum;
         data[name] = {ca, exam, total:sum};
     });
 
     if(hasError) return;
 
     let avg = total / boxes.length;
+
+    /* --- SUBJECT PERFORMANCE ANALYSIS --- */
+    let sortedSubs = Object.entries(subTotals).sort((a,b) => b[1] - a[1]);
+    let highestSub = sortedSubs.length > 0 ? `${sortedSubs[0][0]} (${sortedSubs[0][1]} pts)` : 'N/A';
+    let lowestSub = sortedSubs.length > 0 ? `${sortedSubs[sortedSubs.length-1][0]} (${sortedSubs[sortedSubs.length-1][1]} pts)` : 'N/A';
 
     let qStudent = query(collection(db,"students"), where("studentID","==",id));
     let snapStudent = await getDocs(qStudent);
@@ -975,16 +1182,6 @@ try {
         return;
     }
 
-    document.getElementById("resultPreview").innerHTML = `
-    <div class="card" style="margin-top: 20px; background: var(--bg-main);">
-    <h3>Result Assessment Summary</h3>
-    <b>Total Score:</b> ${total}<br>
-    <b>Average Score:</b> ${avg.toFixed(2)}<br>
-    <b>Grade:</b> ${avg>=70?"A":avg>=60?"B":avg>=50?"C":"F"}<br>
-    <b>Status:</b> <span style="color: ${avg>=50?'var(--success)':'var(--error)'}; font-weight:750;">${avg>=50?"PASS":"FAIL"}</span><br>
-    </div>
-    `;
-      
     let studentData = snapStudent.docs[0].data();
       
     await addDoc(collection(db,"results"),{
@@ -997,21 +1194,45 @@ try {
     grade: avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
     status: avg>=50?"PASS":"FAIL", 
     classAtTime: studentData.level,  
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    loggedBy: "System Administrator" // Configurable metadata
     });
 
     showToast("Result Saved Successfully ✔", "success");
+
+    let preview = document.getElementById("resultPreview");
+    if(preview) {
+        preview.innerHTML = `
+        <div class="card" style="margin-top: 20px; background: var(--bg-main); border-left: 4px solid var(--success);">
+            <h3>Result Summary & Subject Performance Analysis</h3>
+            <b>Total Score:</b> ${total} &nbsp;|&nbsp; <b>Average:</b> ${avg.toFixed(2)}<br>
+            <b>Grade:</b> ${avg>=70?"A":avg>=60?"B":avg>=50?"C":"F"} &nbsp;|&nbsp; <b>Status:</b> ${avg>=50?"PASS":"FAIL"}<br>
+            <hr style="border:0; border-top:1px solid var(--border-color); margin:10px 0;">
+            <b>Best Performing Subject:</b> ${highestSub}<br>
+            <b>Weakest Subject:</b> ${lowestSub}
+        </div>`;
+    }
 
     studentID.value = "";
     term.value = "";
     session.value = "";
     subjects.innerHTML = "";
     studentName.innerHTML = "";
+    updateDashboardTotals();
 } catch(e) {
     showToast("Error saving result: " + e.message, "error");
 } finally {
     if(btn) { btn.disabled = false; btn.innerText = "Save Result"; }
 }
+};
+
+window.jumpToEditResult = (id, termVal, sessionVal) => {
+    showSection('editResultSection');
+    document.getElementById("editStudentID").value = id;
+    document.getElementById("editTerm").value = termVal;
+    document.getElementById("editSession").value = sessionVal;
+    loadResultForEdit();
 };
 
 /* DELETE STUDENT */
@@ -1095,7 +1316,6 @@ try {
         );
     });
 
-    /* --- SORTING ALGORITHMS --- */
     results.sort((a, b) => {
         if(sortVal === 'newest') return (b.createdAt || 0) - (a.createdAt || 0);
         if(sortVal === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0);
@@ -1258,7 +1478,6 @@ let newEmail = document.getElementById("modalEmail").value.trim();
 try {
     if(btn) { btn.disabled = true; btn.innerText = "Checking Duplicates..."; }
 
-    /* Check duplicate phone or email, ignoring current student document */
     let qPhone = query(collection(db, "students"), where("phone", "==", newPhone));
     let qEmail = query(collection(db, "students"), where("email", "==", newEmail));
     
@@ -1417,7 +1636,7 @@ try {
 }
 };
 
-/* LOAD RESULT FOR EDITING */
+/* LOAD RESULT FOR EDITING WITH ORIGINAL STATS & METADATA */
 window.loadResultForEdit = async () => {
 let btn = document.getElementById("loadResultBtn");
 let id = editStudentID.value.trim();
@@ -1461,14 +1680,21 @@ try {
 
     if(!studentSnap.empty){
       let s = studentSnap.docs[0].data();
-      editStudentName.innerHTML = `<b>${s.name}</b> | Department: ${s.department}`;
+      editStudentName.innerHTML = `
+      <div class="card" style="background:var(--bg-main); margin-bottom:15px; padding:18px;">
+          <h3 style="margin-bottom:4px;">${s.name} (${s.studentID})</h3>
+          <p style="margin:0; font-size:0.88rem; color:var(--text-muted);">
+              <b>Dept:</b> ${s.department} &nbsp;|&nbsp; <b>Level:</b> ${s.level}<br>
+              <b>Original Total:</b> ${data.total} &nbsp;|&nbsp; <b>Original Average:</b> ${Number(data.average).toFixed(2)} &nbsp;|&nbsp; <b>Grade:</b> ${data.grade} &nbsp;|&nbsp; <b>Status:</b> ${data.status}
+          </p>
+      </div>`;
     }
 
     editSubjects.innerHTML = "";
     Object.keys(subjects).forEach(sub => {
       let s = subjects[sub];
       editSubjects.innerHTML += `
-      <div class="subject-box">
+      <div class="subject-box" oninput="calculateEditLiveScores()">
         <b>${sub}</b><br>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
             <div>CA (0-40) <input class="edit-ca" type="number" min="0" max="40" value="${s.ca}"></div>
@@ -1484,7 +1710,22 @@ try {
 }
 };
 
-/* UPDATE RESULT */
+window.calculateEditLiveScores = () => {
+    let boxes = document.querySelectorAll("#editSubjects .subject-box");
+    let total = 0;
+    let count = 0;
+    boxes.forEach(b => {
+        let ca = Number(b.querySelector(".edit-ca").value || 0);
+        let exam = Number(b.querySelector(".edit-exam").value || 0);
+        total += (ca + exam);
+        count++;
+    });
+    let avg = count > 0 ? (total / count) : 0;
+    let grade = avg >= 70 ? "A" : avg >= 60 ? "B" : avg >= 50 ? "C" : "F";
+    let status = avg >= 50 ? "PASS" : "FAIL";
+};
+
+/* UPDATE RESULT WITH METADATA & RE-ANALYTICS */
 window.updateResult = async () => {
 let btn = document.getElementById("updateResultBtn");
 if(!window.editDocId){
@@ -1536,10 +1777,12 @@ try {
       average: avg,
       grade: avg>=70?"A":avg>=60?"B":avg>=50?"C":"F",
       status: avg>=50?"PASS":"FAIL",
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      lastEditedBy: "System Administrator"
     });
 
     showToast("Result Updated Successfully ✔", "success");
+    updateDashboardTotals();
 } catch(e) {
     showToast("Error updating result: " + e.message, "error");
 } finally {
@@ -1548,7 +1791,7 @@ try {
 };
 
 </script>
-
+  
     
 </body>
 </html>
