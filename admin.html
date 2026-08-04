@@ -927,7 +927,20 @@ function computeDetailedPerformanceMetrics(resultsDataset) {
     let subjectMetrics = {}; 
 
     resultsDataset.forEach(r => {
-        let className = r.classAtTime || "Unassigned";
+        let className = (r.classAtTime || "Unassigned").trim().toLowerCase();
+
+const classMap = {
+    "primary": "Primary",
+    "junior secondary": "Junior Secondary",
+    "fresh class": "Fresh Class",
+    "ai class": "AI Class",
+    "level 1": "Level 1",
+    "level 2": "Level 2",
+    "level 3": "Level 3",
+    "unassigned": "Unassigned"
+};
+
+className = classMap[className] || className;
         
         if (!classMetrics[className]) {
             classMetrics[className] = { pass: 0, fail: 0 };
