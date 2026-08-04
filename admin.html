@@ -614,7 +614,115 @@ button:disabled {
     <button id="nextPageBtn" onclick="changePage(1)" class="btn-secondary" style="width: auto; padding: 8px 16px; margin: 0;">Next</button>
 </div>
 </div>
-  
+<!-- BATCH PROMOTION SECTION -->
+<div id="promotionSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Batch Student Promotion & Progression</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Preview eligible students based on term results and promote them safely to their next respective class levels.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Academic Session</label>
+        <input id="promoSession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Term Assessment</label>
+        <select id="promoTerm">
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option selected>Third Term</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Current Class Level</label>
+        <select id="promoCurrentClass">
+            <option value="">Select Class to Promote From</option>
+            <option>Primary</option>
+            <option>Junior Secondary</option>
+            <option>Fresh Class</option>
+            <option>AI Class</option>
+            <option>Level 1</option>
+            <option>Level 2</option>
+            <option>Level 3</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Minimum Pass Average Score</label>
+        <input id="promoMinScore" type="number" value="50" min="0" max="100">
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:15px;">
+    <button onclick="previewPromotionEligibility()" style="background-color: var(--primary);">Preview Eligible Students</button>
+    <button id="executePromoBtn" onclick="executeBatchPromotion()" style="background-color: var(--success);" disabled>Promote All Eligible Students</button>
+</div>
+
+<div id="promotionPreviewContainer" style="margin-top:20px;"></div>
+</div>
+
+<!-- PROMOTION HISTORY SECTION -->
+<div id="promotionHistorySection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Student Promotion & Graduation History</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Audit logs of all student progressions, class movements, and academic promotions.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 15px 0;">
+    <input id="historySearchInput" placeholder="Search by Student Name or ID..." oninput="filterPromotionHistory()">
+    <select id="historyClassFilter" onchange="filterPromotionHistory()">
+        <option value="">All Target Classes</option>
+        <option>AI Class</option>
+        <option>Level 1</option>
+        <option>Level 2</option>
+        <option>Level 3</option>
+        <option>Graduated</option>
+    </select>
+    <button onclick="loadPromotionHistory()" style="margin:0; height: 46px;">Refresh Records</button>
+</div>
+
+<div class="table-responsive" style="margin-top: 15px;">
+    <table>
+        <thead>
+            <tr>
+                <th>Date / Session</th>
+                <th>Student</th>
+                <th>From Class</th>
+                <th>To Class</th>
+                <th>Status / Remarks</th>
+            </tr>
+        </thead>
+        <tbody id="promotionHistoryTableBody">
+            <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Click refresh to load promotion history records.</td></tr>
+        </tbody>
+    </table>
+</div>
+</div>
+
+<!-- GRADUATION PROCESSING SECTION -->
+<div id="graduationSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Level 3 Graduation Processing</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Finalize academic completion for Level 3 students, transition them into alumni status, and archive records.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Graduation Session</label>
+        <input id="gradSession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Term</label>
+        <select id="gradTerm">
+            <option>Third Term</option>
+            <option>First Term</option>
+            <option>Second Term</option>
+        </select>
+    </div>
+</div>
+
+<button onclick="loadGraduationCandidates()" style="background-color: var(--secondary); margin-top: 15px;">Load Level 3 Graduation Candidates</button>
+
+<div id="graduationCandidatesContainer" style="margin-top: 20px;"></div>
+</div>
+    
 <!-- STUDENT -->
 <div id="studentSection" class="card hidden">
 <div class="back" onclick="goHome()">← Back</div>
@@ -1059,11 +1167,17 @@ document.getElementById("resultSection").classList.add("hidden");
 document.getElementById("editResultSection").classList.add("hidden");
 document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById("manageSection").classList.add("hidden");
+document.getElementById("promotionSection").classList.add("hidden");
+document.getElementById("promotionHistorySection").classList.add("hidden");
+document.getElementById("graduationSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
     updateDashboardTotals();
     searchStudent();
+}
+if(id === 'promotionHistorySection') {
+    loadPromotionHistory();
 }
 if(id === 'dashboard' || id === 'menu') {
     updateDashboardTotals();
@@ -1077,9 +1191,12 @@ document.getElementById("resultSection").classList.add("hidden");
 document.getElementById("editResultSection").classList.add("hidden");
 document.getElementById("deleteSection").classList.add("hidden");
 document.getElementById("manageSection").classList.add("hidden");
+document.getElementById("promotionSection").classList.add("hidden");
+document.getElementById("promotionHistorySection").classList.add("hidden");
+document.getElementById("graduationSection").classList.add("hidden");
 updateDashboardTotals();
 };
-
+     
 /* ADD STUDENT WITH STRONG VALIDATION */
 window.addStudent = async () => {
 let btn = document.getElementById("saveStudentBtn");
@@ -1988,6 +2105,364 @@ try {
 }
 };
 
+/* --- PHASE 4: PROMOTION & GRADUATION SYSTEM --- */
+
+const progressionMap = {
+    "Primary": "Junior Secondary",
+    "Junior Secondary": "Fresh Class",
+    "Fresh Class": "AI Class",
+    "AI Class": "Level 1",
+    "Level 1": "Level 2",
+    "Level 2": "Level 3",
+    "Level 3": "Graduated"
+};
+
+let cachedEligibleCandidates = [];
+
+// 1. Preview Promotion Eligibility
+window.previewPromotionEligibility = async () => {
+    let session = document.getElementById("promoSession").value.trim();
+    let term = document.getElementById("promoTerm").value;
+    let currentClass = document.getElementById("promoCurrentClass").value;
+    let minScore = Number(document.getElementById("promoMinScore").value || 50);
+    let container = document.getElementById("promotionPreviewContainer");
+    let executeBtn = document.getElementById("executePromoBtn");
+
+    if (!session || !currentClass) {
+        showToast("Please enter an academic session and select a current class.", "error");
+        return;
+    }
+
+    let targetClass = progressionMap[currentClass];
+    if (!targetClass || targetClass === "Graduated") {
+        showToast("Level 3 students must be processed via the Graduation module instead.", "error");
+        return;
+    }
+
+    try {
+        showToast("Analyzing student records and performance...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Evaluating candidate metrics...</p>`;
+        executeBtn.disabled = true;
+
+        let studentsQuery = query(collection(db, "students"), where("level", "==", currentClass));
+        let studentSnap = await getDocs(studentsQuery);
+
+        if (studentSnap.empty) {
+            container.innerHTML = `<div class="empty-state"><h4>No students found in ${currentClass}.</h4></div>`;
+            return;
+        }
+
+        let resultsQuery = query(collection(db, "results"), where("term", "==", term), where("session", "==", session));
+        let resultSnap = await getDocs(resultsQuery);
+
+        let resultsMap = {};
+        resultSnap.forEach(doc => {
+            let res = doc.data();
+            resultsMap[res.studentID] = res;
+        });
+
+        cachedEligibleCandidates = [];
+        let totalCount = 0;
+        let eligibleCount = 0;
+        let notEligibleCount = 0;
+        let tableRows = "";
+
+        studentSnap.forEach(doc => {
+            let s = doc.data();
+            totalCount++;
+            let studentRes = resultsMap[s.studentID];
+
+            let avgScore = studentRes ? Number(studentRes.average || 0) : 0;
+            let status = studentRes ? studentRes.status : "NO RESULT";
+            
+            let isEligible = false;
+            let remarks = "";
+
+            if (!studentRes) {
+                remarks = "Missing result record for term";
+            } else if (s.academicStatus === "Graduated") {
+                remarks = "Already graduated";
+            } else if (status === "PASS" && avgScore >= minScore) {
+                isEligible = true;
+                remarks = "Passed & Meets Cutoff ✔";
+            } else {
+                remarks = `Failed criteria (Status: ${status}, Avg: ${avgScore.toFixed(1)})`;
+            }
+
+            if (isEligible) {
+                eligibleCount++;
+                cachedEligibleCandidates.push({
+                    docId: doc.id,
+                    studentID: s.studentID,
+                    name: s.name,
+                    fromClass: currentClass,
+                    toClass: targetClass,
+                    average: avgScore
+                });
+            } else {
+                notEligibleCount++;
+            }
+
+            tableRows += `
+            <tr>
+                <td><b>${s.name}</b><br><span style="font-size:0.75rem; color:var(--text-muted);">${s.studentID}</span></td>
+                <td>${currentClass} → <b style="color:var(--primary);">${targetClass}</b></td>
+                <td>${avgScore.toFixed(1)}</td>
+                <td><span style="color:${status==='PASS'?'var(--success)':'var(--error)'}; font-weight:600;">${status}</span></td>
+                <td><input type="checkbox" ${isEligible ? 'checked' : 'disabled'} style="width:auto; margin:0;" class="promo-checkbox"></td>
+                <td style="font-size:0.85rem; color:var(--text-muted);">${remarks}</td>
+            </tr>`;
+        });
+
+        container.innerHTML = `
+        <div class="stats-grid" style="margin-bottom: 15px;">
+            <div class="stat-card"><h4>Total Evaluated</h4><div class="stat-value">${totalCount}</div></div>
+            <div class="stat-card" style="border-left-color:var(--success);"><h4>Eligible Candidates</h4><div class="stat-value">${eligibleCount}</div></div>
+            <div class="stat-card" style="border-left-color:var(--error);"><h4>Not Eligible / Skipped</h4><div class="stat-value">${notEligibleCount}</div></div>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>Student</th><th>Progression Path</th><th>Average</th><th>Status</th><th>Select</th><th>Remarks</th></tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        </div>`;
+
+        if (eligibleCount > 0) {
+            executeBtn.disabled = false;
+        }
+        showToast(`Preview ready: ${eligibleCount} eligible candidates found.`, "success");
+
+    } catch (e) {
+        showToast("Error during eligibility preview: " + e.message, "error");
+        container.innerHTML = "";
+    }
+};
+
+// 2. Execute Batch Promotion
+window.executeBatchPromotion = async () => {
+    let session = document.getElementById("promoSession").value.trim();
+    let term = document.getElementById("promoTerm").value;
+    let executeBtn = document.getElementById("executePromoBtn");
+
+    if (cachedEligibleCandidates.length === 0) {
+        showToast("No eligible candidates available for promotion.", "error");
+        return;
+    }
+
+    if (!confirm(`Are you ready to promote the selected eligible students for session ${session} (${term})?`)) {
+        return;
+    }
+
+    try {
+        executeBtn.disabled = true;
+        executeBtn.innerText = "Processing Promotion...";
+        showToast("Executing batch promotion updates...", "info");
+
+        let batchPromises = [];
+        let promotedCount = 0;
+
+        for (let candidate of cachedEligibleCandidates) {
+            let studentRef = doc(db, "students", candidate.docId);
+            
+            batchPromises.push(updateDoc(studentRef, {
+                level: candidate.toClass,
+                lastPromotionDate: Date.now(),
+                promotionSession: session,
+                promotionTerm: term,
+                updatedAt: Date.now()
+            }));
+
+            batchPromises.push(addDoc(collection(db, "promotionHistory"), {
+                studentID: candidate.studentID,
+                studentName: candidate.name,
+                fromClass: candidate.fromClass,
+                toClass: candidate.toClass,
+                promotionDate: Date.now(),
+                session: session,
+                term: term,
+                type: "Promotion",
+                promotedBy: "System Administrator",
+                remarks: `Promoted successfully with average score: ${candidate.average.toFixed(1)}`
+            }));
+
+            promotedCount++;
+        }
+
+        await Promise.all(batchPromises);
+
+        showToast(`Promotion Completed Successfully! Promoted: ${promotedCount} students.`, "success");
+        document.getElementById("promotionPreviewContainer").innerHTML = `
+        <div class="card" style="background:#ECFDF5; border-left:4px solid var(--success); margin-top:15px;">
+            <h4 style="color:var(--success);">Batch Promotion Completed Successfully</h4>
+            <p style="margin:0; font-size:0.9rem;"><b>Students Processed & Promoted:</b> ${promotedCount}</p>
+        </div>`;
+        
+        executeBtn.innerText = "Promote All Eligible Students";
+        updateDashboardTotals();
+
+    } catch (e) {
+        showToast("Error processing batch promotion: " + e.message, "error");
+        executeBtn.disabled = false;
+        executeBtn.innerText = "Promote All Eligible Students";
+    }
+};
+
+// 3. Load Promotion History Logs
+window.loadPromotionHistory = async () => {
+    let tbody = document.getElementById("promotionHistoryTableBody");
+    try {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading history logs...</td></tr>`;
+        
+        let q = query(collection(db, "promotionHistory"));
+        let snap = await getDocs(q);
+
+        window.allPromotionHistory = [];
+        snap.forEach(doc => {
+            window.allPromotionHistory.push(doc.data());
+        });
+
+        window.allPromotionHistory.sort((a, b) => (b.promotionDate || 0) - (a.promotionDate || 0));
+        renderPromotionHistoryTable(window.allPromotionHistory);
+        showToast("Promotion history loaded successfully.", "success");
+
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--error);">Error loading history: ${e.message}</td></tr>`;
+    }
+};
+
+function renderPromotionHistoryTable(records) {
+    let tbody = document.getElementById("promotionHistoryTableBody");
+    if (!tbody) return;
+
+    if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No promotion history records found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = "";
+    records.forEach(rec => {
+        let dateStr = rec.promotionDate ? new Date(rec.promotionDate).toLocaleDateString() : 'N/A';
+        tbody.innerHTML += `
+        <tr>
+            <td><b>${dateStr}</b><br><span style="font-size:0.75rem; color:var(--text-muted);">${rec.session || 'N/A'} (${rec.term || 'N/A'})</span></td>
+            <td><b>${rec.studentName}</b><br><span style="font-size:0.75rem; color:var(--text-muted);">${rec.studentID}</span></td>
+            <td>${rec.fromClass}</td>
+            <td><b style="color:var(--primary);">${rec.toClass}</b></td>
+            <td><span style="font-size:0.85rem; color:var(--text-muted);">${rec.remarks || 'Standard Progression'}</span></td>
+        </tr>`;
+    });
+}
+
+window.filterPromotionHistory = () => {
+    if (!window.allPromotionHistory) return;
+    let search = document.getElementById("historySearchInput").value.toLowerCase().trim();
+    let classFilter = document.getElementById("historyClassFilter").value;
+
+    let filtered = window.allPromotionHistory.filter(rec => {
+        let matchSearch = !search || rec.studentName.toLowerCase().includes(search) || rec.studentID.toLowerCase().includes(search);
+        let matchClass = !classFilter || rec.toClass === classFilter;
+        return matchSearch && matchClass;
+    });
+
+    renderPromotionHistoryTable(filtered);
+};
+
+// 4. Graduation Processing for Level 3 Candidates
+window.loadGraduationCandidates = async () => {
+    let container = document.getElementById("graduationCandidatesContainer");
+    let session = document.getElementById("gradSession").value.trim();
+    let term = document.getElementById("gradTerm").value;
+
+    if (!session) {
+        showToast("Please enter a graduation session.", "error");
+        return;
+    }
+
+    try {
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Fetching Level 3 candidates...</p>`;
+        
+        let q = query(collection(db, "students"), where("level", "==", "Level 3"));
+        let snap = await getDocs(q);
+
+        if (snap.empty) {
+            container.innerHTML = `<div class="empty-state"><h4>No Level 3 students found for graduation.</h4></div>`;
+            return;
+        }
+
+        let cardsHtml = `<div class="table-responsive"><table><thead><tr><th>Student Name & ID</th><th>Department</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+        
+        snap.forEach(docSnap => {
+            let s = docSnap.data();
+            let isAlreadyGraduated = s.academicStatus === "Graduated";
+
+            cardsHtml += `
+            <tr>
+                <td><b>${s.name}</b><br><span style="font-size:0.75rem; color:var(--text-muted);">${s.studentID}</span></td>
+                <td>${s.department || 'N/A'}</td>
+                <td><span style="color:${isAlreadyGraduated?'var(--success)':'var(--warning)'}; font-weight:600;">${isAlreadyGraduated ? 'Graduated (Alumni)' : 'Active Level 3'}</span></td>
+                <td>
+                    ${isAlreadyGraduated ? 
+                        '<span style="font-size:0.85rem; color:var(--success);">Completed ✔</span>' : 
+                        `<button onclick="processStudentGraduation('${docSnap.id}', '${s.studentID}', '${s.name}', '${session}', '${term}')" style="width:auto; padding:6px 12px; margin:0; background:var(--secondary);">Approve Graduation</button>`
+                    }
+                </td>
+            </tr>`;
+        });
+
+        cardsHtml += `</tbody></table></div>`;
+        container.innerHTML = cardsHtml;
+        showToast("Graduation candidates loaded.", "success");
+
+    } catch (e) {
+        showToast("Error loading candidates: " + e.message, "error");
+        container.innerHTML = "";
+    }
+};
+
+window.processStudentGraduation = async (docId, studentID, studentName, session, term) => {
+    if (!confirm(`Are you sure you want to graduate student ${studentName} (${studentID}) and move them to alumni status?`)) {
+        return;
+    }
+
+    try {
+        showToast("Processing graduation record...", "info");
+        let studentRef = doc(db, "students", docId);
+
+        let batchPromises = [
+            updateDoc(studentRef, {
+                level: "Graduated",
+                academicStatus: "Graduated",
+                graduationDate: Date.now(),
+                graduationSession: session,
+                graduationTerm: term,
+                updatedAt: Date.now()
+            }),
+            addDoc(collection(db, "promotionHistory"), {
+                studentID: studentID,
+                studentName: studentName,
+                fromClass: "Level 3",
+                toClass: "Graduated",
+                promotionDate: Date.now(),
+                session: session,
+                term: term,
+                type: "Graduation",
+                promotedBy: "System Administrator",
+                remarks: "Completed Level 3 & Conferred Graduation Alumni Status"
+            })
+        ];
+
+        await Promise.all(batchPromises);
+        showToast(`${studentName} successfully graduated!`, "success");
+        loadGraduationCandidates();
+        updateDashboardTotals();
+
+    } catch (e) {
+        showToast("Error processing graduation: " + e.message, "error");
+    }
+};
+     
 </script>
   
     
