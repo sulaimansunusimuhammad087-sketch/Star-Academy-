@@ -813,7 +813,7 @@ const pageSize = 20;
 /* --- GLOBAL STORAGE FOR ANALYTICS FILTERING --- */
 let cachedResults = [];
 
-async function updateDashboardTotals() {
+window.updateDashboardTotals = async function() {
     try {
         let [studentSnap, resultSnap] = await Promise.all([
             getDocs(collection(db, "students")),
@@ -870,7 +870,7 @@ async function updateDashboardTotals() {
     } catch(e) {
         console.error("Error fetching dashboard analytics:", e);
     }
-}
+};
 
 /* --- FILTERABLE ANALYTICS COMPUTATION --- */
 window.applyAnalyticsFilters = () => {
@@ -1008,80 +1008,7 @@ function computeDetailedPerformanceMetrics(resultsDataset) {
         }
     }
 }
-
-     /* --- CACHE RESULTS AND POPULATE SESSION DROPDOWN DYNAMICALLY --- */
-        cachedResults = [];
-        let sessionSet = new Set();
-        resultSnap.forEach(d => {
-            let r = d.data();
-            cachedResults.push(r);
-            if(r.session) sessionSet.add(r.session);
-        });
-
-        let sessionSelect = document.getElementById("analyticsSessionFilter");
-        if(sessionSelect) {
-            let currentSelected = sessionSelect.value;
-            sessionSelect.innerHTML = `<option value="All">All Sessions</option>`;
-            Array.from(sessionSet).sort().forEach(sess => {
-                sessionSelect.innerHTML += `<option value="${sess}">${sess}</option>`;
-            });
-            if(currentSelected && Array.from(sessionSet).includes(currentSelected)) {
-                sessionSelect.value = currentSelected;
-            }
-        }
-
-        applyAnalyticsFilters();
-
-    } catch(e) {
-        console.error("Error fetching dashboard analytics:", e);
-    }
-
-
-/* --- FILTERABLE ANALYTICS COMPUTATION --- */
-window.applyAnalyticsFilters = () => {
-    let termFilter = document.getElementById("analyticsTermFilter").value;
-    let sessionFilter = document.getElementById("analyticsSessionFilter").value;
-
-    let filtered = cachedResults.filter(r => {
-        let matchTerm = (termFilter === "All" || r.term === termFilter);
-        let matchSession = (sessionFilter === "All" || r.session === sessionFilter);
-        return matchTerm && matchSession;
-    });
-
-    let totalRes = filtered.length;
-    let passCount = 0;
-    let failCount = 0;
-    let scoreSum = 0;
-    let highest = 0;
-    let lowest = totalRes > 0 ? 999 : 0;
-
-    filtered.forEach(r => {
-        if(r.status === "PASS") passCount++;
-        else failCount++;
-
-        let avg = Number(r.average || 0);
-        scoreSum += avg;
-        if(avg > highest) highest = avg;
-        if(avg < lowest) lowest = avg;
-    });
-
-    let overallAvg = totalRes > 0 ? (scoreSum / totalRes).toFixed(2) : "0.00";
-    if(totalRes === 0) lowest = 0;
-
-    let anaTot = document.getElementById("anaTotalResults");
-    let anaPass = document.getElementById("anaTotalPass");
-    let anaFail = document.getElementById("anaTotalFail");
-    let anaAvg = document.getElementById("anaOverallAvg");
-    let anaHigh = document.getElementById("anaHighestScore");
-    let anaLow = document.getElementById("anaLowestScore");
-
-    if(anaTot) anaTot.innerText = totalRes;
-    if(anaPass) anaPass.innerText = passCount;
-    if(anaFail) anaFail.innerText = failCount;
-    if(anaAvg) anaAvg.innerText = overallAvg;
-    if(anaHigh) anaHigh.innerText = highest.toFixed(1);
-    if(anaLow) anaLow.innerText = lowest.toFixed(1);
-};
+     
 /* LOGIN */
 window.login = async () => {
 let btn = document.getElementById("loginBtn");
