@@ -397,20 +397,40 @@ button:disabled {
 </div>
 </div>
 
-<!-- RESULT PERFORMANCE ANALYTICS CARD -->
+<!-- RESULT PERFORMANCE ANALYTICS CARD WITH FILTERS -->
 <div class="card">
 <h3>Result Performance & Academic Analytics</h3>
+
+<!-- FILTER CONTROLS -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin: 15px 0 20px 0; background: var(--bg-main); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+    <div>
+        <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Filter Term</label>
+        <select id="analyticsTermFilter" onchange="applyAnalyticsFilters()">
+            <option value="All">All Terms</option>
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option>Third Term</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Filter Session</label>
+        <select id="analyticsSessionFilter" onchange="applyAnalyticsFilters()">
+            <option value="All">All Sessions</option>
+        </select>
+    </div>
+</div>
+
 <div class="stats-grid" style="margin-top: 15px;">
     <div class="stat-card">
-        <h4>Total Results Logged</h4>
+        <h4>Total Result Records</h4>
         <div class="stat-value" id="anaTotalResults">0</div>
     </div>
     <div class="stat-card" style="border-left-color: var(--success);">
-        <h4>Total Passed Students</h4>
+        <h4>Passed Result Records</h4>
         <div class="stat-value" id="anaTotalPass">0</div>
     </div>
     <div class="stat-card" style="border-left-color: var(--error);">
-        <h4>Total Failed Students</h4>
+        <h4>Failed Result Records</h4>
         <div class="stat-value" id="anaTotalFail">0</div>
     </div>
     <div class="stat-card" style="border-left-color: var(--warning);">
@@ -421,7 +441,7 @@ button:disabled {
         <h4>Highest Score</h4>
         <div class="stat-value" id="anaHighestScore">0</div>
     </div>
-    <div class="stat-card" style="border-left-card: var(--text-muted);">
+    <div class="stat-card" style="border-left-color: var(--text-muted);">
         <h4>Lowest Score</h4>
         <div class="stat-value" id="anaLowestScore">0</div>
     </div>
@@ -447,6 +467,44 @@ button:disabled {
 </div>
 </div>
 
+<!-- SUBJECT & CLASS PERFORMANCE BREAKDOWN -->
+<div class="card">
+<h3>Subject & Class Performance Breakdown</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Analyze pass/fail distribution across academic classes and individual subjects.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+    <!-- Class Performance Table -->
+    <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <h4 style="margin-bottom: 12px; color: var(--primary);">Performance by Class (Level)</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>Class</th><th>Passed</th><th>Failed</th><th>Pass Rate</th></tr>
+                </thead>
+                <tbody id="classPerformanceTableBody">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Loading class metrics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Subject Performance Table -->
+    <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <h4 style="margin-bottom: 12px; color: var(--secondary);">Performance by Subject</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>Subject</th><th>Total Scores</th><th>Passed (≥50)</th><th>Pass Rate</th></tr>
+                </thead>
+                <tbody id="subjectPerformanceTableBody">
+                    <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Loading subject metrics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+    
 <!-- MENU -->
 <div class="card" id="menu">
    
@@ -752,6 +810,9 @@ let filteredStudents = [];
 let currentPage = 1;
 const pageSize = 20;
 
+/* --- GLOBAL STORAGE FOR ANALYTICS FILTERING --- */
+let cachedResults = [];
+
 async function updateDashboardTotals() {
     try {
         let [studentSnap, resultSnap] = await Promise.all([
@@ -783,47 +844,244 @@ async function updateDashboardTotals() {
         if(elArt) elArt.innerText = deptArts;
         if(elClass) elClass.innerText = `Fresh: ${levels["Fresh Class"]} | AI: ${levels["AI Class"]} | L1: ${levels["Level 1"]} | L2: ${levels["Level 2"]} | L3: ${levels["Level 3"]}`;
 
-        /* --- RESULT ANALYTICS CALCULATIONS --- */
-        let totalRes = resultSnap.size;
-        let passCount = 0;
-        let failCount = 0;
-        let scoreSum = 0;
-        let highest = 0;
-        let lowest = totalRes > 0 ? 999 : 0;
-
+        /* --- CACHE RESULTS AND POPULATE SESSION DROPDOWN DYNAMICALLY --- */
+        cachedResults = [];
+        let sessionSet = new Set();
         resultSnap.forEach(d => {
             let r = d.data();
-            if(r.status === "PASS") passCount++;
-            else failCount++;
-
-            let avg = Number(r.average || 0);
-            scoreSum += avg;
-            if(avg > highest) highest = avg;
-            if(avg < lowest) lowest = avg;
+            cachedResults.push(r);
+            if(r.session) sessionSet.add(r.session);
         });
 
-        let overallAvg = totalRes > 0 ? (scoreSum / totalRes).toFixed(2) : "0.00";
-        if(totalRes === 0) lowest = 0;
+        let sessionSelect = document.getElementById("analyticsSessionFilter");
+        if(sessionSelect) {
+            let currentSelected = sessionSelect.value;
+            sessionSelect.innerHTML = `<option value="All">All Sessions</option>`;
+            Array.from(sessionSet).sort().forEach(sess => {
+                sessionSelect.innerHTML += `<option value="${sess}">${sess}</option>`;
+            });
+            if(currentSelected && Array.from(sessionSet).includes(currentSelected)) {
+                sessionSelect.value = currentSelected;
+            }
+        }
 
-        let anaTot = document.getElementById("anaTotalResults");
-        let anaPass = document.getElementById("anaTotalPass");
-        let anaFail = document.getElementById("anaTotalFail");
-        let anaAvg = document.getElementById("anaOverallAvg");
-        let anaHigh = document.getElementById("anaHighestScore");
-        let anaLow = document.getElementById("anaLowestScore");
-
-        if(anaTot) anaTot.innerText = totalRes;
-        if(anaPass) anaPass.innerText = passCount;
-        if(anaFail) anaFail.innerText = failCount;
-        if(anaAvg) anaAvg.innerText = overallAvg;
-        if(anaHigh) anaHigh.innerText = highest.toFixed(1);
-        if(anaLow) anaLow.innerText = lowest.toFixed(1);
+        applyAnalyticsFilters();
 
     } catch(e) {
         console.error("Error fetching dashboard analytics:", e);
     }
 }
 
+/* --- FILTERABLE ANALYTICS COMPUTATION --- */
+window.applyAnalyticsFilters = () => {
+    let termFilter = document.getElementById("analyticsTermFilter").value;
+    let sessionFilter = document.getElementById("analyticsSessionFilter").value;
+
+    let filtered = cachedResults.filter(r => {
+        let matchTerm = (termFilter === "All" || r.term === termFilter);
+        let matchSession = (sessionFilter === "All" || r.session === sessionFilter);
+        return matchTerm && matchSession;
+    });
+
+    let totalRes = filtered.length;
+    let passCount = 0;
+    let failCount = 0;
+    let scoreSum = 0;
+    let highest = 0;
+    let lowest = totalRes > 0 ? 999 : 0;
+
+    filtered.forEach(r => {
+        if(r.status === "PASS") passCount++;
+        else failCount++;
+
+        let avg = Number(r.average || 0);
+        scoreSum += avg;
+        if(avg > highest) highest = avg;
+        if(avg < lowest) lowest = avg;
+    });
+
+    let overallAvg = totalRes > 0 ? (scoreSum / totalRes).toFixed(2) : "0.00";
+    if(totalRes === 0) lowest = 0;
+
+    let anaTot = document.getElementById("anaTotalResults");
+    let anaPass = document.getElementById("anaTotalPass");
+    let anaFail = document.getElementById("anaTotalFail");
+    let anaAvg = document.getElementById("anaOverallAvg");
+    let anaHigh = document.getElementById("anaHighestScore");
+    let anaLow = document.getElementById("anaLowestScore");
+
+    if(anaTot) anaTot.innerText = totalRes;
+    if(anaPass) anaPass.innerText = passCount;
+    if(anaFail) anaFail.innerText = failCount;
+    if(anaAvg) anaAvg.innerText = overallAvg;
+    if(anaHigh) anaHigh.innerText = highest.toFixed(1);
+    if(anaLow) anaLow.innerText = lowest.toFixed(1);
+
+    // Compute detailed subject and class pass/fail performance breakdown tables
+    computeDetailedPerformanceMetrics(filtered);
+};
+
+/* --- SUBJECT & CLASS PASS/FAIL ANALYTICS CALCULATOR --- */
+function computeDetailedPerformanceMetrics(resultsDataset) {
+    let classMetrics = {}; 
+    let subjectMetrics = {}; 
+
+    resultsDataset.forEach(r => {
+        let className = r.classAtTime || "Unassigned";
+        
+        if (!classMetrics[className]) {
+            classMetrics[className] = { pass: 0, fail: 0 };
+        }
+
+        if (r.status === "PASS") {
+            classMetrics[className].pass++;
+        } else {
+            classMetrics[className].fail++;
+        }
+
+        let subjectsObj = r.subjects || {};
+        Object.keys(subjectsObj).forEach(subName => {
+            let subData = subjectsObj[subName];
+            let subTotal = Number(subData.total || 0);
+
+            if (!subjectMetrics[subName]) {
+                subjectMetrics[subName] = { pass: 0, total: 0 };
+            }
+
+            subjectMetrics[subName].total++;
+            if (subTotal >= 50) {
+                subjectMetrics[subName].pass++;
+            }
+        });
+    });
+
+    /* --- RENDER CLASS PERFORMANCE TABLE --- */
+    let classTbody = document.getElementById("classPerformanceTableBody");
+    if (classTbody) {
+        classTbody.innerHTML = "";
+        let classKeys = Object.keys(classMetrics);
+        if (classKeys.length === 0) {
+            classTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No class data available.</td></tr>`;
+        } else {
+            classKeys.forEach(cls => {
+                let p = classMetrics[cls].pass;
+                let f = classMetrics[cls].fail;
+                let tot = p + f;
+                let rate = tot > 0 ? ((p / tot) * 100).toFixed(1) : 0;
+                classTbody.innerHTML += `
+                <tr>
+                    <td><b>${cls}</b></td>
+                    <td style="color:var(--success);">${p}</td>
+                    <td style="color:var(--error);">${f}</td>
+                    <td><b>${rate}%</b></td>
+                </tr>`;
+            });
+        }
+    }
+
+    /* --- RENDER SUBJECT PERFORMANCE TABLE --- */
+    let subTbody = document.getElementById("subjectPerformanceTableBody");
+    if (subTbody) {
+        subTbody.innerHTML = "";
+        let subKeys = Object.keys(subjectMetrics);
+        if (subKeys.length === 0) {
+            subTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No subject data available.</td></tr>`;
+        } else {
+            subKeys.sort((a, b) => {
+                let rateA = subjectMetrics[a].total > 0 ? (subjectMetrics[a].pass / subjectMetrics[a].total) : 0;
+                let rateB = subjectMetrics[b].total > 0 ? (subjectMetrics[b].pass / subjectMetrics[b].total) : 0;
+                return rateB - rateA;
+            });
+
+            subKeys.forEach(sub => {
+                let pass = subjectMetrics[sub].pass;
+                let total = subjectMetrics[sub].total;
+                let rate = total > 0 ? ((pass / total) * 100).toFixed(1) : 0;
+                subTbody.innerHTML += `
+                <tr>
+                    <td><b>${sub}</b></td>
+                    <td>${total}</td>
+                    <td style="color:var(--success);">${pass}</td>
+                    <td><b>${rate}%</b></td>
+                </tr>`;
+            });
+        }
+    }
+}
+
+     /* --- CACHE RESULTS AND POPULATE SESSION DROPDOWN DYNAMICALLY --- */
+        cachedResults = [];
+        let sessionSet = new Set();
+        resultSnap.forEach(d => {
+            let r = d.data();
+            cachedResults.push(r);
+            if(r.session) sessionSet.add(r.session);
+        });
+
+        let sessionSelect = document.getElementById("analyticsSessionFilter");
+        if(sessionSelect) {
+            let currentSelected = sessionSelect.value;
+            sessionSelect.innerHTML = `<option value="All">All Sessions</option>`;
+            Array.from(sessionSet).sort().forEach(sess => {
+                sessionSelect.innerHTML += `<option value="${sess}">${sess}</option>`;
+            });
+            if(currentSelected && Array.from(sessionSet).includes(currentSelected)) {
+                sessionSelect.value = currentSelected;
+            }
+        }
+
+        applyAnalyticsFilters();
+
+    } catch(e) {
+        console.error("Error fetching dashboard analytics:", e);
+    }
+}
+
+/* --- FILTERABLE ANALYTICS COMPUTATION --- */
+window.applyAnalyticsFilters = () => {
+    let termFilter = document.getElementById("analyticsTermFilter").value;
+    let sessionFilter = document.getElementById("analyticsSessionFilter").value;
+
+    let filtered = cachedResults.filter(r => {
+        let matchTerm = (termFilter === "All" || r.term === termFilter);
+        let matchSession = (sessionFilter === "All" || r.session === sessionFilter);
+        return matchTerm && matchSession;
+    });
+
+    let totalRes = filtered.length;
+    let passCount = 0;
+    let failCount = 0;
+    let scoreSum = 0;
+    let highest = 0;
+    let lowest = totalRes > 0 ? 999 : 0;
+
+    filtered.forEach(r => {
+        if(r.status === "PASS") passCount++;
+        else failCount++;
+
+        let avg = Number(r.average || 0);
+        scoreSum += avg;
+        if(avg > highest) highest = avg;
+        if(avg < lowest) lowest = avg;
+    });
+
+    let overallAvg = totalRes > 0 ? (scoreSum / totalRes).toFixed(2) : "0.00";
+    if(totalRes === 0) lowest = 0;
+
+    let anaTot = document.getElementById("anaTotalResults");
+    let anaPass = document.getElementById("anaTotalPass");
+    let anaFail = document.getElementById("anaTotalFail");
+    let anaAvg = document.getElementById("anaOverallAvg");
+    let anaHigh = document.getElementById("anaHighestScore");
+    let anaLow = document.getElementById("anaLowestScore");
+
+    if(anaTot) anaTot.innerText = totalRes;
+    if(anaPass) anaPass.innerText = passCount;
+    if(anaFail) anaFail.innerText = failCount;
+    if(anaAvg) anaAvg.innerText = overallAvg;
+    if(anaHigh) anaHigh.innerText = highest.toFixed(1);
+    if(anaLow) anaLow.innerText = lowest.toFixed(1);
+};
 /* LOGIN */
 window.login = async () => {
 let btn = document.getElementById("loginBtn");
