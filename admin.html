@@ -3515,8 +3515,9 @@ window.printCertificate = () => {
 
 /* --- PHASE 5: THEORY & OMR ANSWER SHEET GENERATOR SYSTEM --- */
 
-// 1. Theory Answer Sheet Preview & Generator
- window.generateTheorySheetPreview = async () => {
+
+/* --- 1. THEORY ANSWER SHEET PREVIEW & GENERATOR (FIXED PAGE COUNT) --- */
+window.generateTheorySheetPreview = async () => {
     let subject = document.getElementById("theorySubject").value.trim();
     let level = document.getElementById("theoryClass").value;
     let session = document.getElementById("theorySession").value.trim();
@@ -3533,27 +3534,29 @@ window.printCertificate = () => {
 
     try {
         showToast("Generating theory answer booklet...", "info");
-        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Compiling booklet layout...</p>`;
+        container.innerHTML = ""; // Clean reset to prevent duplication
         printBtn.disabled = true;
 
         let config = await getSchoolConfig();
         let bookletHtml = "";
 
         for (let i = 1; i <= pagesCount; i++) {
-            // Generates exactly 25 professional writing lines per page
             let linesHtml = "";
             for (let l = 1; l <= 25; l++) {
                 linesHtml += `<div style="border-bottom: 1px solid #CBD5E1; height: 28px; width: 100%;"></div>`;
             }
 
+            // Apply page break only up to pagesCount - 1 to prevent trailing blank pages
+            let pageBreakStyle = i < pagesCount ? "page-break-after: always; break-after: page;" : "";
+
             bookletHtml += `
-            <div class="sheet-print-wrap" style="page-break-after:always; max-width: 800px; margin: 0 auto 25px auto; background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 30px; box-shadow: var(--shadow-sm); box-sizing: border-box;">
+            <div class="sheet-print-wrap" style="${pageBreakStyle} width: 100%; max-width: 800px; margin: 0 auto 25px auto; background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 25px 20px; box-shadow: var(--shadow-sm); box-sizing: border-box; overflow: hidden;">
                 <!-- Header -->
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0F172A; padding-bottom:10px; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
                     <div style="display:flex; align-items:center; gap:12px;">
                         <img src="${config.logoUrl || 'logo.png'}" style="height:40px; width:auto;" alt="Logo">
                         <div>
-                            <h3 style="margin:0; font-size:1rem; color:#0F172A;">${config.schoolName || 'Star Academy'}</h3>
+                            <h3 style="margin:0; font-size:1rem; color:#0F172A; word-break:break-word;">${config.schoolName || 'Star Academy'}</h3>
                             <p style="margin:0; font-size:0.7rem; color:#64748B;">${examTitle}</p>
                         </div>
                     </div>
@@ -3563,34 +3566,34 @@ window.printCertificate = () => {
                     </div>
                 </div>
 
-                <!-- Candidate Info Box (Only on Cover Page i.e. Page 1) -->
+                <!-- Candidate Info Box (Cover Page vs Subsequent Pages) -->
                 ${i === 1 ? `
                 <div style="background:#F8FAFC; border:1px solid #CBD5E1; padding:10px 12px; border-radius:6px; margin-bottom:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; font-size:0.8rem;">
                     <div><b>Candidate Name:</b> _________________________________</div>
                     <div><b>Admission Number:</b> ___________________</div>
-                    <div><b>Session:</b> ${session} &nbsp;|&nbsp; <b>Seat No:</b></div>
+                    <div><b>Session:</b> ${session} &nbsp;|&nbsp; <b>Seat No:</b> ____________</div>
                     <div><b>Candidate Signature:</b> ____________________________</div>
                 </div>
-                <div style="border:1px solid #1E293B; padding:6px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:#FFF; border-radius:4px;">
+                <div style="border:1px solid #1E293B; padding:6px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; background:#FFF; border-radius:4px; flex-wrap:wrap; gap:8px;">
                     <div><b>FOR EXAMINER'S USE ONLY</b></div>
-                    <div style="border:1px solid #64748B; padding:4px 15px; font-weight:800; background:#F8FAFC; font-size:1rem;">Total Score: ________ </div>
+                    <div style="border:1px solid #64748B; padding:4px 15px; font-weight:800; background:#F8FAFC; font-size:0.95rem;">Total Score: ________ / 100</div>
                 </div>
                 ` : `
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748B; border-bottom:1px dashed #CBD5E1; margin-bottom:10px; padding-bottom:4px; flex-wrap:wrap; gap:5px;">
-                    <div><b>Candidate Name:</b> ___________________________</div>
-                    <div><b>Admission Number:</b> ______________</div>
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748B; border-bottom:1px dashed #CBD5E1; margin-bottom:10px; padding-bottom:4px; flex-wrap:wrap; gap:8px;">
+                    <div><b>Name:</b> ___________________________</div>
+                    <div><b>ID:</b> ______________</div>
                     <div><b>Subject:</b> ${subject}</div>
-                    <div><b>Seat No:</b></div>
+                    <div><b>Seat No:</b> ________</div>
                 </div>
                 `}
 
                 <!-- Writing Area / Exact 25 Ruling Lines -->
-                <div style="border-left:2px solid #FCA5A5; padding-left:8px; margin-bottom:15px;">
+                <div style="border-left:2px solid #FCA5A5; padding-left:8px; margin-bottom:15px; width:100%; box-sizing:border-box;">
                     ${linesHtml}
                 </div>
 
                 <!-- Footer Page Number -->
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid #CBD5E1; font-size:0.75rem; color:#64748B;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid #CBD5E1; font-size:0.75rem; color:#64748B; flex-wrap:wrap; gap:5px;">
                     <div>${config.schoolName || 'Star Academy'} Official Examination Booklet</div>
                     <div><b>Page ${i} of ${pagesCount}</b></div>
                 </div>
@@ -3612,7 +3615,7 @@ window.printTheorySheet = () => {
 };
 
 
-// 2. OMR Sheet Preview & Generator
+/* --- 2. OMR SHEET PREVIEW & GENERATOR (CLEANED) --- */
 window.generateOmrSheetPreview = async () => {
     let subject = document.getElementById("omrSubject").value.trim();
     let level = document.getElementById("omrClass").value;
@@ -3629,7 +3632,7 @@ window.generateOmrSheetPreview = async () => {
 
     try {
         showToast("Generating OMR answer sheet...", "info");
-        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Configuring optical mark recognition bubbles...</p>`;
+        container.innerHTML = ""; // Clean reset
         printBtn.disabled = true;
 
         let config = await getSchoolConfig();
@@ -3647,54 +3650,48 @@ window.generateOmrSheetPreview = async () => {
             for (let q = startQ; q <= endQ; q++) {
                 let bubbles = optionsArr.map(opt => `<span class="omr-bubble">${opt}</span>`).join("");
                 rows += `
-                <div style="display:flex; align-items:center; margin-bottom:6px; font-size:0.8rem;">
-                    <span style="width:28px; font-weight:700; color:#0F172A; text-align:right; margin-right:8px;">${q}.</span>
+                <div style="display:flex; align-items:center; margin-bottom:5px; font-size:0.78rem;">
+                    <span style="width:26px; font-weight:700; color:#0F172A; text-align:right; margin-right:6px;">${q}.</span>
                     <div>${bubbles}</div>
                 </div>`;
             }
 
-            columnsHtml += `<div style="flex:1; min-width:240px;">${rows}</div>`;
+            columnsHtml += `<div style="flex:1; min-width:220px;">${rows}</div>`;
         }
 
         let omrHtml = `
-        <div class="sheet-print-wrap">
+        <div class="sheet-print-wrap" style="width: 100%; max-width: 800px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 25px 20px; box-shadow: var(--shadow-sm); box-sizing: border-box;">
             <!-- Header -->
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0F172A; padding-bottom:12px; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0F172A; padding-bottom:10px; margin-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <img src="${config.logoUrl || 'logo.png'}" style="height:45px; width:auto;" alt="Logo">
+                    <img src="${config.logoUrl || 'logo.png'}" style="height:40px; width:auto;" alt="Logo">
                     <div>
-                        <h3 style="margin:0; font-size:1.1rem; color:#0F172A;">${config.schoolName || 'Star Academy'}</h3>
-                        <p style="margin:0; font-size:0.75rem; color:#64748B;"><b>OMR OBJECTIVE EXAMINATION SHEET</b></p>
+                        <h3 style="margin:0; font-size:1rem; color:#0F172A;">${config.schoolName || 'Star Academy'}</h3>
+                        <p style="margin:0; font-size:0.7rem; color:#64748B;"><b>OMR OBJECTIVE EXAMINATION SHEET</b></p>
                     </div>
                 </div>
-                <div style="text-align:right; font-size:0.8rem; color:#334155;">
+                <div style="text-align:right; font-size:0.75rem; color:#334155;">
                     <div><b>Subject:</b> ${subject}</div>
                     <div><b>Class:</b> ${level} | <b>Session:</b> ${session}</div>
                 </div>
             </div>
 
             <!-- Instructions & Candidate Grid -->
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:15px; margin-bottom:20px; align-items:center;">
-                <div style="background:#F8FAFC; border:1px solid #CBD5E1; padding:10px; border-radius:6px; font-size:0.8rem;">
-                    <div style="margin-bottom:4px;"><b>Candidate Name:</b> _________________________________</div>
-                    <div style="margin-bottom:4px;"><b>Admission No:</b> ___________________ &nbsp; <b>Class:</b> ${level}</div>
-                    <div style="color:#64748B; font-size:0.75rem; margin-top:6px;"><b>Instructions:</b> Use HB Pencil only. Completely shade the circle corresponding to your correct answer. Avoid stray marks.</div>
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px; margin-bottom:15px; align-items:center;">
+                <div style="background:#F8FAFC; border:1px solid #CBD5E1; padding:8px 10px; border-radius:6px; font-size:0.78rem;">
+                    <div style="margin-bottom:3px;"><b>Candidate Name:</b> _________________________________</div>
+                    <div style="margin-bottom:3px;"><b>Admission No:</b> ___________________ &nbsp; <b>Class:</b> ${level}</div>
+                    <div style="color:#64748B; font-size:0.7rem; margin-top:4px;"><b>Instructions:</b> Use HB Pencil only. Completely shade the circle. Avoid stray marks.</div>
                 </div>
-                <div style="border:2px dashed #64748B; padding:10px; text-align:center; border-radius:6px; background:#FFF;">
-                    <div style="font-size:0.7rem; font-weight:700; color:#64748B;">TOTAL QUESTIONS</div>
-                    <div style="font-size:1.4rem; font-weight:800; color:#2563EB;">${qCount}</div>
+                <div style="border:2px dashed #64748B; padding:8px; text-align:center; border-radius:6px; background:#FFF;">
+                    <div style="font-size:0.65rem; font-weight:700; color:#64748B;">TOTAL QUESTIONS</div>
+                    <div style="font-size:1.2rem; font-weight:800; color:#2563EB;">${qCount}</div>
                 </div>
             </div>
 
             <!-- OMR Bubbles Grid -->
-            <div style="border-top:1px solid #CBD5E1; border-bottom:1px solid #CBD5E1; padding:15px 0; display:flex; gap:30px; flex-wrap:wrap; justify-content:space-between;">
+            <div style="border-top:1px solid #CBD5E1; border-bottom:1px solid #CBD5E1; padding:12px 0; display:flex; gap:20px; flex-wrap:wrap; justify-content:space-between;">
                 ${columnsHtml}
-            </div>
-
-            <!-- Footer Marker -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; font-size:0.7rem; color:#94A3B8;">
-                <div>||||| |||| |||||||| |||||| ||||||</div>
-                <div>OMR-SCAN-GRID-VER2.0</div>
             </div>
         </div>`;
 
@@ -3711,6 +3708,7 @@ window.generateOmrSheetPreview = async () => {
 window.printOmrSheet = () => {
     window.print();
 };
+
 
   /* --- PHASE 5: EXAMINATION SCHEDULING SYSTEM --- */
 
