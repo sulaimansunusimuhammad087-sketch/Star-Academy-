@@ -647,9 +647,10 @@ button:disabled {
 <button onclick="showSection('graduationSection')" style="background-color: #7C3AED;">Graduation Processing</button>
 <button onclick="showSection('settingsSection')" style="background-color: #475569;">School Settings & Branding</button>
 <button onclick="showSection('examCardSection')" style="background-color: var(--primary);">Examination Card Generator</button>
- <button onclick="showSection('certificateSection')" style="background-color: #D97706;">Certificate Generator & Management</button> 
+<button onclick="showSection('certificateSection')" style="background-color: #D97706;">Certificate Generator & Management</button> 
 <button onclick="showSection('theorySheetSection')" style="background-color: #0284C7;">Theory Answer Sheet Generator</button>
 <button onclick="showSection('omrSheetSection')" style="background-color: #4F46E5;">OMR Sheet Generator (Multiple Choice)</button>
+<button onclick="showSection('examScheduleSection')" style="background-color: #7C2D12;">Examination Scheduling & Timetable</button>
 <button onclick="showSection('deleteSection')" class="btn-danger">Delete Student</button>
 </div>
 </div>
@@ -1155,6 +1156,92 @@ button:disabled {
 <div id="omrPreviewContainer" style="margin-top:25px;"></div>
 </div>
 
+ <!-- EXAMINATION SCHEDULING SECTION -->
+<div id="examScheduleSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Examination Scheduling & Timetable Management</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Create, schedule, and publish examination timetables for classes. Future student and teacher portals will automatically display these schedules.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Academic Session</label>
+        <input id="schedSession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Term Assessment</label>
+        <select id="schedTerm">
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option selected>Third Term</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Target Class Level</label>
+        <select id="schedClass">
+            <option>Primary</option>
+            <option>Junior Secondary</option>
+            <option>Fresh Class</option>
+            <option>AI Class</option>
+            <option>Level 1</option>
+            <option>Level 2</option>
+            <option>Level 3</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Subject Title</label>
+        <input id="schedSubject" placeholder="e.g. Mathematics">
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Exam Date</label>
+        <input id="schedDate" type="date">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Start Time</label>
+        <input id="schedStartTime" type="time">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">End Time</label>
+        <input id="schedEndTime" type="time">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Exam Venue</label>
+        <input id="schedVenue" placeholder="e.g. Hall A / Computer Lab">
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Assigned Supervisor</label>
+        <input id="schedSupervisor" placeholder="e.g. Mr. Johnson">
+    </div>
+</div>
+
+<button onclick="saveExamSchedule()" style="background-color: var(--success); margin-top: 20px;">Publish Examination Schedule</button>
+
+<div style="margin-top: 35px;">
+    <h4 style="margin-bottom: 15px; color: var(--text-main);">Existing Examination Timetable Schedules</h4>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date / Time</th>
+                    <th>Class / Subject</th>
+                    <th>Venue</th>
+                    <th>Supervisor</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="examScheduleTableBody">
+                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading schedules...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+   
     
 <!-- STUDENT -->
 <div id="studentSection" class="card hidden">
@@ -1608,6 +1695,7 @@ document.getElementById("examCardSection").classList.add("hidden");
 document.getElementById("certificateSection").classList.add("hidden");
 document.getElementById("theorySheetSection").classList.add("hidden");
 document.getElementById("omrSheetSection").classList.add("hidden");
+document.getElementById("examScheduleSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
@@ -1619,6 +1707,9 @@ if(id === 'promotionHistorySection') {
 }
 if(id === 'settingsSection') {
     loadSchoolSettings();
+}
+if(id === 'examScheduleSection') {
+    loadExamSchedules();
 }
 if(id === 'dashboard' || id === 'menu') {
     updateDashboardTotals();
@@ -1640,6 +1731,7 @@ document.getElementById("examCardSection").classList.add("hidden");
 document.getElementById("certificateSection").classList.add("hidden");
 document.getElementById("theorySheetSection").classList.add("hidden");
 document.getElementById("omrSheetSection").classList.add("hidden");
+document.getElementById("examScheduleSection").classList.add("hidden");
 updateDashboardTotals();
 };
     
@@ -3514,6 +3606,103 @@ window.printOmrSheet = () => {
     window.print();
 };
 
+  /* --- PHASE 5: EXAMINATION SCHEDULING SYSTEM --- */
+
+window.loadExamSchedules = async () => {
+    let tbody = document.getElementById("examScheduleTableBody");
+    if (!tbody) return;
+
+    try {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Fetching exam schedules...</td></tr>`;
+        
+        let q = query(collection(db, "examSchedules"));
+        let snap = await getDocs(q);
+
+        if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No examination schedules found.</td></tr>`;
+            return;
+        }
+
+        let rowsHtml = "";
+        snap.forEach(docSnap => {
+            let s = docSnap.data();
+            rowsHtml += `
+            <tr>
+                <td><b>${s.date}</b><br><span style="font-size:0.75rem; color:var(--text-muted);">${s.startTime} - ${s.endTime}</span></td>
+                <td><b>${s.subject}</b><br><span style="font-size:0.75rem; color:var(--primary);">${s.className} (${s.term}, ${s.session})</span></td>
+                <td>${s.venue}</td>
+                <td>${s.supervisor || 'TBA'}</td>
+                <td><button onclick="deleteExamSchedule('${docSnap.id}')" class="btn-danger" style="width:auto; padding:4px 10px; margin:0; font-size:0.75rem;">Delete</button></td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = rowsHtml;
+
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--error);">Error loading schedules: ${e.message}</td></tr>`;
+    }
+};
+
+window.saveExamSchedule = async () => {
+    let session = document.getElementById("schedSession").value.trim();
+    let term = document.getElementById("schedTerm").value;
+    let className = document.getElementById("schedClass").value;
+    let subject = document.getElementById("schedSubject").value.trim();
+    let date = document.getElementById("schedDate").value;
+    let startTime = document.getElementById("schedStartTime").value;
+    let endTime = document.getElementById("schedEndTime").value;
+    let venue = document.getElementById("schedVenue").value.trim();
+    let supervisor = document.getElementById("schedSupervisor").value.trim();
+
+    if (!session || !subject || !date || !startTime || !endTime || !venue) {
+        showToast("Please fill in all mandatory schedule fields.", "error");
+        return;
+    }
+
+    try {
+        showToast("Publishing exam schedule...", "info");
+        
+        await addDoc(collection(db, "examSchedules"), {
+            session,
+            term,
+            className,
+            subject,
+            date,
+            startTime,
+            endTime,
+            venue,
+            supervisor,
+            createdAt: Date.now()
+        });
+
+        showToast("Examination Schedule Published Successfully ✔", "success");
+        
+        // Clear inputs
+        document.getElementById("schedSubject").value = "";
+        document.getElementById("schedDate").value = "";
+        document.getElementById("schedStartTime").value = "";
+        document.getElementById("schedEndTime").value = "";
+        document.getElementById("schedVenue").value = "";
+        document.getElementById("schedSupervisor").value = "";
+
+        loadExamSchedules();
+
+    } catch (e) {
+        showToast("Error saving schedule: " + e.message, "error");
+    }
+};
+
+window.deleteExamSchedule = async (docId) => {
+    if (!confirm("Are you sure you want to delete this examination schedule?")) return;
+    try {
+        await deleteDoc(doc(db, "examSchedules", docId));
+        showToast("Schedule deleted successfully.", "success");
+        loadExamSchedules();
+    } catch (e) {
+        showToast("Error deleting schedule: " + e.message, "error");
+    }
+};
+   
      
 </script>
   
