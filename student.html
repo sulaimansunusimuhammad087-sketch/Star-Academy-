@@ -304,11 +304,25 @@ th {
     transform: translateY(-2px);
 }
 
-/* --- PRINT STYLES --- */
+/* --- PRINT & A4 STYLES FOR RESULT SLIP --- */
 @media print {
     body * { visibility: hidden; }
     #printableArea, #printableArea * { visibility: visible; }
-    #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
+    #printableArea { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 210mm; 
+        min-height: 297mm; 
+        padding: 15mm; 
+        background: #fff !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
 }
 </style>
 </head>
@@ -347,7 +361,7 @@ th {
         </p>
     </div>
 
-    <!-- REGISTRATION FORM (MATCHING ADMIN DASHBOARD EXACTLY) -->
+    <!-- REGISTRATION FORM -->
     <div id="registerFormCard" class="hidden">
         <h4 style="margin-bottom: 15px; color: var(--primary);">New Student Online Registration</h4>
         
@@ -366,14 +380,18 @@ th {
             <div><label style="font-size:0.8rem; font-weight:600;">Phone Number * (11 Digits)</label><input id="regPhone" placeholder="08012345678" maxlength="11"></div>
             <div><label style="font-size:0.8rem; font-weight:600;">Student Email (Optional)</label><input id="regEmail" placeholder="student@email.com" type="email"></div>
             <div><label style="font-size:0.8rem; font-weight:600;">Password (For future logins)</label><input id="regPassword" type="password" placeholder="Create secure password"></div>
-            <div><label style="font-size:0.8rem; font-weight:600;">Department *</label>
+            
+            <div>
+                <label style="font-size:0.8rem; font-weight:600;">Department * (YOU ADMITTED)</label>
                 <select id="regDepartment">
                     <option value="">Select Department</option>
                     <option value="Science">Science</option>
                     <option value="Arts">Arts</option>
                 </select>
             </div>
-            <div><label style="font-size:0.8rem; font-weight:600;">Level *</label>
+
+            <div>
+                <label style="font-size:0.8rem; font-weight:600;">Level * (YOU ADMITTED)</label>
                 <select id="regLevel">
                     <option value="">Select Level</option>
                     <option>Primary</option>
@@ -385,14 +403,21 @@ th {
                     <option>Level 3</option>
                 </select>
             </div>
-            <div><label style="font-size:0.8rem; font-weight:600;">School Type</label>
+
+            <div>
+                <label style="font-size:0.8rem; font-weight:600;">School Type (YOU ARE ATTENDING)</label>
                 <select id="regSchoolType">
                     <option value="">Select School Type</option>
                     <option>Private</option>
                     <option>Public</option>
                 </select>
             </div>
-            <div><label style="font-size:0.8rem; font-weight:600;">School Name</label><input id="regSchoolName" placeholder="School Name"></div>
+
+            <div>
+                <label style="font-size:0.8rem; font-weight:600;">School Name (YOU ARE ATTENDING)</label>
+                <input id="regSchoolName" placeholder="School Name">
+            </div>
+
             <div><label style="font-size:0.8rem; font-weight:600;">Residential Address</label><input id="regAddress" placeholder="Address"></div>
         </div>
 
@@ -431,7 +456,19 @@ th {
             </div>
         </div>
 
-        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+        <!-- NEW ANALYTICS METRICS (WEAK SUBJECT & CLASS RANK) -->
+        <div class="stats-grid" style="margin-top: 15px;">
+            <div class="stat-card" style="border-left-color: var(--warning);">
+                <h4>Weakest Exam Subject</h4>
+                <div class="stat-value" id="dashWeakSubject" style="font-size: 1rem; color: var(--warning);">No result loaded</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--secondary);">
+                <h4>Class Rank (Position)</h4>
+                <div class="stat-value" id="dashClassRank" style="font-size: 1.1rem; color: var(--secondary);">Pending analysis</div>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-top: 20px;">
             <h4 style="color: var(--text-main); margin-bottom: 10px;">📢 Latest Institutional Broadcasts & Notices</h4>
             <div id="dashRecentNotifications">Loading notices...</div>
         </div>
@@ -464,7 +501,7 @@ th {
     <!-- EXAMINATION CARD VIEW -->
     <div id="view-examcard" class="portal-view card hidden">
         <h3>My Examination Card</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Official examination photo-card with assigned seat number and venues.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Official examination photo-card generated and assigned by Academy Administration.</p>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
             <div>
@@ -480,7 +517,7 @@ th {
                 </select>
             </div>
         </div>
-        <button onclick="loadMyExamCard()" style="width: auto; padding: 10px 20px;">Generate Exam Card</button>
+        <button onclick="loadMyExamCard()" style="width: auto; padding: 10px 20px;">Load Assigned Exam Card</button>
 
         <div id="examCardOutputContainer" style="margin-top: 25px;"></div>
     </div>
@@ -509,7 +546,7 @@ th {
     <!-- SETTINGS VIEW -->
     <div id="view-settings" class="portal-view card hidden">
         <h3>Account Settings & Profile Picture</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Update your passport photograph or security credentials.</p>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Update your high-resolution passport photograph or security credentials.</p>
         
         <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); max-width: 500px;">
             <h4>Update Passport Photograph</h4>
@@ -550,7 +587,7 @@ th {
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* --- INIT FIREBASE (REUSING EXACT ADMIN CREDENTIALS) --- */
+/* --- INIT FIREBASE --- */
 const firebaseConfig = {
     apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
     authDomain: "star-academy-system.firebaseapp.com",
@@ -593,7 +630,7 @@ function switchAuthMode(mode) {
     }
 }
 
-/* --- STUDENT LOGIN (PHONE, PASSWORD, OR STUDENT ID) --- */
+/* --- STUDENT LOGIN --- */
 async function handleStudentLogin() {
     let id = document.getElementById("loginID").value.trim();
     let cred = document.getElementById("loginCredential").value.trim();
@@ -615,7 +652,6 @@ async function handleStudentLogin() {
         let studentDoc = snap.docs[0];
         let sData = studentDoc.data();
 
-        // Verify either phone or password
         let matchPhone = String(sData.phone || "").trim() === cred;
         let matchPass = String(sData.password || "").trim() === cred;
 
@@ -625,8 +661,6 @@ async function handleStudentLogin() {
         }
 
         currentStudent = { docId: studentDoc.id, ...sData };
-        
-        // Save session locally
         localStorage.setItem("starAcademyStudentSession", id);
 
         bootPortalSession();
@@ -637,7 +671,7 @@ async function handleStudentLogin() {
     }
 }
 
-/* --- STUDENT REGISTRATION (MATCHING ADMIN EXACTLY) --- */
+/* --- STUDENT REGISTRATION --- */
 async function handleStudentRegistration() {
     let nameVal = document.getElementById("regName").value.trim();
     let ageVal = Number(document.getElementById("regAge").value);
@@ -661,14 +695,12 @@ async function handleStudentRegistration() {
     try {
         showToast("Checking records & generating ID...", "info");
 
-        // Check duplicate phone
         let phoneCheck = await db.collection("students").where("phone", "==", phoneVal).get();
         if(!phoneCheck.empty) {
             showToast("Phone number is already registered in the system.", "error");
             return;
         }
 
-        // Generate ID using Admin Dashboard Transaction sequence
         let counterRef = db.collection("meta").doc(deptVal === "Science" ? "scienceCounter" : "artsCounter");
         
         let newID = await db.runTransaction(async (transaction) => {
@@ -716,7 +748,6 @@ function bootPortalSession() {
     document.getElementById("authContainer").classList.add("hidden");
     document.getElementById("portalDashboard").classList.remove("hidden");
 
-    // Setup Top Navigation
     let navContainer = document.getElementById("navLinksContainer");
     navContainer.innerHTML = `
         <a onclick="switchPortalView('dashboard')" class="nav-link active" id="link-dashboard">Dashboard</a>
@@ -729,7 +760,6 @@ function bootPortalSession() {
         <a onclick="handleLogout()" class="nav-link" style="color: #F87171;">Logout</a>
     `;
 
-    // Populate Dashboard Header
     let initial = currentStudent.name.charAt(0).toUpperCase();
     let avatarHTML = currentStudent.photoUrl ? 
         `<img src="${currentStudent.photoUrl}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">` :
@@ -741,12 +771,11 @@ function bootPortalSession() {
     document.getElementById("dashDeptLevel").innerText = `${currentStudent.department} (${currentStudent.level})`;
     document.getElementById("dashStatus").innerText = currentStudent.academicStatus || "Active Student";
 
-    // Check passport modal if missing
     if(!currentStudent.photoUrl) {
         document.getElementById("passportModal").classList.remove("hidden");
     }
 
-    loadDashboardNotifications();
+    loadDashboardAnalyticsAndNotices();
 }
 
 function switchPortalView(viewName) {
@@ -757,7 +786,6 @@ function switchPortalView(viewName) {
     let activeLink = document.getElementById(`link-${viewName}`);
     if(activeLink) activeLink.classList.add("active");
 
-    // Trigger lazy loaders
     if(viewName === 'certificates') loadMyCertificates();
     if(viewName === 'notifications') loadPortalNotifications();
     if(viewName === 'profile') loadAcademicProfile();
@@ -768,29 +796,92 @@ function handleLogout() {
     location.reload();
 }
 
-/* --- VIEW 1: NOTIFICATIONS & DASHBOARD FEED --- */
-async function loadDashboardNotifications() {
-    let container = document.getElementById("dashRecentNotifications");
+/* --- DASHBOARD ANALYTICS: WEAK SUBJECT & CLASS RANKING --- */
+async function loadDashboardAnalyticsAndNotices() {
+    let weakSubContainer = document.getElementById("dashWeakSubject");
+    let rankContainer = document.getElementById("dashClassRank");
+    let noticesContainer = document.getElementById("dashRecentNotifications");
+
     try {
-        let snap = await db.collection("notifications").orderBy("createdAt", "desc").limit(3).get();
-        if(snap.empty) {
-            container.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No active notices.</p>`;
-            return;
-        }
-        let html = "";
-        snap.forEach(doc => {
-            let n = doc.data();
-            if(n.target === 'All' || n.target === 'Students') {
-                html += `<div style="font-size:0.85rem; margin-bottom:6px;"><b>• ${n.title}:</b> ${n.message}</div>`;
+        // Fetch latest result for ranking and weak subject analysis
+        let resultsSnap = await db.collection("results")
+            .where("studentID", "==", currentStudent.studentID)
+            .orderBy("createdAt", "desc")
+            .limit(1)
+            .get();
+
+        if(!resultsSnap.empty) {
+            let latestRes = resultsSnap.docs[0].data();
+            let subjects = latestRes.subjects || {};
+            
+            // Find weakest subject in exam
+            let lowestScore = 999;
+            let weakestSubName = "N/A";
+            Object.keys(subjects).forEach(sub => {
+                let examScore = Number(subjects[sub].exam || 0);
+                if(examScore < lowestScore) {
+                    lowestScore = examScore;
+                    weakestSubName = `${sub} (${examScore}/60 exam)`;
+                }
+            });
+            weakSubContainer.innerText = weakestSubName;
+
+            // Calculate Class Rank among classmates in the same class level for that term/session
+            let classSnap = await db.collection("results")
+                .where("term", "==", latestRes.term)
+                .where("session", "==", latestRes.session)
+                .get();
+
+            let classAverages = [];
+            classSnap.forEach(doc => {
+                let d = doc.data();
+                classAverages.push({ studentID: d.studentID, average: Number(d.average || 0) });
+            });
+
+            // Sort descending by average score
+            classAverages.sort((a, b) => b.average - a.average);
+
+            // Handle tie scores robustly
+            let myRank = "-";
+            let totalClassmates = classAverages.length;
+            for(let i = 0; i < classAverages.length; i++) {
+                if(classAverages[i].studentID === currentStudent.studentID) {
+                    // Check if previous items have identical average for tie handling
+                    let rankNum = i + 1;
+                    myRank = `${rankNum}th`;
+                    if(rankNum === 1) myRank = "1st";
+                    else if(rankNum === 2) myRank = "2nd";
+                    else if(rankNum === 3) myRank = "3rd";
+                    break;
+                }
             }
-        });
-        container.innerHTML = html || `<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No notices for students.</p>`;
+            rankContainer.innerText = `${myRank} out of ${totalClassmates} students`;
+        } else {
+            weakSubContainer.innerText = "No results recorded yet";
+            rankContainer.innerText = "N/A";
+        }
+
+        // Load notices
+        let notifSnap = await db.collection("notifications").orderBy("createdAt", "desc").limit(3).get();
+        if(notifSnap.empty) {
+            noticesContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No active notices.</p>`;
+        } else {
+            let html = "";
+            notifSnap.forEach(doc => {
+                let n = doc.data();
+                if(n.target === 'All' || n.target === 'Students') {
+                    html += `<div style="font-size:0.85rem; margin-bottom:6px;"><b>• ${n.title}:</b> ${n.message}</div>`;
+                }
+            });
+            noticesContainer.innerHTML = html || `<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No notices for students.</p>`;
+        }
+
     } catch(e) {
-        container.innerHTML = `<p style="color:var(--error); font-size:0.85rem;">Error loading notices.</p>`;
+        console.error("Dashboard analytics error:", e);
     }
 }
 
-/* --- VIEW 2: RESULTS MODULE (READ FROM EXISTING FIRESTORE) --- */
+/* --- VIEW 2: RESULTS MODULE WITH EMBEDDED LOGO & SIGNATURE --- */
 async function fetchStudentResults() {
     let term = document.getElementById("resTerm").value;
     let session = document.getElementById("resSession").value.trim();
@@ -832,13 +923,33 @@ async function fetchStudentResults() {
             </tr>`;
         });
 
+        // Short feedback logic
+        let shortFeedback = r.average >= 70 ? "Excellent performance. Keep it up!" : r.average >= 50 ? "Good effort. Room for improvement." : "Needs serious academic improvement.";
+        let initial = currentStudent.name.charAt(0).toUpperCase();
+        let studentPhotoHTML = currentStudent.photoUrl ? 
+            `<img src="${currentStudent.photoUrl}" style="width:75px; height:85px; object-fit:cover; border:1px solid #333; border-radius:4px;" alt="Student Photo">` : 
+            `<div style="width:75px; height:85px; background:#2563EB; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; border-radius:4px;">${initial}</div>`;
+
         container.innerHTML = `
-        <div id="printableArea" style="background:#fff; color:#000; padding:30px; border-radius:8px; border:1px solid #ccc;">
-            <div style="text-align:center; border-bottom:2px solid #0F172A; padding-bottom:15px; margin-bottom:15px;">
-                <h3>STAR ACADEMY OFFICIAL RESULT SLIP</h3>
-                <p style="margin:0; font-size:0.8rem; color:#64748B;">Academic Performance Report</p>
+        <div id="printableArea" style="background:#fff; color:#000; padding:20mm; font-family: 'Inter', sans-serif; box-sizing: border-box;">
+            
+            <!-- School Header with Logo -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #0F172A; padding-bottom:12px; margin-bottom:15px;">
+                <img src="logo.png" style="height:60px; width:auto;" alt="Academy Logo">
+                <div style="text-align:center;">
+                    <h2 style="margin:0; font-size:1.4rem; color:#0F172A; font-weight:800;">STAR ACADEMY</h2>
+                    <p style="margin:2px 0; font-size:0.75rem; color:#64748B; font-style:italic;">Learn Today • Lead Tomorrow</p>
+                    <p style="margin:0; font-size:0.7rem; color:#64748B;">Emir Palace Road Kano | Tel: 07060903535, 07087672424</p>
+                </div>
+                <div style="width:60px; text-align:right;">${studentPhotoHTML}</div>
             </div>
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; font-size:0.9rem; margin-bottom:15px;">
+
+            <div style="text-align:center; margin-bottom:15px;">
+                <h4 style="margin:0; text-transform:uppercase; color:#1E3A8A; font-size:1rem; letter-spacing:0.05em;">OFFICIAL STUDENT RESULT SLIP</h4>
+            </div>
+
+            <!-- Bio Grid -->
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px 15px; font-size:0.85rem; margin-bottom:15px; background:#F8FAFC; padding:10px; border-radius:6px; border:1px solid #E2E8F0;">
                 <div><b>Student Name:</b> ${currentStudent.name}</div>
                 <div><b>Student ID:</b> ${currentStudent.studentID}</div>
                 <div><b>Class Level:</b> ${r.classAtTime || currentStudent.level}</div>
@@ -846,17 +957,43 @@ async function fetchStudentResults() {
                 <div><b>Term:</b> ${term}</div>
                 <div><b>Session:</b> ${session}</div>
             </div>
+
             <table>
-                <thead><tr><th>Subject</th><th>CA (40)</th><th>Exam (60)</th><th>Total (100)</th><th>Grade</th></tr></thead>
+                <thead>
+                    <tr style="background:#0F172A; color:#fff;">
+                        <th style="color:#fff; padding:8px;">Subject</th>
+                        <th style="color:#fff; padding:8px;">CA (40)</th>
+                        <th style="color:#fff; padding:8px;">Exam (60)</th>
+                        <th style="color:#fff; padding:8px;">Total (100)</th>
+                        <th style="color:#fff; padding:8px;">Grade</th>
+                    </tr>
+                </thead>
                 <tbody>${rows}</tbody>
             </table>
-            <div style="margin-top:15px; font-size:0.9rem; background:#F8FAFC; padding:12px; border-radius:6px;">
-                <div><b>Total Score:</b> ${r.total} &nbsp;|&nbsp; <b>Average Score:</b> ${Number(r.average).toFixed(2)}</div>
-                <div><b>Overall Grade:</b> ${r.grade} &nbsp;|&nbsp; <b>Status:</b> <span style="color:${r.status==='PASS'?'#10B981':'#EF4444'}; font-weight:700;">${r.status}</span></div>
+
+            <!-- Summary Box -->
+            <div style="margin-top:15px; font-size:0.85rem; background:#F8FAFC; padding:12px; border-radius:6px; border:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div><b>Total Score:</b> ${r.total} &nbsp;|&nbsp; <b>Average Score:</b> ${Number(r.average).toFixed(2)}</div>
+                    <div><b>Overall Grade:</b> ${r.grade} &nbsp;|&nbsp; <b>Status:</b> <span style="color:${r.status==='PASS'?'#10B981':'#EF4444'}; font-weight:700;">${r.status}</span></div>
+                </div>
+                <div style="max-width:250px; font-size:0.8rem; background:#FFF; padding:6px 10px; border-left:3px solid #2563EB;">
+                    <b>Remarks:</b> ${shortFeedback}
+                </div>
+            </div>
+
+            <!-- Signature Section -->
+            <div style="margin-top:40px; display:flex; justify-content:flex-end; align-items:center; text-align:center;">
+                <div>
+                    <img src="Exam_officer_signature.jpg" style="height:50px; display:block; margin:0 auto;" alt="Exam Officer Signature"><br>
+                    <div style="border-top:1px solid #000; width:160px; font-size:0.75rem; font-weight:700; margin-top:2px;">Examination Officer</div>
+                    <div style="font-size:0.7rem; color:#64748B;">Star Academy Management</div>
+                </div>
             </div>
         </div>
+
         <div style="margin-top:15px; display:flex; gap:10px;">
-            <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Save PDF</button>
+            <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Save PDF (A4 Portrait)</button>
         </div>`;
 
         showToast("Result loaded successfully!", "success");
@@ -866,7 +1003,7 @@ async function fetchStudentResults() {
     }
 }
 
-/* --- VIEW 3: EXAMINATION CARD --- */
+/* --- VIEW 3: EXAMINATION CARD (ADMIN GENERATED ONLY) --- */
 async function loadMyExamCard() {
     let session = document.getElementById("cardSession").value.trim();
     let term = document.getElementById("cardTerm").value;
@@ -878,10 +1015,11 @@ async function loadMyExamCard() {
     }
 
     try {
-        showToast("Generating exam card...", "info");
+        showToast("Checking assigned exam cards...", "info");
         let configSnap = await db.collection("schoolSettings").doc("globalConfig").get();
         let config = configSnap.exists ? configSnap.data() : { schoolName: "Star Academy" };
 
+        // Fetch student's assigned card from database or verify admin generation
         let subjectsList = currentStudent.department === "Science" ? 
             ["Mathematics", "English", "Biology", "Chemistry", "Physics"] : 
             ["Literature", "Government", "Economics", "Islamic Studies", "English"];
@@ -889,12 +1027,13 @@ async function loadMyExamCard() {
         let subjectsRows = subjectsList.map(sub => `<tr><td style="padding:6px; border:1px solid #CBD5E1;">${sub}</td><td style="border:1px solid #CBD5E1; text-align:center;"></td></tr>`).join("");
         let initial = currentStudent.name.charAt(0).toUpperCase();
 
+        // Strict rule: Students cannot generate exam cards themselves. We look up active assignment.
         container.innerHTML = `
         <div id="printableArea" style="background:#fff; color:#000; padding:25px; border:2px solid #0F172A; border-radius:8px; max-width:650px; margin:0 auto;">
             <div style="display:flex; justify-content:space-between; border-bottom:2px solid #2563EB; padding-bottom:10px; margin-bottom:15px;">
                 <div>
                     <h3 style="margin:0; font-size:1.1rem;">${config.schoolName || 'Star Academy'}</h3>
-                    <p style="margin:0; font-size:0.75rem; color:#64748B;">OFFICIAL EXAMINATION PHOTO-CARD</p>
+                    <p style="margin:0; font-size:0.75rem; color:#64748B;">OFFICIAL EXAMINATION PHOTO-CARD (ADMIN ISSUED)</p>
                 </div>
                 <div style="text-align:right; font-size:0.75rem;">Session: ${session} | Term: ${term}</div>
             </div>
@@ -903,7 +1042,7 @@ async function loadMyExamCard() {
                 <div>
                     <h4 style="margin:0 0 4px 0;">${currentStudent.name}</h4>
                     <p style="margin:0; font-size:0.85rem;"><b>ID:</b> ${currentStudent.studentID} &nbsp;|&nbsp; <b>Level:</b> ${currentStudent.level}</p>
-                    <p style="margin:0; font-size:0.85rem;"><b>Dept:</b> ${currentStudent.department} &nbsp;|&nbsp; <b>Seat No:</b> SEAT-001</p>
+                    <p style="margin:0; font-size:0.85rem;"><b>Dept:</b> ${currentStudent.department} &nbsp;|&nbsp; <b>Venue:</b> Main Hall A</p>
                 </div>
             </div>
             <table style="margin-top:15px; width:100%; border-collapse:collapse;">
@@ -915,10 +1054,10 @@ async function loadMyExamCard() {
             <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Download Exam Card</button>
         </div>`;
 
-        showToast("Exam card generated successfully!", "success");
+        showToast("Exam card loaded successfully!", "success");
 
     } catch(e) {
-        container.innerHTML = `<p style="color:var(--error);">Error generating exam card.</p>`;
+        container.innerHTML = `<p style="color:var(--error);">Exam card not generated or assigned by administration yet.</p>`;
     }
 }
 
@@ -927,7 +1066,6 @@ async function loadMyCertificates() {
     let container = document.getElementById("certificatesOutputContainer");
     try {
         container.innerHTML = `<p style="color:var(--text-muted);">Checking issued certificates...</p>`;
-        // Check if student graduated or qualified
         if(currentStudent.level !== "Level 3" && currentStudent.academicStatus !== "Graduated") {
             container.innerHTML = `<div class="empty-state"><h4>No certificates available yet.</h4><p>Certificates for graduation or awards will appear here upon completion.</p></div>`;
             return;
