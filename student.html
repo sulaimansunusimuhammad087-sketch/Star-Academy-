@@ -1,308 +1,1093 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" style="scroll-behavior: smooth;">
 <head>
-<title>Student Portal</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Academy Student Portal</title>
+<!-- Google Fonts: Plus Jakarta Sans & Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-color:white;
-background:url("bg.jpg") no-repeat center center fixed;
-background-size:cover;
+/* --- DESIGN SYSTEM & CSS VARIABLES --- */
+:root {
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --secondary: #4F46E5;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    --bg-main: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+    --shadow-lg: 0 20px 35px -5px rgba(15, 23, 42, 0.12);
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.overlay{
-background:rgba(0,0,0,0.75);
-min-height:100vh;
-padding:20px;
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
-nav{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:10px;
+body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-main);
+    background-color: var(--bg-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
 }
 
-.logo{height:90px}
-
-.card{
-max-width:850px;
-margin:auto;
-background:#16161f;
-padding:20px;
-border-radius:10px;
-margin-top:20px;
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    margin-top: 0;
 }
 
-input,select,button{
-width:100%;
-padding:10px;
-margin-top:10px;
+.overlay {
+    background-color: var(--bg-main);
+    min-height: 100vh;
+    padding-bottom: 60px;
 }
 
-button{
-background:#00e5c0;
-border:none;
-font-weight:bold;
-cursor:pointer;
+/* --- NAVIGATION --- */
+nav {
+    background: #0F172A;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
 }
 
-td,th{
-border:1px solid #444;
-padding:8px;
+.logo {
+    height: 42px;
+    width: auto;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
 }
 
-.back{
-color:#00e5c0;
-cursor:pointer;
-margin-bottom:10px;
-display:inline-block;
+.brand-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.nav-link {
+    color: #94A3B8;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- CARDS & CONTAINERS --- */
+.card {
+    max-width: 900px;
+    margin: 24px auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 35px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.card h2, .card h3 {
+    color: var(--text-main);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card h2::before, .card h3::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 20px;
+    background-color: var(--primary);
+    border-radius: 4px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: #FFFFFF;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    transition: var(--transition);
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+button {
+    width: 100%;
+    padding: 12px 20px;
+    margin-top: 12px;
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: var(--transition);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-secondary {
+    background-color: var(--text-muted);
+    box-shadow: none;
+}
+.btn-secondary:hover {
+    background-color: #475569;
+}
+
+.hidden { display: none !important; }
+
+/* --- STATS GRID --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    border-left: 4px solid var(--primary);
+}
+
+.stat-card h4 {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.stat-value {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+/* --- TABLES --- */
+.table-responsive {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+th, td {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    font-size: 0.9rem;
+    text-align: left;
+}
+th {
+    background: var(--bg-main);
+    font-weight: 600;
+}
+
+/* --- TOAST --- */
+#toastContainer {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.toast {
+    background: #0F172A;
+    color: #FFFFFF;
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 4px solid var(--primary);
+}
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--error); }
+
+/* --- WHATSAPP FLOATING BUTTON --- */
+.whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #25D366;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-md);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+.whatsapp-float:hover {
+    background: #20ba5a;
+    transform: translateY(-2px);
+}
+
+/* --- PRINT STYLES --- */
+@media print {
+    body * { visibility: hidden; }
+    #printableArea, #printableArea * { visibility: visible; }
+    #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
 }
 </style>
 </head>
-
 <body>
 
 <div class="overlay">
 
 <nav>
-<img src="logo.png" class="logo">
-<div>
-<a href="index.html" style="color:#00e5c0">Home</a>
-<a href="admin.html" style="color:#00e5c0">Admin</a>
+<div class="logo-container">
+    <img src="logo.png" class="logo" alt="Star Academy Logo">
+    <span class="brand-title">Star Academy Student Portal</span>
+</div>
+<div class="nav-links" id="navLinksContainer">
+    <a href="admin.html" class="nav-link">Admin Portal</a>
 </div>
 </nav>
 
-<div class="card">
+<!-- ================= AUTH CONTAINER ================= -->
+<div id="authContainer" class="card" style="max-width: 480px; margin-top: 60px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 id="authTitle" style="justify-content: center; border:none;">Student Portal Login</h2>
+        <p id="authSubtitle" style="color: var(--text-muted); font-size: 0.9rem;">Access your results, exam cards, certificates & notifications.</p>
+    </div>
 
-<div class="back" onclick="history.back()">← Back</div>
+    <!-- LOGIN FORM -->
+    <div id="loginFormCard">
+        <label style="font-size: 0.85rem; font-weight: 600;">Registration Number (Student ID)</label>
+        <input id="loginID" placeholder="e.g. STA/2026/SCI/00001">
 
-<h2>STUDENT RESULT CHECK</h2>
+        <label style="font-size: 0.85rem; font-weight: 600; margin-top: 10px; display: block;">Phone Number OR Password</label>
+        <input id="loginCredential" type="password" placeholder="Enter phone number or password">
 
-<input id="sid" placeholder="Student ID">
-<input id="age" placeholder="Enter Your Age">
-<input id="phone" placeholder="Enter Your Phone Number">
+        <button onclick="handleStudentLogin()">Login to Portal</button>
+        <p style="text-align: center; margin-top: 18px; font-size: 0.9rem; color: var(--text-muted);">
+            Don't have an account yet? <span style="color: var(--primary); font-weight: 600; cursor: pointer;" onclick="switchAuthMode('register')">Register here</span>
+        </p>
+    </div>
 
-<select id="term">
-<option>First Term</option>
-<option>Second Term</option>
-<option>Third Term</option>
-</select>
+    <!-- REGISTRATION FORM (MATCHING ADMIN DASHBOARD EXACTLY) -->
+    <div id="registerFormCard" class="hidden">
+        <h4 style="margin-bottom: 15px; color: var(--primary);">New Student Online Registration</h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+            <div><label style="font-size:0.8rem; font-weight:600;">Full Name *</label><input id="regName" placeholder="Full Name"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Age * (5 - 80)</label><input id="regAge" type="number" min="5" max="80" placeholder="Age"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Gender *</label>
+                <select id="regGender">
+                    <option value="">Select Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
+            </div>
+            <div><label style="font-size:0.8rem; font-weight:600;">State of Origin</label><input id="regState" placeholder="State"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Local Government</label><input id="regLga" placeholder="Local Government"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Phone Number * (11 Digits)</label><input id="regPhone" placeholder="08012345678" maxlength="11"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Student Email (Optional)</label><input id="regEmail" placeholder="student@email.com" type="email"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Password (For future logins)</label><input id="regPassword" type="password" placeholder="Create secure password"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Department *</label>
+                <select id="regDepartment">
+                    <option value="">Select Department</option>
+                    <option value="Science">Science</option>
+                    <option value="Arts">Arts</option>
+                </select>
+            </div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Level *</label>
+                <select id="regLevel">
+                    <option value="">Select Level</option>
+                    <option>Primary</option>
+                    <option>Junior Secondary</option>
+                    <option>Fresh Class</option>
+                    <option>AI Class</option>
+                    <option>Level 1</option>
+                    <option>Level 2</option>
+                    <option>Level 3</option>
+                </select>
+            </div>
+            <div><label style="font-size:0.8rem; font-weight:600;">School Type</label>
+                <select id="regSchoolType">
+                    <option value="">Select School Type</option>
+                    <option>Private</option>
+                    <option>Public</option>
+                </select>
+            </div>
+            <div><label style="font-size:0.8rem; font-weight:600;">School Name</label><input id="regSchoolName" placeholder="School Name"></div>
+            <div><label style="font-size:0.8rem; font-weight:600;">Residential Address</label><input id="regAddress" placeholder="Address"></div>
+        </div>
 
-<input id="session" placeholder="Session e.g 2025/2026">
+        <button onclick="handleStudentRegistration()" style="background-color: var(--success); margin-top: 15px;">Complete Registration</button>
+        <p style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: var(--text-muted);">
+            Already registered? <span style="color: var(--primary); font-weight: 600; cursor: pointer;" onclick="switchAuthMode('login')">Login here</span>
+        </p>
+    </div>
+</div>
 
-<button onclick="viewResult()">View Result</button>
+<!-- ================= STUDENT DASHBOARD (PORTAL VIEWS) ================= -->
+<div id="portalDashboard" class="hidden">
+    
+    <!-- DASHBOARD HOME VIEW -->
+    <div id="view-dashboard" class="portal-view card">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 25px;">
+            <div id="dashAvatarContainer"></div>
+            <div>
+                <h2 id="dashWelcomeName" style="margin-bottom: 4px; border: none;">Welcome, Student</h2>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;" id="dashSubtitle">Star Academy Student Portal</p>
+            </div>
+        </div>
 
-<div id="box"></div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Registration ID</h4>
+                <div class="stat-value" id="dashStudentID" style="font-size: 1.1rem; color: var(--primary);">---</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--secondary);">
+                <h4>Department & Level</h4>
+                <div class="stat-value" id="dashDeptLevel" style="font-size: 1.1rem;">---</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--success);">
+                <h4>Academic Status</h4>
+                <div class="stat-value" id="dashStatus" style="font-size: 1.1rem; color: var(--success);">Active</div>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <h4 style="color: var(--text-main); margin-bottom: 10px;">📢 Latest Institutional Broadcasts & Notices</h4>
+            <div id="dashRecentNotifications">Loading notices...</div>
+        </div>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <div id="view-results" class="portal-view card hidden">
+        <h3>My Examination Results</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Select term and session to view and print your termly academic results.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 600;">Term</label>
+                <select id="resTerm">
+                    <option>First Term</option>
+                    <option>Second Term</option>
+                    <option selected>Third Term</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 600;">Academic Session</label>
+                <input id="resSession" placeholder="e.g. 2025/2026">
+            </div>
+        </div>
+        <button onclick="fetchStudentResults()" style="width: auto; padding: 10px 20px;">Load Result Slip</button>
+
+        <div id="resultOutputContainer" style="margin-top: 25px;"></div>
+    </div>
+
+    <!-- EXAMINATION CARD VIEW -->
+    <div id="view-examcard" class="portal-view card hidden">
+        <h3>My Examination Card</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Official examination photo-card with assigned seat number and venues.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 600;">Session</label>
+                <input id="cardSession" placeholder="e.g. 2025/2026">
+            </div>
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 600;">Term</label>
+                <select id="cardTerm">
+                    <option>First Term</option>
+                    <option>Second Term</option>
+                    <option selected>Third Term</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="loadMyExamCard()" style="width: auto; padding: 10px 20px;">Generate Exam Card</button>
+
+        <div id="examCardOutputContainer" style="margin-top: 25px;"></div>
+    </div>
+
+    <!-- CERTIFICATES VIEW -->
+    <div id="view-certificates" class="portal-view card hidden">
+        <h3>My Institutional Certificates</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">View and download certificates issued to you by Star Academy.</p>
+        <div id="certificatesOutputContainer">Loading certificates...</div>
+    </div>
+
+    <!-- NOTIFICATIONS VIEW -->
+    <div id="view-notifications" class="portal-view card hidden">
+        <h3>Institutional Notifications & Circulars</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Announcements and notices broadcasted by administration.</p>
+        <div id="notificationsOutputContainer">Loading notifications...</div>
+    </div>
+
+    <!-- ACADEMIC PROFILE VIEW -->
+    <div id="view-profile" class="portal-view card hidden">
+        <h3>My Academic Profile</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Complete biodata and progression history.</p>
+        <div id="profileOutputContainer">Loading profile...</div>
+    </div>
+
+    <!-- SETTINGS VIEW -->
+    <div id="view-settings" class="portal-view card hidden">
+        <h3>Account Settings & Profile Picture</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Update your passport photograph or security credentials.</p>
+        
+        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); max-width: 500px;">
+            <h4>Update Passport Photograph</h4>
+            <input type="file" id="passportFileInput" accept="image/*" style="margin-bottom: 10px;">
+            <button onclick="uploadStudentPassport()" style="background-color: var(--success); width: auto; padding: 8px 16px;">Upload & Save Passport</button>
+        </div>
+
+        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); max-width: 500px; margin-top: 20px;">
+            <h4>Update Password</h4>
+            <input id="newPasswordInput" type="password" placeholder="Enter new secure password">
+            <button onclick="updateStudentPassword()" style="background-color: var(--primary); width: auto; padding: 8px 16px; margin-top: 10px;">Save New Password</button>
+        </div>
+    </div>
 
 </div>
+
 </div>
 
-<!-- ✅ FIREBASE COMPAT (MOBILE SAFE) -->
+<!-- WHATSAPP SUPPORT FLOAT -->
+<a href="https://wa.me/2349086269909?text=Hello%20Star%20Academy%20Support,%20I%20need%20assistance%20with%20my%20student%20portal." target="_blank" class="whatsapp-float">
+    💬 Help & Support (WhatsApp)
+</a>
+
+<!-- UPLOAD PASSPORT MODAL (FOR USERS WITHOUT PHOTO) -->
+<div id="passportModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.85); z-index:3000; display:flex; justify-content:center; align-items:center; padding:20px;">
+    <div class="card" style="max-width: 450px; width: 100%; text-align: center;">
+        <h3>Upload Passport Photograph</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">To proceed to your dashboard, please upload your official passport photograph.</p>
+        <input type="file" id="modalPassportInput" accept="image/*" style="margin: 15px 0;">
+        <button onclick="saveModalPassport()" style="background-color: var(--success);">Upload & Continue</button>
+    </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<!-- FIREBASE SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* --- INIT FIREBASE (REUSING EXACT ADMIN CREDENTIALS) --- */
+const firebaseConfig = {
+    apiKey: "AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
+    authDomain: "star-academy-system.firebaseapp.com",
+    projectId: "star-academy-system",
+    storageBucket: "star-academy-system.appspot.com",
+    messagingSenderId: "615097211278",
+    appId: "1:615097211278:web:5a7625b162185ff8e92cdf"
+};
 
-/* INIT FIREBASE */
-const app = firebase.initializeApp({
-apiKey:"AIzaSyA04XI79y51iG-UK4sprC_JvTiXqy5is9c",
-authDomain:"star-academy-system.firebaseapp.com",
-projectId:"star-academy-system"
-});
-
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* VIEW RESULT */
-function viewResult(){
+let currentStudent = null;
 
-const box = document.getElementById("box");
-
-let id = document.getElementById("sid").value.trim();
-let termVal = document.getElementById("term").value;
-let sessionVal = document.getElementById("session").value;
-
-let age = document.getElementById("age").value.trim();
-let phone = document.getElementById("phone").value.trim();
-
-if(!id || !age || !phone || !termVal || !sessionVal){
-alert("Fill all fields");
-return;
+/* --- TOAST NOTIFICATIONS --- */
+function showToast(message, type = "success") {
+    let container = document.getElementById("toastContainer");
+    let toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
 }
 
-box.innerHTML = "Loading...";
-
-db.collection("results")
-.where("studentID","==",id)
-.where("term","==",termVal)
-.where("session","==",sessionVal)
-.orderBy("createdAt","desc")
-.get()
-.then(snap=>{
-
-if(snap.empty){
-box.innerHTML = "No result found ❌";
-return;
+/* --- AUTH SWITCHER --- */
+function switchAuthMode(mode) {
+    if(mode === 'register') {
+        document.getElementById("loginFormCard").classList.add("hidden");
+        document.getElementById("registerFormCard").classList.remove("hidden");
+        document.getElementById("authTitle").innerText = "Student Registration";
+        document.getElementById("authSubtitle").innerText = "Create your official Star Academy student account.";
+    } else {
+        document.getElementById("registerFormCard").classList.add("hidden");
+        document.getElementById("loginFormCard").classList.remove("hidden");
+        document.getElementById("authTitle").innerText = "Student Portal Login";
+        document.getElementById("authSubtitle").innerText = "Access your results, exam cards, certificates & notifications.";
+    }
 }
 
-const r = snap.docs[0].data();
-if (!r) return;
+/* --- STUDENT LOGIN (PHONE, PASSWORD, OR STUDENT ID) --- */
+async function handleStudentLogin() {
+    let id = document.getElementById("loginID").value.trim();
+    let cred = document.getElementById("loginCredential").value.trim();
 
-/* GET STUDENT */
-db.collection("students")
-.where("studentID","==",id)
-.get()
-.then(sSnap=>{
+    if(!id || !cred) {
+        showToast("Please enter both Student ID and credential.", "error");
+        return;
+    }
 
-if(sSnap.empty){
-box.innerHTML = "Student not found ❌";
-return;
+    try {
+        showToast("Authenticating...", "info");
+        let snap = await db.collection("students").where("studentID", "==", id).get();
+
+        if(snap.empty) {
+            showToast("Student ID not found in database.", "error");
+            return;
+        }
+
+        let studentDoc = snap.docs[0];
+        let sData = studentDoc.data();
+
+        // Verify either phone or password
+        let matchPhone = String(sData.phone || "").trim() === cred;
+        let matchPass = String(sData.password || "").trim() === cred;
+
+        if(!matchPhone && !matchPass) {
+            showToast("Invalid Phone Number or Password.", "error");
+            return;
+        }
+
+        currentStudent = { docId: studentDoc.id, ...sData };
+        
+        // Save session locally
+        localStorage.setItem("starAcademyStudentSession", id);
+
+        bootPortalSession();
+        showToast("Login Successful ✔", "success");
+
+    } catch(e) {
+        showToast("Login error: " + e.message, "error");
+    }
 }
 
-const student = sSnap.docs[0].data();
-/* VERIFY STUDENT */
-if(
-String(student.age).trim() !== String(age).trim() ||
-String(student.phone).trim() !== String(phone).trim()
-){
-box.innerHTML = "Verification failed ❌ (Wrong Age or Phone)";
-return;
+/* --- STUDENT REGISTRATION (MATCHING ADMIN EXACTLY) --- */
+async function handleStudentRegistration() {
+    let nameVal = document.getElementById("regName").value.trim();
+    let ageVal = Number(document.getElementById("regAge").value);
+    let genderVal = document.getElementById("regGender").value;
+    let stateVal = document.getElementById("regState").value.trim();
+    let lgaVal = document.getElementById("regLga").value.trim();
+    let phoneVal = document.getElementById("regPhone").value.trim();
+    let emailVal = document.getElementById("regEmail").value.trim();
+    let passVal = document.getElementById("regPassword").value.trim();
+    let deptVal = document.getElementById("regDepartment").value;
+    let levelVal = document.getElementById("regLevel").value;
+    let schoolTypeVal = document.getElementById("regSchoolType").value;
+    let schoolNameVal = document.getElementById("regSchoolName").value.trim();
+    let addressVal = document.getElementById("regAddress").value.trim();
+
+    if(!nameVal || nameVal.length < 3 || isNaN(ageVal) || !phoneVal || !deptVal || !levelVal) {
+        showToast("Please fill in all mandatory registration fields correctly.", "error");
+        return;
+    }
+
+    try {
+        showToast("Checking records & generating ID...", "info");
+
+        // Check duplicate phone
+        let phoneCheck = await db.collection("students").where("phone", "==", phoneVal).get();
+        if(!phoneCheck.empty) {
+            showToast("Phone number is already registered in the system.", "error");
+            return;
+        }
+
+        // Generate ID using Admin Dashboard Transaction sequence
+        let counterRef = db.collection("meta").doc(deptVal === "Science" ? "scienceCounter" : "artsCounter");
+        
+        let newID = await db.runTransaction(async (transaction) => {
+            let counterSnap = await transaction.get(counterRef);
+            let count = counterSnap.exists ? counterSnap.data().count + 1 : 1;
+            transaction.set(counterRef, { count });
+            return `STA/2026/${deptVal === "Science" ? "SCI" : "ART"}/${String(count).padStart(5, "0")}`;
+        });
+
+        let newStudentObj = {
+            studentID: newID,
+            name: nameVal,
+            age: ageVal,
+            gender: genderVal,
+            state: stateVal,
+            lga: lgaVal,
+            address: addressVal,
+            phone: phoneVal,
+            email: emailVal,
+            password: passVal,
+            department: deptVal,
+            level: levelVal,
+            schoolType: schoolTypeVal,
+            schoolName: schoolNameVal,
+            graduated: "No",
+            createdAt: Date.now()
+        };
+
+        await db.collection("students").add(newStudentObj);
+
+        alert(`Congratulations!\nYour registration has been completed successfully.\n\nYour Registration Number is:\n${newID}\n\nPlease save this number carefully because you will use it to login.`);
+        
+        switchAuthMode('login');
+        document.getElementById("loginID").value = newID;
+
+    } catch(e) {
+        showToast("Registration error: " + e.message, "error");
+    }
 }
 
-/* SUBJECTS */
-const subjectsData = r.subjects || {};
-const subjects = Object.keys(subjectsData);
+/* --- BOOT SESSION & PORTAL NAVIGATION --- */
+function bootPortalSession() {
+    if(!currentStudent) return;
 
-let rows = "";
+    document.getElementById("authContainer").classList.add("hidden");
+    document.getElementById("portalDashboard").classList.remove("hidden");
 
-subjects.forEach(sub => {
+    // Setup Top Navigation
+    let navContainer = document.getElementById("navLinksContainer");
+    navContainer.innerHTML = `
+        <a onclick="switchPortalView('dashboard')" class="nav-link active" id="link-dashboard">Dashboard</a>
+        <a onclick="switchPortalView('results')" class="nav-link" id="link-results">Results</a>
+        <a onclick="switchPortalView('examcard')" class="nav-link" id="link-examcard">Exam Card</a>
+        <a onclick="switchPortalView('certificates')" class="nav-link" id="link-certificates">Certificates</a>
+        <a onclick="switchPortalView('notifications')" class="nav-link" id="link-notifications">Notifications</a>
+        <a onclick="switchPortalView('profile')" class="nav-link" id="link-profile">Profile</a>
+        <a onclick="switchPortalView('settings')" class="nav-link" id="link-settings">Settings</a>
+        <a onclick="handleLogout()" class="nav-link" style="color: #F87171;">Logout</a>
+    `;
 
-let ca = subjectsData[sub]?.ca ?? 0;
-let exam = subjectsData[sub]?.exam ?? 0;
-let total = subjectsData[sub]?.total ?? (ca + exam);
+    // Populate Dashboard Header
+    let initial = currentStudent.name.charAt(0).toUpperCase();
+    let avatarHTML = currentStudent.photoUrl ? 
+        `<img src="${currentStudent.photoUrl}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">` :
+        `<div style="width:70px; height:70px; border-radius:50%; background:var(--primary); color:#fff; font-size:1.8rem; font-weight:800; display:flex; align-items:center; justify-content:center;">${initial}</div>`;
 
-let grade =
-total>=70?"A":
-total>=60?"B":
-total>=50?"C":"F";
+    document.getElementById("dashAvatarContainer").innerHTML = avatarHTML;
+    document.getElementById("dashWelcomeName").innerText = currentStudent.name;
+    document.getElementById("dashStudentID").innerText = currentStudent.studentID;
+    document.getElementById("dashDeptLevel").innerText = `${currentStudent.department} (${currentStudent.level})`;
+    document.getElementById("dashStatus").innerText = currentStudent.academicStatus || "Active Student";
 
-rows += `
-<tr>
-<td>${sub}</td>
-<td>${ca}</td>
-<td>${exam}</td>
-<td>${total}</td>
-<td>${grade}</td>
-</tr>
-`;
+    // Check passport modal if missing
+    if(!currentStudent.photoUrl) {
+        document.getElementById("passportModal").classList.remove("hidden");
+    }
 
-});
-
-if(subjects.length === 0){
-rows = `<tr><td colspan="5">No subject data available</td></tr>`;
+    loadDashboardNotifications();
 }
 
-box.innerHTML = `
-<div id="resultArea">
+function switchPortalView(viewName) {
+    document.querySelectorAll(".portal-view").forEach(v => v.classList.add("hidden"));
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
 
-<div style="text-align:center">
-<img src="logo.png" style="height:90px">
-<h3>STAR ACADEMY RESULT</h3>
-</div>
+    document.getElementById(`view-${viewName}`).classList.remove("hidden");
+    let activeLink = document.getElementById(`link-${viewName}`);
+    if(activeLink) activeLink.classList.add("active");
 
-<b>Name:</b> ${student.name}<br>
-<b>ID:</b> ${id}<br>
-<b>Class:</b> ${r.classAtTime || student.level}<br>
-<b>Dept:</b> ${student.department}<br>
-<b>Term:</b> ${termVal}<br>
-<b>Session:</b> ${sessionVal}<br>
-
-<table>
-<tr>
-<th>Subject</th>
-<th>CA</th>
-<th>Exam</th>
-<th>Total</th>
-<th>Grade</th>
-</tr>
-${rows}
-</table>
-
-<br>
-
-<b>Total:</b> ${r.total}<br>
-<b>Average:</b> ${r.average.toFixed(2)}<br>
-<b>Grade:</b> ${r.grade}<br>
-<b>Status:</b> ${r.status}<br>
-
-<br>
-
-<b>Feedback:</b><br>
-${r.average>=70
-? "Excellent performance"
-: r.average>=50
-? "Good effort"
-: "Needs improvement"}
-
-<br><br>
-
-<div style="margin-top:40px; text-align:center;">
-
-<img src="Exam_officer_signature.jpg" style="height:70px;"><br>
-
-<b>Examination Officer</b><br>
-Sulaiman Sunusi Muhammad<br>
-Star Academy
-
-</div>
-
-
-</div>
-
-<button onclick="downloadPDF()">Download PDF</button>
-`;
-
-});
-
-});
-
+    // Trigger lazy loaders
+    if(viewName === 'certificates') loadMyCertificates();
+    if(viewName === 'notifications') loadPortalNotifications();
+    if(viewName === 'profile') loadAcademicProfile();
 }
 
-/* PDF */
-function downloadPDF(){
-
-const content = document.getElementById("resultArea").innerHTML;
-
-const win = window.open("", "", "width=900,height=700");
-
-win.document.write(`
-<html>
-<head>
-<title>Student Result</title>
-<style>
-body{font-family:Arial;padding:20px;}
-table{width:100%;border-collapse:collapse;}
-td,th{border:1px solid black;padding:8px;}
-</style>
-</head>
-<body>
-${content}
-</body>
-</html>
-`);
-
-win.document.close();
-win.print();
+function handleLogout() {
+    localStorage.removeItem("starAcademyStudentSession");
+    location.reload();
 }
 
+/* --- VIEW 1: NOTIFICATIONS & DASHBOARD FEED --- */
+async function loadDashboardNotifications() {
+    let container = document.getElementById("dashRecentNotifications");
+    try {
+        let snap = await db.collection("notifications").orderBy("createdAt", "desc").limit(3).get();
+        if(snap.empty) {
+            container.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No active notices.</p>`;
+            return;
+        }
+        let html = "";
+        snap.forEach(doc => {
+            let n = doc.data();
+            if(n.target === 'All' || n.target === 'Students') {
+                html += `<div style="font-size:0.85rem; margin-bottom:6px;"><b>• ${n.title}:</b> ${n.message}</div>`;
+            }
+        });
+        container.innerHTML = html || `<p style="color:var(--text-muted); font-size:0.85rem; margin:0;">No notices for students.</p>`;
+    } catch(e) {
+        container.innerHTML = `<p style="color:var(--error); font-size:0.85rem;">Error loading notices.</p>`;
+    }
+}
+
+/* --- VIEW 2: RESULTS MODULE (READ FROM EXISTING FIRESTORE) --- */
+async function fetchStudentResults() {
+    let term = document.getElementById("resTerm").value;
+    let session = document.getElementById("resSession").value.trim();
+    let container = document.getElementById("resultOutputContainer");
+
+    if(!session) {
+        showToast("Please enter an academic session.", "error");
+        return;
+    }
+
+    try {
+        showToast("Fetching result slip...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Querying database...</p>`;
+
+        let snap = await db.collection("results")
+            .where("studentID", "==", currentStudent.studentID)
+            .where("term", "==", term)
+            .where("session", "==", session)
+            .get();
+
+        if(snap.empty) {
+            container.innerHTML = `<div class="empty-state"><h4>No result record found for ${term} (${session}).</h4></div>`;
+            return;
+        }
+
+        let r = snap.docs[0].data();
+        let subjectsObj = r.subjects || {};
+        let rows = "";
+
+        Object.keys(subjectsObj).forEach(sub => {
+            let subData = subjectsObj[sub];
+            rows += `
+            <tr>
+                <td><b>${sub}</b></td>
+                <td>${subData.ca || 0}</td>
+                <td>${subData.exam || 0}</td>
+                <td><b>${subData.total || 0}</b></td>
+                <td><b>${subData.total >= 70 ? 'A' : subData.total >= 60 ? 'B' : subData.total >= 50 ? 'C' : 'F'}</b></td>
+            </tr>`;
+        });
+
+        container.innerHTML = `
+        <div id="printableArea" style="background:#fff; color:#000; padding:30px; border-radius:8px; border:1px solid #ccc;">
+            <div style="text-align:center; border-bottom:2px solid #0F172A; padding-bottom:15px; margin-bottom:15px;">
+                <h3>STAR ACADEMY OFFICIAL RESULT SLIP</h3>
+                <p style="margin:0; font-size:0.8rem; color:#64748B;">Academic Performance Report</p>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; font-size:0.9rem; margin-bottom:15px;">
+                <div><b>Student Name:</b> ${currentStudent.name}</div>
+                <div><b>Student ID:</b> ${currentStudent.studentID}</div>
+                <div><b>Class Level:</b> ${r.classAtTime || currentStudent.level}</div>
+                <div><b>Department:</b> ${currentStudent.department}</div>
+                <div><b>Term:</b> ${term}</div>
+                <div><b>Session:</b> ${session}</div>
+            </div>
+            <table>
+                <thead><tr><th>Subject</th><th>CA (40)</th><th>Exam (60)</th><th>Total (100)</th><th>Grade</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+            <div style="margin-top:15px; font-size:0.9rem; background:#F8FAFC; padding:12px; border-radius:6px;">
+                <div><b>Total Score:</b> ${r.total} &nbsp;|&nbsp; <b>Average Score:</b> ${Number(r.average).toFixed(2)}</div>
+                <div><b>Overall Grade:</b> ${r.grade} &nbsp;|&nbsp; <b>Status:</b> <span style="color:${r.status==='PASS'?'#10B981':'#EF4444'}; font-weight:700;">${r.status}</span></div>
+            </div>
+        </div>
+        <div style="margin-top:15px; display:flex; gap:10px;">
+            <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Save PDF</button>
+        </div>`;
+
+        showToast("Result loaded successfully!", "success");
+
+    } catch(e) {
+        container.innerHTML = `<p style="color:var(--error);">Error: ${e.message}</p>`;
+    }
+}
+
+/* --- VIEW 3: EXAMINATION CARD --- */
+async function loadMyExamCard() {
+    let session = document.getElementById("cardSession").value.trim();
+    let term = document.getElementById("cardTerm").value;
+    let container = document.getElementById("examCardOutputContainer");
+
+    if(!session) {
+        showToast("Please enter session.", "error");
+        return;
+    }
+
+    try {
+        showToast("Generating exam card...", "info");
+        let configSnap = await db.collection("schoolSettings").doc("globalConfig").get();
+        let config = configSnap.exists ? configSnap.data() : { schoolName: "Star Academy" };
+
+        let subjectsList = currentStudent.department === "Science" ? 
+            ["Mathematics", "English", "Biology", "Chemistry", "Physics"] : 
+            ["Literature", "Government", "Economics", "Islamic Studies", "English"];
+
+        let subjectsRows = subjectsList.map(sub => `<tr><td style="padding:6px; border:1px solid #CBD5E1;">${sub}</td><td style="border:1px solid #CBD5E1; text-align:center;"></td></tr>`).join("");
+        let initial = currentStudent.name.charAt(0).toUpperCase();
+
+        container.innerHTML = `
+        <div id="printableArea" style="background:#fff; color:#000; padding:25px; border:2px solid #0F172A; border-radius:8px; max-width:650px; margin:0 auto;">
+            <div style="display:flex; justify-content:space-between; border-bottom:2px solid #2563EB; padding-bottom:10px; margin-bottom:15px;">
+                <div>
+                    <h3 style="margin:0; font-size:1.1rem;">${config.schoolName || 'Star Academy'}</h3>
+                    <p style="margin:0; font-size:0.75rem; color:#64748B;">OFFICIAL EXAMINATION PHOTO-CARD</p>
+                </div>
+                <div style="text-align:right; font-size:0.75rem;">Session: ${session} | Term: ${term}</div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+                ${currentStudent.photoUrl ? `<img src="${currentStudent.photoUrl}" style="width:75px; height:85px; object-fit:cover; border:1px solid #333;" alt="Photo">` : `<div style="width:75px; height:85px; background:#2563EB; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800;">${initial}</div>`}
+                <div>
+                    <h4 style="margin:0 0 4px 0;">${currentStudent.name}</h4>
+                    <p style="margin:0; font-size:0.85rem;"><b>ID:</b> ${currentStudent.studentID} &nbsp;|&nbsp; <b>Level:</b> ${currentStudent.level}</p>
+                    <p style="margin:0; font-size:0.85rem;"><b>Dept:</b> ${currentStudent.department} &nbsp;|&nbsp; <b>Seat No:</b> SEAT-001</p>
+                </div>
+            </div>
+            <table style="margin-top:15px; width:100%; border-collapse:collapse;">
+                <thead><tr style="background:#f1f5f9;"><th style="padding:6px; border:1px solid #CBD5E1;">Subject Name</th><th style="border:1px solid #CBD5E1; text-align:center;">Invigilator Sign</th></tr></thead>
+                <tbody>${subjectsRows}</tbody>
+            </table>
+        </div>
+        <div style="text-align:center; margin-top:15px;">
+            <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Download Exam Card</button>
+        </div>`;
+
+        showToast("Exam card generated successfully!", "success");
+
+    } catch(e) {
+        container.innerHTML = `<p style="color:var(--error);">Error generating exam card.</p>`;
+    }
+}
+
+/* --- VIEW 4: CERTIFICATES --- */
+async function loadMyCertificates() {
+    let container = document.getElementById("certificatesOutputContainer");
+    try {
+        container.innerHTML = `<p style="color:var(--text-muted);">Checking issued certificates...</p>`;
+        // Check if student graduated or qualified
+        if(currentStudent.level !== "Level 3" && currentStudent.academicStatus !== "Graduated") {
+            container.innerHTML = `<div class="empty-state"><h4>No certificates available yet.</h4><p>Certificates for graduation or awards will appear here upon completion.</p></div>`;
+            return;
+        }
+
+        container.innerHTML = `
+        <div style="background:#FFFDF9; border:8px double #1E293B; padding:30px; border-radius:12px; text-align:center; max-width:750px; margin:auto;" id="printableArea">
+            <h2 style="color:#1E3A8A; text-transform:uppercase;">Certificate of Graduation</h2>
+            <p style="font-style:italic; color:#64748B;">This is proudly presented to</p>
+            <h1 style="border-bottom:2px solid #CBD5E1; display:inline-block; padding:0 20px; margin:10px 0;">${currentStudent.name}</h1>
+            <p style="max-width:550px; margin:15px auto; font-size:0.95rem; color:#334155;">
+                Admission Number <b>${currentStudent.studentID}</b>, having successfully completed all academic requirements at Star Academy.
+            </p>
+        </div>
+        <div style="text-align:center; margin-top:15px;">
+            <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Download Certificate</button>
+        </div>`;
+    } catch(e) {
+        container.innerHTML = `<p style="color:var(--error);">Error loading certificates.</p>`;
+    }
+}
+
+/* --- VIEW 5: NOTIFICATIONS --- */
+async function loadPortalNotifications() {
+    let container = document.getElementById("notificationsOutputContainer");
+    try {
+        let snap = await db.collection("notifications").orderBy("createdAt", "desc").get();
+        if(snap.empty) {
+            container.innerHTML = `<div class="empty-state"><h4>No notifications found.</h4></div>`;
+            return;
+        }
+        let html = "";
+        snap.forEach(doc => {
+            let n = doc.data();
+            if(n.target === 'All' || n.target === 'Students') {
+                let dateStr = n.createdAt ? new Date(n.createdAt).toLocaleString() : '';
+                html += `
+                <div style="background:var(--bg-main); border:1px solid var(--border-color); padding:15px; border-radius:6px; margin-bottom:12px; border-left:4px solid var(--primary);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <b>${n.title}</b>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${dateStr}</span>
+                    </div>
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-muted);">${n.message}</p>
+                </div>`;
+            }
+        });
+        container.innerHTML = html || `<div class="empty-state"><h4>No notices targeted for students.</h4></div>`;
+    } catch(e) {
+        container.innerHTML = `<p style="color:var(--error);">Error loading notifications.</p>`;
+    }
+}
+
+/* --- VIEW 6: ACADEMIC PROFILE --- */
+async function loadAcademicProfile() {
+    let container = document.getElementById("profileOutputContainer");
+    container.innerHTML = `
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:15px; font-size:0.9rem;">
+        <div><b>Full Name:</b> ${currentStudent.name}</div>
+        <div><b>Registration Number:</b> ${currentStudent.studentID}</div>
+        <div><b>Age / Gender:</b> ${currentStudent.age} / ${currentStudent.gender}</div>
+        <div><b>Department:</b> ${currentStudent.department}</div>
+        <div><b>Class Level:</b> ${currentStudent.level}</div>
+        <div><b>Phone Number:</b> ${currentStudent.phone}</div>
+        <div><b>Email Address:</b> ${currentStudent.email || 'N/A'}</div>
+        <div><b>State / LGA:</b> ${currentStudent.state || 'N/A'} / ${currentStudent.lga || 'N/A'}</div>
+        <div><b>School Name:</b> ${currentStudent.schoolName || 'N/A'}</div>
+        <div><b>Academic Status:</b> ${currentStudent.academicStatus || 'Active'}</div>
+    </div>`;
+}
+
+/* --- SETTINGS: PASSPORT & PASSWORD UPLOAD --- */
+const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+};
+
+async function uploadStudentPassport() {
+    let fileInput = document.getElementById("passportFileInput");
+    if(!fileInput.files[0]) {
+        showToast("Please select an image file first.", "error");
+        return;
+    }
+    try {
+        showToast("Uploading passport...", "info");
+        let base64Img = await convertFileToBase64(fileInput.files[0]);
+
+        await db.collection("students").doc(currentStudent.docId).update({
+            photoUrl: base64Img,
+            updatedAt: Date.now()
+        });
+
+        currentStudent.photoUrl = base64Img;
+        showToast("Passport updated successfully ✔", "success");
+        bootPortalSession();
+    } catch(e) {
+        showToast("Upload error: " + e.message, "error");
+    }
+}
+
+async function saveModalPassport() {
+    let fileInput = document.getElementById("modalPassportInput");
+    if(!fileInput.files[0]) {
+        showToast("Please select an image to continue.", "error");
+        return;
+    }
+    try {
+        showToast("Uploading passport...", "info");
+        let base64Img = await convertFileToBase64(fileInput.files[0]);
+
+        await db.collection("students").doc(currentStudent.docId).update({
+            photoUrl: base64Img,
+            updatedAt: Date.now()
+        });
+
+        currentStudent.photoUrl = base64Img;
+        document.getElementById("passportModal").classList.add("hidden");
+        showToast("Passport uploaded successfully ✔", "success");
+        bootPortalSession();
+    } catch(e) {
+        showToast("Error: " + e.message, "error");
+    }
+}
+
+async function updateStudentPassword() {
+    let newPass = document.getElementById("newPasswordInput").value.trim();
+    if(!newPass) {
+        showToast("Please enter a new password.", "error");
+        return;
+    }
+    try {
+        await db.collection("students").doc(currentStudent.docId).update({
+            password: newPass,
+            updatedAt: Date.now()
+        });
+        showToast("Password updated successfully ✔", "success");
+        document.getElementById("newPasswordInput").value = "";
+    } catch(e) {
+        showToast("Error updating password: " + e.message, "error");
+    }
+}
+
+/* --- AUTO SESSION RESTORE ON REFRESH --- */
+window.onload = async () => {
+    let savedID = localStorage.getItem("starAcademyStudentSession");
+    if(savedID) {
+        try {
+            let snap = await db.collection("students").where("studentID", "==", savedID).get();
+            if(!snap.empty) {
+                currentStudent = { docId: snap.docs[0].id, ...snap.docs[0].data() };
+                bootPortalSession();
+            }
+        } catch(e) {
+            console.error("Auto login error:", e);
+        }
+    }
+};
 </script>
 
 </body>
