@@ -423,6 +423,61 @@ button:disabled {
     text-align: center;
     font-family: 'Plus Jakarta Sans', serif;
 }    
+
+ /* --- PRINT STYLES FOR THEORY & OMR SHEETS --- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #theoryPreviewContainer, #theoryPreviewContainer *,
+    #omrPreviewContainer, #omrPreviewContainer * {
+        visibility: visible;
+    }
+    #theoryPreviewContainer, #omrPreviewContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .sheet-print-wrap {
+        break-inside: avoid;
+        page-break-after: always;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 15mm !important;
+    }
+}
+
+.sheet-print-wrap {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 35px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.omr-bubble {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #334155;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 18px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #475569;
+    margin-right: 6px;
+}
+   
     
 </style>
 
@@ -592,7 +647,9 @@ button:disabled {
 <button onclick="showSection('graduationSection')" style="background-color: #7C3AED;">Graduation Processing</button>
 <button onclick="showSection('settingsSection')" style="background-color: #475569;">School Settings & Branding</button>
 <button onclick="showSection('examCardSection')" style="background-color: var(--primary);">Examination Card Generator</button>
- <button onclick="showSection('certificateSection')" style="background-color: #D97706;">Certificate Generator & Management</button>   
+ <button onclick="showSection('certificateSection')" style="background-color: #D97706;">Certificate Generator & Management</button> 
+<button onclick="showSection('theorySheetSection')" style="background-color: #0284C7;">Theory Answer Sheet Generator</button>
+<button onclick="showSection('omrSheetSection')" style="background-color: #4F46E5;">OMR Sheet Generator (Multiple Choice)</button>
 <button onclick="showSection('deleteSection')" class="btn-danger">Delete Student</button>
 </div>
 </div>
@@ -978,6 +1035,126 @@ button:disabled {
 
 <div id="certificatePreviewContainer" style="margin-top:25px; overflow-x:auto;"></div>
 </div>
+
+<!-- THEORY ANSWER SHEET SECTION -->
+<div id="theorySheetSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Official Theory Answer Sheet Generator</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Generate professional examination answer booklets with institutional headers, candidate information boxes, page numbering, and examiner scoring margins.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Subject Title</label>
+        <input id="theorySubject" placeholder="e.g. Mathematics / Literature">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Target Class Level</label>
+        <select id="theoryClass">
+            <option>Primary</option>
+            <option>Junior Secondary</option>
+            <option>Fresh Class</option>
+            <option>AI Class</option>
+            <option>Level 1</option>
+            <option>Level 2</option>
+            <option>Level 3</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Academic Session</label>
+        <input id="theorySession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Term Assessment</label>
+        <select id="theoryTerm">
+            <option>First Term</option>
+            <option>Second Term</option>
+            <option selected>Third Term</option>
+        </select>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Number of Pages to Generate</label>
+        <select id="theoryPagesCount">
+            <option value="2">2 Pages Booklet</option>
+            <option value="4" selected>4 Pages Booklet (Standard)</option>
+            <option value="6">6 Pages Booklet</option>
+            <option value="8">8 Pages Booklet</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Exam Title / Code</label>
+        <input id="theoryExamTitle" placeholder="e.g. End of Term Examination">
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:20px;">
+    <button onclick="generateTheorySheetPreview()" style="background-color: var(--primary);">Preview Answer Booklet</button>
+    <button onclick="printTheorySheet()" style="background-color: var(--success);" id="printTheoryBtn" disabled>Print Booklet (A4)</button>
+</div>
+
+<div id="theoryPreviewContainer" style="margin-top:25px;"></div>
+</div>
+
+
+<!-- OMR SHEET GENERATOR SECTION -->
+<div id="omrSheetSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>OMR (Optical Mark Recognition) Sheet Generator</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Generate machine-readable multi-choice examination answer sheets aligned for future automated scanner grading.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Subject Title</label>
+        <input id="omrSubject" placeholder="e.g. General Science">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Class Level</label>
+        <select id="omrClass">
+            <option>Primary</option>
+            <option>Junior Secondary</option>
+            <option>Fresh Class</option>
+            <option>AI Class</option>
+            <option>Level 1</option>
+            <option>Level 2</option>
+            <option>Level 3</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Academic Session</label>
+        <input id="omrSession" placeholder="e.g. 2025/2026">
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Number of Questions</label>
+        <select id="omrQuestionsCount">
+            <option value="20">20 Questions</option>
+            <option value="40">40 Questions</option>
+            <option value="50" selected>50 Questions (Standard)</option>
+            <option value="60">60 Questions</option>
+            <option value="100">100 Questions</option>
+        </select>
+    </div>
+</div>
+
+<div style="display: flex; gap: 15px; margin-top: 15px; align-items: center;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Answer Options Layout</label>
+        <select id="omrOptionsLayout" style="width: 200px;">
+            <option value="4">A, B, C, D</option>
+            <option value="5">A, B, C, D, E</option>
+        </select>
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:20px;">
+    <button onclick="generateOmrSheetPreview()" style="background-color: var(--primary);">Preview OMR Sheet</button>
+    <button onclick="printOmrSheet()" style="background-color: var(--success);" id="printOmrBtn" disabled>Print OMR Sheet (A4)</button>
+</div>
+
+<div id="omrPreviewContainer" style="margin-top:25px;"></div>
+</div>
+
     
 <!-- STUDENT -->
 <div id="studentSection" class="card hidden">
@@ -1429,6 +1606,8 @@ document.getElementById("graduationSection").classList.add("hidden");
 document.getElementById("settingsSection").classList.add("hidden");
 document.getElementById("examCardSection").classList.add("hidden");
 document.getElementById("certificateSection").classList.add("hidden");
+document.getElementById("theorySheetSection").classList.add("hidden");
+document.getElementById("omrSheetSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
@@ -1459,9 +1638,11 @@ document.getElementById("graduationSection").classList.add("hidden");
 document.getElementById("settingsSection").classList.add("hidden");
 document.getElementById("examCardSection").classList.add("hidden");
 document.getElementById("certificateSection").classList.add("hidden");
+document.getElementById("theorySheetSection").classList.add("hidden");
+document.getElementById("omrSheetSection").classList.add("hidden");
 updateDashboardTotals();
 };
-     
+    
 /* ADD STUDENT WITH STRONG VALIDATION */
 window.addStudent = async () => {
 let btn = document.getElementById("saveStudentBtn");
@@ -3139,6 +3320,200 @@ window.generateCertificatePreview = async () => {
 window.printCertificate = () => {
     window.print();
 };
+
+/* --- PHASE 5: THEORY & OMR ANSWER SHEET GENERATOR SYSTEM --- */
+
+// 1. Theory Answer Sheet Preview & Generator
+window.generateTheorySheetPreview = async () => {
+    let subject = document.getElementById("theorySubject").value.trim();
+    let level = document.getElementById("theoryClass").value;
+    let session = document.getElementById("theorySession").value.trim();
+    let term = document.getElementById("theoryTerm").value;
+    let examTitle = document.getElementById("theoryExamTitle").value.trim() || "End of Term Examination";
+    let pagesCount = Number(document.getElementById("theoryPagesCount").value || 4);
+    let container = document.getElementById("theoryPreviewContainer");
+    let printBtn = document.getElementById("printTheoryBtn");
+
+    if (!subject || !session) {
+        showToast("Please provide a Subject Title and Academic Session.", "error");
+        return;
+    }
+
+    try {
+        showToast("Generating theory answer booklet...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Compiling booklet layout...</p>`;
+        printBtn.disabled = true;
+
+        let config = await getSchoolConfig();
+        let bookletHtml = "";
+
+        for (let i = 1; i <= pagesCount; i++) {
+            bookletHtml += `
+            <div class="sheet-print-wrap" style="page-break-after:always;">
+                <!-- Header -->
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0F172A; padding-bottom:12px; margin-bottom:15px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <img src="${config.logoUrl || 'logo.png'}" style="height:40px; width:auto;" alt="Logo">
+                        <div>
+                            <h3 style="margin:0; font-size:1rem; color:#0F172A;">${config.schoolName || 'Star Academy'}</h3>
+                            <p style="margin:0; font-size:0.7rem; color:#64748B;">${examTitle}</p>
+                        </div>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; color:#334155;">
+                        <div><b>Subject:</b> ${subject}</div>
+                        <div><b>Class:</b> ${level} | <b>Term:</b> ${term}</div>
+                    </div>
+                </div>
+
+                <!-- Candidate Info Box (Only on Cover Page i.e. Page 1) -->
+                ${i === 1 ? `
+                <div style="background:#F8FAFC; border:1px solid #CBD5E1; padding:12px; border-radius:6px; margin-bottom:15px; display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; font-size:0.85rem;">
+                    <div><b>Candidate Name:</b> _____________________________________</div>
+                    <div><b>Admission Number:</b> _______________________</div>
+                    <div><b>Session:</b> ${session}</div>
+                    <div><b>Date:</b> ___________________________________________</div>
+                </div>
+                <div style="border:1px solid #94A3B8; padding:8px; margin-bottom:15px; display:flex; justify-content:space-around; text-align:center; font-size:0.8rem; background:#FFF;">
+                    <div><b>Question No.</b><br>---</div>
+                    <div><b>Marks Allocated</b><br>---</div>
+                    <div><b>Examiner Score</b><br>_____</div>
+                </div>
+                ` : `
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748B; border-bottom:1px dashed #CBD5E1; margin-bottom:15px; padding-bottom:4px;">
+                    <div><b>Name:</b> ___________________________</div>
+                    <div><b>ID:</b> __________________</div>
+                    <div><b>Subject:</b> ${subject}</div>
+                </div>
+                `}
+
+                <!-- Writing Area / Ruling Grid -->
+                <div style="min-height:500px; border-left:2px solid #FCA5A5; padding-left:10px; background-image: linear-gradient(#E2E8F0 1px, transparent 1px); background-size: 100% 32px;">
+                    <!-- Lined space simulation -->
+                </div>
+
+                <!-- Footer Page Number -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; pt:10px; border-top:1px solid #CBD5E1; font-size:0.75rem; color:#64748B;">
+                    <div>${config.schoolName || 'Star Academy'} — Official Examination Booklet</div>
+                    <div><b>Page ${i} of ${pagesCount}</b></div>
+                </div>
+            </div>`;
+        }
+
+        container.innerHTML = bookletHtml;
+        printBtn.disabled = false;
+        showToast("Theory booklet generated successfully!", "success");
+
+    } catch (e) {
+        showToast("Error generating theory sheet: " + e.message, "error");
+        container.innerHTML = "";
+    }
+};
+
+window.printTheorySheet = () => {
+    window.print();
+};
+
+
+// 2. OMR Sheet Preview & Generator
+window.generateOmrSheetPreview = async () => {
+    let subject = document.getElementById("omrSubject").value.trim();
+    let level = document.getElementById("omrClass").value;
+    let session = document.getElementById("omrSession").value.trim();
+    let qCount = Number(document.getElementById("omrQuestionsCount").value || 50);
+    let optionsCount = Number(document.getElementById("omrOptionsLayout").value || 4);
+    let container = document.getElementById("omrPreviewContainer");
+    let printBtn = document.getElementById("printOmrBtn");
+
+    if (!subject || !session) {
+        showToast("Please provide a Subject Title and Academic Session.", "error");
+        return;
+    }
+
+    try {
+        showToast("Generating OMR answer sheet...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Configuring optical mark recognition bubbles...</p>`;
+        printBtn.disabled = true;
+
+        let config = await getSchoolConfig();
+        let optionsArr = optionsCount === 5 ? ['A', 'B', 'C', 'D', 'E'] : ['A', 'B', 'C', 'D'];
+
+        let columnsHtml = "";
+        let questionsPerColumn = Math.ceil(qCount / 2);
+
+        for (let col = 0; col < 2; col++) {
+            let startQ = col * questionsPerColumn + 1;
+            let endQ = Math.min((col + 1) * questionsPerColumn, qCount);
+            if (startQ > qCount) break;
+
+            let rows = "";
+            for (let q = startQ; q <= endQ; q++) {
+                let bubbles = optionsArr.map(opt => `<span class="omr-bubble">${opt}</span>`).join("");
+                rows += `
+                <div style="display:flex; align-items:center; margin-bottom:6px; font-size:0.8rem;">
+                    <span style="width:28px; font-weight:700; color:#0F172A; text-align:right; margin-right:8px;">${q}.</span>
+                    <div>${bubbles}</div>
+                </div>`;
+            }
+
+            columnsHtml += `<div style="flex:1; min-width:240px;">${rows}</div>`;
+        }
+
+        let omrHtml = `
+        <div class="sheet-print-wrap">
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0F172A; padding-bottom:12px; margin-bottom:15px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img src="${config.logoUrl || 'logo.png'}" style="height:45px; width:auto;" alt="Logo">
+                    <div>
+                        <h3 style="margin:0; font-size:1.1rem; color:#0F172A;">${config.schoolName || 'Star Academy'}</h3>
+                        <p style="margin:0; font-size:0.75rem; color:#64748B;"><b>OMR OBJECTIVE EXAMINATION SHEET</b></p>
+                    </div>
+                </div>
+                <div style="text-align:right; font-size:0.8rem; color:#334155;">
+                    <div><b>Subject:</b> ${subject}</div>
+                    <div><b>Class:</b> ${level} | <b>Session:</b> ${session}</div>
+                </div>
+            </div>
+
+            <!-- Instructions & Candidate Grid -->
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:15px; margin-bottom:20px; align-items:center;">
+                <div style="background:#F8FAFC; border:1px solid #CBD5E1; padding:10px; border-radius:6px; font-size:0.8rem;">
+                    <div style="margin-bottom:4px;"><b>Candidate Name:</b> _________________________________</div>
+                    <div style="margin-bottom:4px;"><b>Admission No:</b> ___________________ &nbsp; <b>Class:</b> ${level}</div>
+                    <div style="color:#64748B; font-size:0.75rem; margin-top:6px;"><b>Instructions:</b> Use HB Pencil only. Completely shade the circle corresponding to your correct answer. Avoid stray marks.</div>
+                </div>
+                <div style="border:2px dashed #64748B; padding:10px; text-align:center; border-radius:6px; background:#FFF;">
+                    <div style="font-size:0.7rem; font-weight:700; color:#64748B;">TOTAL QUESTIONS</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:#2563EB;">${qCount}</div>
+                </div>
+            </div>
+
+            <!-- OMR Bubbles Grid -->
+            <div style="border-top:1px solid #CBD5E1; border-bottom:1px solid #CBD5E1; padding:15px 0; display:flex; gap:30px; flex-wrap:wrap; justify-content:space-between;">
+                ${columnsHtml}
+            </div>
+
+            <!-- Footer Marker -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; font-size:0.7rem; color:#94A3B8;">
+                <div>||||| |||| |||||||| |||||| ||||||</div>
+                <div>OMR-SCAN-GRID-VER2.0</div>
+            </div>
+        </div>`;
+
+        container.innerHTML = omrHtml;
+        printBtn.disabled = false;
+        showToast("OMR sheet generated successfully!", "success");
+
+    } catch (e) {
+        showToast("Error generating OMR sheet: " + e.message, "error");
+        container.innerHTML = "";
+    }
+};
+
+window.printOmrSheet = () => {
+    window.print();
+};
+
      
 </script>
   
