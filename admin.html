@@ -3299,12 +3299,15 @@ window.generateExamCardsPreview = async () => {
                 studentName: s.name,
                 level: s.level,
                 department: s.department || "General",
+                gender: s.gender || "",
                 session: session,
                 term: term,
                 venue: venue,
                 examDate: examDate,
                 seatNo: seatNo,
                 documentNumber: docNumber,
+                photoUrl: s.photoUrl || "",
+                subjects: subjectsList,
                 createdAt: Date.now()
             }, { merge: true }));
 
