@@ -1476,7 +1476,7 @@ button:disabled {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, doc, runTransaction,
-query, where, getDocs, deleteDoc, updateDoc, getDoc
+query, where, getDocs, deleteDoc, updateDoc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -3247,6 +3247,7 @@ window.loadClassStudentsForExamCard = async () => {
     showToast(`Loaded class parameters for ${selectedClass}`, "info");
 };
 
+/* --- EXAMINATION CARD GENERATOR & DATABASE PUSH SYSTEM --- */
 window.generateExamCardsPreview = async () => {
     let session = document.getElementById("examCardSession").value.trim();
     let term = document.getElementById("examCardTerm").value;
@@ -3263,8 +3264,8 @@ window.generateExamCardsPreview = async () => {
     }
 
     try {
-        showToast("Generating examination cards...", "info");
-        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Compiling candidate registration and subjects...</p>`;
+        showToast("Generating and publishing examination cards...", "info");
+        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Compiling candidate registration and pushing to database...</p>`;
         printBtn.disabled = true;
 
         let config = await getSchoolConfig();
@@ -3284,13 +3285,29 @@ window.generateExamCardsPreview = async () => {
 
         let cardsHtml = "";
         let seatCounter = 1;
+        let batchPromises = [];
 
         studentSnap.forEach(docSnap => {
             let s = docSnap.data();
             let seatNo = `SEAT-${String(seatCounter++).padStart(3, '0')}`;
             let docNumber = `EXAM-CARD-${Math.floor(100000 + Math.random() * 900000)}`;
 
-            // Determine subjects based on level/department
+            // Push/save exam card data to Firestore so the student portal can read it
+            let cardDocRef = doc(db, "examCards", `${s.studentID}_${session}_${term}`.replace(/[\/\s]/g, "_"));
+            batchPromises.push(setDoc(cardDocRef, {
+                studentID: s.studentID,
+                studentName: s.name,
+                level: s.level,
+                department: s.department || "General",
+                session: session,
+                term: term,
+                venue: venue,
+                examDate: examDate,
+                seatNo: seatNo,
+                documentNumber: docNumber,
+                createdAt: Date.now()
+            }, { merge: true }));
+
             let subjectsList = [];
             if (s.level === "Fresh Class") {
                 subjectsList = ["General English", "Oral English", "Grammar", "Public Speaking", "Novel"];
@@ -3300,7 +3317,6 @@ window.generateExamCardsPreview = async () => {
                 subjectsList = ["Literature", "Government", "Economics", "Islamic Studies", "English"];
             }
 
-            // Clean subject rows without bracket squares
             let subjectsRows = subjectsList.map(sub => `<tr><td style="padding:6px 10px; border:1px solid #CBD5E1; font-size:0.85rem;">${sub}</td><td style="padding:6px 10px; border:1px solid #CBD5E1; text-align:center; font-size:0.85rem;"></td></tr>`).join("");
 
             let initial = s.name ? s.name.charAt(0).toUpperCase() : "S";
@@ -3374,16 +3390,19 @@ window.generateExamCardsPreview = async () => {
             </div>`;
         });
 
+        // Execute batch save to Firestore
+        await Promise.all(batchPromises);
+
         container.innerHTML = cardsHtml;
         printBtn.disabled = false;
-        showToast("Examination cards generated successfully!", "success");
+        showToast("Exam cards successfully published to database & generated!", "success");
 
     } catch (e) {
-        showToast("Error generating cards: " + e.message, "error");
+        showToast("Error publishing cards: " + e.message, "error");
         container.innerHTML = "";
     }
 };
-
+     
 window.printExamCards = () => {
     window.print();
 };
