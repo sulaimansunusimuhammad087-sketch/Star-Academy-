@@ -1003,113 +1003,296 @@ async function fetchStudentResults() {
     }
 }
 
-/* --- VIEW 3: EXAMINATION CARD (PULLED DIRECTLY FROM STUDENT BASE / ADMIN RECORDS) --- */
-async function loadMyExamCard() {
-    let session = document.getElementById("cardSession").value.trim();
-    let term = document.getElementById("cardTerm").value;
-    let container = document.getElementById("examCardOutputContainer");
 
-    if(!session) {
-        showToast("Please enter academic session.", "error");
+/* --- VIEW 3: LOAD OFFICIAL EXAM CARD CREATED BY ADMIN --- */
+async function loadMyExamCard() {
+
+    const session = document.getElementById("cardSession").value.trim();
+    const term = document.getElementById("cardTerm").value;
+    const container = document.getElementById("examCardOutputContainer");
+
+    if (!session) {
+        showToast("Please enter Academic Session.", "error");
         return;
     }
 
     try {
-        showToast("Loading your official examination card...", "info");
-        container.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Retrieving records from institutional database...</p>`;
 
-        // Fetch school configuration/branding
-        let configSnap = await db.collection("schoolSettings").doc("globalConfig").get();
-        let config = configSnap.exists ? configSnap.data() : { schoolName: "Star Academy" };
+        showToast("Loading official examination card...", "info");
 
-        // Verify enrollment/results existence to ensure student is active for this session/term
-        let checkResult = await db.collection("results")
+        container.innerHTML = `
+            <p style="text-align:center;color:var(--text-muted);">
+                Retrieving examination card...
+            </p>
+        `;
+
+        // School configuration
+        const configSnap = await db.collection("schoolSettings")
+            .doc("globalConfig")
+            .get();
+
+        const config = configSnap.exists
+            ? configSnap.data()
+            : {};
+
+        // Official exam card
+        const cardSnap = await db.collection("examCards")
             .where("studentID", "==", currentStudent.studentID)
             .where("session", "==", session)
             .where("term", "==", term)
+            .limit(1)
             .get();
 
-        // If no results or formal enrollment check exists, we still allow card generation if student is active,
-        // pulling curriculum subjects directly from their department/level.
-        let subjectsList = currentStudent.department === "Science" ? 
-            ["Mathematics", "English", "Biology", "Chemistry", "Physics"] : 
-            ["Literature", "Government", "Economics", "Islamic Studies", "English"];
+        if (cardSnap.empty) {
 
-        if (currentStudent.level === "Fresh Class") {
-            subjectsList = ["General English", "Oral English", "Grammar", "Public Speaking", "Novel"];
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h4>No examination card has been published yet.</h4>
+                    <p>Please contact the school administration.</p>
+                </div>
+            `;
+
+            return;
         }
 
-        let subjectsRows = subjectsList.map(sub => `<tr><td style="padding:6px 10px; border:1px solid #CBD5E1; font-size:0.85rem;">${sub}</td><td style="border:1px solid #CBD5E1; text-align:center;"></td></tr>`).join("");
-        let initial = currentStudent.name.charAt(0).toUpperCase();
-        let passportHtml = currentStudent.photoUrl ? 
-            `<img src="${currentStudent.photoUrl}" style="width:75px; height:85px; object-fit:cover; border:1px solid #333; border-radius:4px;" alt="Passport">` :
-            `<div style="width:75px; height:85px; background:#2563EB; color:#fff; font-size:1.5rem; font-weight:800; display:flex; align-items:center; justify-content:center; border-radius:4px;">${initial}</div>`;
+        const card = cardSnap.docs[0].data();
 
-        let docNumber = `EXAM-CARD-${currentStudent.studentID.replace(/[\/\s]/g, "")}-${term.substring(0,1)}`;
+        const passportHtml = card.photoUrl
+            ? `<img src="${card.photoUrl}"
+                    style="width:80px;height:95px;
+                    object-fit:cover;
+                    border:1px solid #ccc;
+                    border-radius:4px;">`
+            : `<div style="
+                    width:80px;
+                    height:95px;
+                    background:#2563EB;
+                    color:white;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:30px;
+                    font-weight:bold;
+                    border-radius:4px;">
+                    ${card.studentName.charAt(0)}
+               </div>`;
+
+        const subjectsRows = (card.subjects || [])
+            .map(subject => `
+                <tr>
+                    <td style="padding:6px;border:1px solid #CBD5E1;">
+                        ${subject}
+                    </td>
+
+                    <td style="
+                        border:1px solid #CBD5E1;
+                        text-align:center;">
+                    </td>
+                </tr>
+            `).join("");
 
         container.innerHTML = `
-        <div id="printableArea" style="background:#fff; color:#000; padding:25px; border:2px solid #0F172A; border-radius:8px; max-width:650px; margin:0 auto; box-sizing:border-box;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #2563EB; padding-bottom:10px; margin-bottom:15px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${config.logoUrl || 'logo.png'}" style="height:40px; width:auto;" alt="Logo">
-                    <div>
-                        <h3 style="margin:0; font-size:1.1rem;">${config.schoolName || 'Star Academy'}</h3>
-                        <p style="margin:0; font-size:0.7rem; color:#64748B;">OFFICIAL EXAMINATION PHOTO-CARD</p>
-                    </div>
-                </div>
-                <div style="text-align:right; font-size:0.75rem;">
-                    <div><b>Session:</b> ${session}</div>
-                    <div><b>Term:</b> ${term}</div>
-                    <div style="color:#64748B; font-size:0.65rem;">ID: ${docNumber}</div>
-                </div>
-            </div>
 
-            <div style="display:flex; gap:15px; align-items:start; flex-wrap:wrap;">
-                <div>${passportHtml}</div>
-                <div style="flex:1; min-width:200px;">
-                    <h4 style="margin:0 0 4px 0;">${currentStudent.name}</h4>
-                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:4px 10px; font-size:0.85rem; color:#334155;">
-                        <div><b>Admission No:</b> ${currentStudent.studentID}</div>
-                        <div><b>Class Level:</b> ${currentStudent.level}</div>
-                        <div><b>Department:</b> ${currentStudent.department}</div>
-                        <div><b>Venue:</b> <span style="color:#2563EB; font-weight:600;">Main Hall A</span></div>
-                        <div><b>Exam Date:</b> <span style="color:#10B981; font-weight:600;">Scheduled</span></div>
-                    </div>
-                </div>
-                <div style="text-align:center; background:#F8FAFC; padding:8px 12px; border:1px dashed #CBD5E1; border-radius:4px;">
-                    <div style="font-size:0.6rem; font-weight:700; color:#64748B;">SEAT NUMBER</div>
-                    <div style="font-size:0.95rem; font-weight:800; color:#2563EB; margin-top:2px;">SEAT-001</div>
-                </div>
-            </div>
+<div id="printableArea"
+style="
+background:white;
+color:black;
+padding:25px;
+border:2px solid #0F172A;
+border-radius:8px;
+max-width:650px;
+margin:auto;">
 
-            <table style="margin-top:15px; width:100%; border-collapse:collapse;">
-                <thead>
-                    <tr style="background:#f1f5f9;">
-                        <th style="padding:6px; border:1px solid #CBD5E1; font-size:0.8rem;">Subject Name</th>
-                        <th style="border:1px solid #CBD5E1; text-align:center; font-size:0.8rem; width:130px;">Invigilator Sign</th>
-                    </tr>
-                </thead>
-                <tbody>${subjectsRows}</tbody>
-            </table>
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:2px solid #2563EB;
+padding-bottom:10px;
+margin-bottom:15px;">
 
-            <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:flex-end; font-size:0.75rem; color:#64748B; border-top:1px solid #E2E8F0; padding-top:8px;">
-                <div><b>Note:</b> Bring this card along with your ID to every exam hall. No mobile phones allowed.</div>
-                <div style="text-align:center;">
-                    ${config.signUrl ? `<img src="${config.signUrl}" style="height:28px; display:block; margin:0 auto;" alt="Sign">` : ''}
-                    <div style="border-top:1px solid #000; width:120px; font-size:0.7rem; margin-top:4px;">Examination Officer</div>
-                </div>
-            </div>
-        </div>
-        <div style="text-align:center; margin-top:15px;">
-            <button onclick="window.print()" style="background-color: var(--success); width:auto;">Print / Download Exam Card</button>
-        </div>`;
+<div style="display:flex;gap:10px;align-items:center;">
 
-        showToast("Exam card loaded successfully ✔", "success");
+<img src="${config.logoUrl || 'logo.png'}"
+style="height:45px;">
 
-    } catch(e) {
-        container.innerHTML = `<p style="color:var(--error);">Error loading exam card: ${e.message}</p>`;
+<div>
+
+<h3 style="margin:0;">
+${config.schoolName || "Star Academy"}
+</h3>
+
+<p style="
+margin:0;
+font-size:12px;
+color:#666;">
+${config.address || ""}
+</p>
+
+</div>
+
+</div>
+
+<div style="text-align:right;">
+
+<div><b>Session:</b> ${card.session}</div>
+
+<div><b>Term:</b> ${card.term}</div>
+
+<div style="font-size:11px;color:#666;">
+${card.documentNumber}
+</div>
+
+</div>
+
+</div>
+
+
+<div style="
+display:grid;
+grid-template-columns:90px 1fr auto;
+gap:15px;">
+
+<div>
+${passportHtml}
+</div>
+
+<div>
+
+<h4 style="margin:0 0 8px;">
+${card.studentName}
+</h4>
+
+<div><b>Admission No:</b> ${card.studentID}</div>
+
+<div><b>Class:</b> ${card.level}</div>
+
+<div><b>Department:</b> ${card.department}</div>
+
+<div><b>Venue:</b> ${card.venue}</div>
+
+<div><b>Exam Date:</b> ${card.examDate}</div>
+
+</div>
+
+<div style="
+text-align:center;
+border:1px dashed #999;
+padding:10px;">
+
+<div style="font-size:12px;">
+SEAT NUMBER
+</div>
+
+<div style="
+font-weight:bold;
+font-size:18px;
+color:#2563EB;">
+${card.seatNo}
+</div>
+
+</div>
+
+</div>
+
+
+<table
+style="
+width:100%;
+margin-top:20px;
+border-collapse:collapse;">
+
+<thead>
+
+<tr>
+
+<th style="border:1px solid #CBD5E1;padding:6px;">
+Subject
+</th>
+
+<th style="border:1px solid #CBD5E1;padding:6px;">
+Invigilator Signature
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+${subjectsRows}
+
+</tbody>
+
+</table>
+
+
+<div style="
+margin-top:18px;
+display:flex;
+justify-content:space-between;
+align-items:flex-end;">
+
+<div style="
+font-size:12px;
+max-width:330px;">
+
+Bring this examination card to every examination.
+No mobile phones are allowed inside the examination hall.
+
+</div>
+
+<div style="text-align:center;">
+
+${config.signUrl
+? `<img src="${config.signUrl}" style="height:30px;">`
+: ""}
+
+<div style="
+border-top:1px solid black;
+width:140px;
+margin-top:4px;
+font-size:12px;">
+
+Examination Officer
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div style="text-align:center;margin-top:20px;">
+
+<button
+onclick="window.print()"
+style="background:var(--success);width:auto;">
+
+Print / Download Examination Card
+
+</button>
+
+</div>
+
+`;
+
+        showToast("Official examination card loaded successfully.", "success");
+
+    } catch (e) {
+
+        container.innerHTML = `
+            <p style="color:red;text-align:center;">
+                ${e.message}
+            </p>
+        `;
+
+        showToast("Unable to load examination card.", "error");
     }
 }
+
+                    
 
 /* --- VIEW 4: CERTIFICATES --- */
 async function loadMyCertificates() {
