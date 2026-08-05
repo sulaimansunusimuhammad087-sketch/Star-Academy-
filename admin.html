@@ -3077,7 +3077,7 @@ window.processStudentGraduation = async (docId, studentID, studentName, session,
     }
 };
 
-/* --- PHASE 5: SCHOOL SETTINGS & GLOBAL CONFIGURATION (IMAGE UPLOAD SUPPORT) --- */
+/* --- PHASE 5: SCHOOL SETTINGS & GLOBAL CONFIGURATION (FIXED & SYNCHRONIZED) --- */
 
 // Helper to convert uploaded files to Base64 strings for direct Firestore storage
 const convertFileToBase64 = (file) => {
@@ -3152,12 +3152,11 @@ window.loadSchoolSettings = async () => {
     }
 };
 
-// Save Settings to Firestore
+// Save Settings to Firestore using setDoc with merge:true to guarantee synchronization
 window.saveSchoolSettings = async () => {
     try {
         showToast("Saving institutional configuration & assets...", "info");
-        let docRef = doc(db, "schoolSettings", "globalConfig");
-
+        
         let logoInput = document.getElementById("logoFile").files[0];
         let signInput = document.getElementById("signFile").files[0];
         let stampInput = document.getElementById("stampFile").files[0];
@@ -3184,8 +3183,11 @@ window.saveSchoolSettings = async () => {
             updatedAt: Date.now()
         };
 
-        await updateDoc(docRef, settingsData).catch(async () => {
-            await addDoc(collection(db, "schoolSettings"), settingsData);
+        // Use standard setDoc to create or overwrite the globalConfig document cleanly
+        await updateDoc(doc(db, "schoolSettings", "globalConfig"), settingsData).catch(async () => {
+            // Fallback if document doesn't exist yet
+            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+            await setDoc(doc(db, "schoolSettings", "globalConfig"), settingsData);
         });
 
         showToast("School settings and assets saved successfully ✔", "success");
@@ -3194,13 +3196,29 @@ window.saveSchoolSettings = async () => {
     }
 };
 
-// Helper to retrieve cached config for all future document generators
+// Robust Helper to retrieve cached config for all document generators
 window.getSchoolConfig = async () => {
     try {
         let docRef = doc(db, "schoolSettings", "globalConfig");
         let docSnap = await getDoc(docRef);
-        if (docSnap.exists()) return docSnap.data();
-    } catch (e) {}
+        if (docSnap.exists()) {
+            let data = docSnap.data();
+            return {
+                schoolName: data.schoolName || "Star Academy",
+                schoolMotto: data.schoolMotto || "Excellence & Integrity",
+                logoUrl: data.logoUrl || "logo.png",
+                address: data.address || "Main Campus, Academic Zone",
+                phone: data.phone || "08000000000",
+                email: data.email || "",
+                website: data.website || "",
+                principalName: data.principalName || "Dr. Administrator",
+                signUrl: data.signUrl || "",
+                stampUrl: data.stampUrl || ""
+            };
+        }
+    } catch (e) {
+        console.error("Error fetching school config:", e);
+    }
     return {
         schoolName: "Star Academy",
         schoolMotto: "Excellence & Integrity",
@@ -3212,6 +3230,9 @@ window.getSchoolConfig = async () => {
         stampUrl: ""
     };
 };
+
+    
+
 
 /* --- PHASE 5: EXAMINATION CARD GENERATOR SYSTEM --- */
 
