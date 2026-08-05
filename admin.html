@@ -651,6 +651,7 @@ button:disabled {
 <button onclick="showSection('theorySheetSection')" style="background-color: #0284C7;">Theory Answer Sheet Generator</button>
 <button onclick="showSection('omrSheetSection')" style="background-color: #4F46E5;">OMR Sheet Generator (Multiple Choice)</button>
 <button onclick="showSection('examScheduleSection')" style="background-color: #7C2D12;">Examination Scheduling & Timetable</button>
+<button onclick="showSection('notificationSection')" style="background-color: #0D9488;">Institutional Notification Center</button>
 <button onclick="showSection('deleteSection')" class="btn-danger">Delete Student</button>
 </div>
 </div>
@@ -1241,7 +1242,76 @@ button:disabled {
     </div>
 </div>
 </div>
-   
+
+<!-- NOTIFICATION SYSTEM SECTION -->
+<div id="notificationSection" class="card hidden">
+<div class="back" onclick="goHome()">← Back to Menu</div>
+<h3>Institutional Notification Center & Broadcasts</h3>
+<p style="color: var(--text-muted); font-size: 0.9rem;">Broadcast announcements, exam timetables, result release updates, and notices directly to students, teachers, and parents across future portals.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Target Audience</label>
+        <select id="notifTarget">
+            <option value="All">All Users (Broadcast)</option>
+            <option value="Students">Students Portal</option>
+            <option value="Teachers">Teachers Portal</option>
+            <option value="Parents">Parents Portal</option>
+            <option value="Administrators">Administrators</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Notification Type</label>
+        <select id="notifType">
+            <option>General Announcement</option>
+            <option>Exam Schedule Notice</option>
+            <option>Promotion Notice</option>
+            <option>Graduation Notice</option>
+            <option>Result Released</option>
+            <option>Emergency Notice</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.85rem; font-weight:600;">Priority Level</label>
+        <select id="notifPriority">
+            <option value="Normal">Normal</option>
+            <option value="High">High / Urgent</option>
+        </select>
+    </div>
+</div>
+
+<div style="margin-top: 15px;">
+    <label style="font-size:0.85rem; font-weight:600;">Notification Title</label>
+    <input id="notifTitle" placeholder="e.g. Third Term Examination Timetable Released">
+</div>
+
+<div style="margin-top: 15px;">
+    <label style="font-size:0.85rem; font-weight:600;">Message Body</label>
+    <textarea id="notifMessage" rows="4" placeholder="Type detailed announcement message here..." style="width:100%; padding:12px 14px; margin-top:8px; border-radius:var(--radius-sm); border:1px solid var(--border-color); font-family:'Inter', sans-serif;"></textarea>
+</div>
+
+<button onclick="publishNotification()" style="background-color: var(--success); margin-top: 20px;">Publish & Broadcast Notification</button>
+
+<div style="margin-top: 35px;">
+    <h4 style="margin-bottom: 15px; color: var(--text-main);">Recent Broadcast History</h4>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date / Time</th>
+                    <th>Audience / Type</th>
+                    <th>Title & Message</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="notificationTableBody">
+                <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Loading notification logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+    
     
 <!-- STUDENT -->
 <div id="studentSection" class="card hidden">
@@ -1696,6 +1766,7 @@ document.getElementById("certificateSection").classList.add("hidden");
 document.getElementById("theorySheetSection").classList.add("hidden");
 document.getElementById("omrSheetSection").classList.add("hidden");
 document.getElementById("examScheduleSection").classList.add("hidden");
+document.getElementById("notificationSection").classList.add("hidden");
 
 document.getElementById(id).classList.remove("hidden");
 if(id === 'manageSection') {
@@ -1710,6 +1781,9 @@ if(id === 'settingsSection') {
 }
 if(id === 'examScheduleSection') {
     loadExamSchedules();
+}
+if(id === 'notificationSection') {
+    loadNotifications();
 }
 if(id === 'dashboard' || id === 'menu') {
     updateDashboardTotals();
@@ -1732,9 +1806,11 @@ document.getElementById("certificateSection").classList.add("hidden");
 document.getElementById("theorySheetSection").classList.add("hidden");
 document.getElementById("omrSheetSection").classList.add("hidden");
 document.getElementById("examScheduleSection").classList.add("hidden");
+document.getElementById("notificationSection").classList.add("hidden");
 updateDashboardTotals();
 };
-    
+
+     
 /* ADD STUDENT WITH STRONG VALIDATION */
 window.addStudent = async () => {
 let btn = document.getElementById("saveStudentBtn");
@@ -3700,6 +3776,100 @@ window.deleteExamSchedule = async (docId) => {
         loadExamSchedules();
     } catch (e) {
         showToast("Error deleting schedule: " + e.message, "error");
+    }
+};
+
+  /* --- PHASE 5: INSTITUTIONAL NOTIFICATION SYSTEM --- */
+
+window.loadNotifications = async () => {
+    let tbody = document.getElementById("notificationTableBody");
+    if (!tbody) return;
+
+    try {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Fetching notification history...</td></tr>`;
+        
+        let q = query(collection(db, "notifications"));
+        let snap = await getDocs(q);
+
+        if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No notification logs found.</td></tr>`;
+            return;
+        }
+
+        let records = [];
+        snap.forEach(docSnap => {
+            records.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        let rowsHtml = "";
+        records.forEach(n => {
+            let dateStr = n.createdAt ? new Date(n.createdAt).toLocaleString() : 'N/A';
+            let priorityBadge = n.priority === 'High' ? `<span style="background:var(--error); color:#fff; padding:2px 6px; border-radius:4px; font-size:0.65rem;">URGENT</span>` : '';
+
+            rowsHtml += `
+            <tr>
+                <td><b>${dateStr}</b></td>
+                <td><b>${n.target}</b><br><span style="font-size:0.75rem; color:var(--primary);">${n.type}</span></td>
+                <td><b>${n.title}</b> ${priorityBadge}<br><span style="font-size:0.8rem; color:var(--text-muted);">${n.message}</span></td>
+                <td><button onclick="deleteNotification('${n.id}')" class="btn-danger" style="width:auto; padding:4px 10px; margin:0; font-size:0.75rem;">Delete</button></td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = rowsHtml;
+
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--error);">Error loading notifications: ${e.message}</td></tr>`;
+    }
+};
+
+window.publishNotification = async () => {
+    let target = document.getElementById("notifTarget").value;
+    let type = document.getElementById("notifType").value;
+    let priority = document.getElementById("notifPriority").value;
+    let title = document.getElementById("notifTitle").value.trim();
+    let message = document.getElementById("notifMessage").value.trim();
+
+    if (!title || !message) {
+        showToast("Please provide both a notification title and message body.", "error");
+        return;
+    }
+
+    try {
+        showToast("Broadcasting notification...", "info");
+        
+        await addDoc(collection(db, "notifications"), {
+            target,
+            type,
+            priority,
+            title,
+            message,
+            publisher: "System Administrator",
+            createdAt: Date.now()
+        });
+
+        showToast("Notification Published Successfully ✔", "success");
+        
+        // Clear inputs
+        document.getElementById("notifTitle").value = "";
+        document.getElementById("notifMessage").value = "";
+
+        loadNotifications();
+
+    } catch (e) {
+        showToast("Error publishing notification: " + e.message, "error");
+    }
+};
+
+window.deleteNotification = async (docId) => {
+    if (!confirm("Are you sure you want to delete this notification record?")) return;
+    try {
+        await deleteDoc(doc(db, "notifications", docId));
+        showToast("Notification deleted successfully.", "success");
+        loadNotifications();
+    } catch (e) {
+        showToast("Error deleting notification: " + e.message, "error");
     }
 };
    
