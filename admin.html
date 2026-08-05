@@ -3294,6 +3294,15 @@ window.generateExamCardsPreview = async () => {
 
             // Push/save exam card data to Firestore so the student portal can read it
             let cardDocRef = doc(db, "examCards", `${s.studentID}_${session}_${term}`.replace(/[\/\s]/g, "_"));
+            let subjectsList = [];
+            if (s.level === "Fresh Class") {
+                subjectsList = ["General English", "Oral English", "Grammar", "Public Speaking", "Novel"];
+            } else if (s.department === "Science") {
+                subjectsList = ["Mathematics", "English", "Biology", "Chemistry", "Physics"];
+            } else {
+                subjectsList = ["Literature", "Government", "Economics", "Islamic Studies", "English"];
+            }
+            
             batchPromises.push(setDoc(cardDocRef, {
                 studentID: s.studentID,
                 studentName: s.name,
@@ -3311,15 +3320,7 @@ window.generateExamCardsPreview = async () => {
                 createdAt: Date.now()
             }, { merge: true }));
 
-            let subjectsList = [];
-            if (s.level === "Fresh Class") {
-                subjectsList = ["General English", "Oral English", "Grammar", "Public Speaking", "Novel"];
-            } else if (s.department === "Science") {
-                subjectsList = ["Mathematics", "English", "Biology", "Chemistry", "Physics"];
-            } else {
-                subjectsList = ["Literature", "Government", "Economics", "Islamic Studies", "English"];
-            }
-
+    
             let subjectsRows = subjectsList.map(sub => `<tr><td style="padding:6px 10px; border:1px solid #CBD5E1; font-size:0.85rem;">${sub}</td><td style="padding:6px 10px; border:1px solid #CBD5E1; text-align:center; font-size:0.85rem;"></td></tr>`).join("");
 
             let initial = s.name ? s.name.charAt(0).toUpperCase() : "S";
